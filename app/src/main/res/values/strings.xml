@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">ИLauncher</string>
+    <string name="accessibility_service_description">Блокировка системных жестов в скрытом режиме</string>
+    <string name="applications">ПРИЛОЖЕНИЯ</string>
+    <string name="settings">НАСТРОЙКИ</string>
+    <string name="select_all">ВЫБРАТЬ ВСЕ</string>
+    <string name="search">ПОИСК</string>
+    <string name="launch">ЗАПУСТИТЬ</string>
+    <string name="app_name_label">НАЗВАНИЕ ПРИЛОЖЕНИЯ</string>
+    <string name="package_name">com.example.android</string>
+    <string name="hidden_apps">Скрытые приложения</string>
+    <string name="show_hidden_apps">Показать скрытые приложения</string>
+    <string name="hide_selected_apps">Скрыть выбранные приложения</string>
+    <string name="key_configuration">Комбинации клавиш</string>
+    <string name="toggle_visibility_key">Активация/деактивация режима</string>
+    <string name="icon_pack">Набор иконок</string>
+    <string name="default_icon_pack">Стандартные иконки</string>
+    <string name="default_home_screen">Рабочий стол по умолчанию</string>
+    <string name="touch_screen_disabled">Сенсорный экран отключен</string>
+    <string name="press_key_to_enable">Нажмите настроенную комбинацию для включения</string>
+    
+    <!-- Key combinations -->
+    <string name="combo_both_volume">Обе кнопки громкости одновременно</string>
+    <string name="combo_power_hold">Зажатие кнопки выключения</string>
+    <string name="combo_power_vol_up">Выключение + Громче</string>
+    <string name="combo_power_vol_down">Выключение + Тише</string>
+    <string name="combo_vol_up_long">Долгое зажатие Громче</string>
+    <string name="combo_vol_down_long">Долгое зажатие Тише</string>
+</resources>
