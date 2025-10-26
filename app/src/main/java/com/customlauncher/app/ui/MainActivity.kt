@@ -1,5 +1,6 @@
 package com.customlauncher.app.ui
 
+import android.app.AlertDialog
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -145,9 +146,90 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         // Long press on home screen opens app list
         binding.appsGrid.setOnLongClickListener {
+            // Check if all permissions are granted
+            if (!checkAllPermissions()) {
+                showPermissionsDialog()
+                return@setOnLongClickListener false
+            }
+            
             startActivity(Intent(this, AppListActivity::class.java))
             true
         }
+    }
+    
+    private fun checkAllPermissions(): Boolean {
+        var allGranted = true
+        val missingPermissions = mutableListOf<String>()
+        
+        // Check Accessibility Service
+        if (!isAccessibilityServiceEnabled()) {
+            allGranted = false
+            missingPermissions.add("Специальные возможности")
+        }
+        
+        // Check Overlay Permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!android.provider.Settings.canDrawOverlays(this)) {
+                allGranted = false
+                missingPermissions.add("Наложение поверх окон")
+            }
+        }
+        
+        // Check Do Not Disturb Permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (!notificationManager.isNotificationPolicyAccessGranted) {
+                allGranted = false
+                missingPermissions.add("Режим не беспокоить")
+            }
+        }
+        
+        // Check Write Settings Permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!android.provider.Settings.System.canWrite(this)) {
+                allGranted = false
+                missingPermissions.add("Изменение системных настроек")
+            }
+        }
+        
+        return allGranted
+    }
+    
+    private fun showPermissionsDialog() {
+        val missingPermissions = mutableListOf<String>()
+        
+        // Check which permissions are missing
+        if (!isAccessibilityServiceEnabled()) {
+            missingPermissions.add("• Специальные возможности")
+        }
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!android.provider.Settings.canDrawOverlays(this)) {
+                missingPermissions.add("• Наложение поверх окон")
+            }
+            
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (!notificationManager.isNotificationPolicyAccessGranted) {
+                missingPermissions.add("• Режим не беспокоить")
+            }
+            
+            if (!android.provider.Settings.System.canWrite(this)) {
+                missingPermissions.add("• Изменение системных настроек")
+            }
+        }
+        
+        val message = "Для корректной работы приложения необходимо включить следующие разрешения:\n\n" +
+                missingPermissions.joinToString("\n") +
+                "\n\nПерейти в настройки?"
+        
+        AlertDialog.Builder(this)
+            .setTitle("Требуются разрешения")
+            .setMessage(message)
+            .setPositiveButton("Настройки") { _, _ ->
+                startActivity(Intent(this, SettingsActivity::class.java))
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
     }
     
     private fun observeViewModel() {
@@ -212,21 +294,21 @@ class MainActivity : AppCompatActivity() {
             KeyCombination.BOTH_VOLUME -> {
                 if (volumeUpPressed && volumeDownPressed) {
                     Log.d("MainActivity", "Both volume buttons detected!")
-                    toggleAppsVisibility()
+                    toggleHiddenMode()
                     return true
                 }
             }
             KeyCombination.POWER_VOL_UP -> {
                 if (powerPressed && volumeUpPressed) {
                     Log.d("MainActivity", "Power + Vol Up detected!")
-                    toggleAppsVisibility()
+                    toggleHiddenMode()
                     return true
                 }
             }
             KeyCombination.POWER_VOL_DOWN -> {
                 if (powerPressed && volumeDownPressed) {
                     Log.d("MainActivity", "Power + Vol Down detected!")
-                    toggleAppsVisibility()
+                    toggleHiddenMode()
                     return true
                 }
             }
@@ -236,7 +318,7 @@ class MainActivity : AppCompatActivity() {
                     longPressRunnable?.let { keyPressHandler.removeCallbacks(it) }
                     longPressRunnable = Runnable {
                         Log.d("MainActivity", "Vol Up long press triggered!")
-                        toggleAppsVisibility()
+                        toggleHiddenMode()
                     }
                     keyPressHandler.postDelayed(longPressRunnable!!, 1000)
                     return true
@@ -248,7 +330,7 @@ class MainActivity : AppCompatActivity() {
                     longPressRunnable?.let { keyPressHandler.removeCallbacks(it) }
                     longPressRunnable = Runnable {
                         Log.d("MainActivity", "Vol Down long press triggered!")
-                        toggleAppsVisibility()
+                        toggleHiddenMode()
                     }
                     keyPressHandler.postDelayed(longPressRunnable!!, 1000)
                     return true
@@ -260,7 +342,7 @@ class MainActivity : AppCompatActivity() {
                     longPressRunnable?.let { keyPressHandler.removeCallbacks(it) }
                     longPressRunnable = Runnable {
                         Log.d("MainActivity", "Power long press triggered!")
-                        toggleAppsVisibility()
+                        toggleHiddenMode()
                     }
                     keyPressHandler.postDelayed(longPressRunnable!!, 1000)
                     return true
@@ -295,18 +377,20 @@ class MainActivity : AppCompatActivity() {
         return super.onKeyUp(keyCode, event)
     }
     
-    private fun toggleAppsVisibility() {
-        val isHidden = preferences.appsHidden
-        preferences.appsHidden = !isHidden
+    private fun toggleHiddenMode() {
+        // Toggle hidden mode
+        val currentState = HiddenModeStateManager.currentState
+        val newState = !currentState
+        HiddenModeStateManager.setHiddenMode(this, newState)
+        
+        // Update UI immediately
         updateVisibility()
         
-        // Toggle Do Not Disturb mode
-        toggleDoNotDisturb(!isHidden)
-        
-        val message = if (!isHidden) {
-            "Приложения скрыты, режим не беспокоить включен"
+        // Show feedback
+        val message = if (newState) {
+            "Приложения скрыты, сенсор заблокирован"
         } else {
-            "Приложения показаны, режим не беспокоить выключен"
+            "Приложения видимы, сенсор активен"
         }
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }

@@ -3370,6 +3370,7 @@ id disablePostScroll
 id disableScroll
 id disjoint
 id dndPermissionButton
+id dndStatusIcon
 id dndStatusText
 id dragAnticlockwise
 id dragClockwise
@@ -3560,6 +3561,7 @@ id open_search_view_toolbar_container
 id outline
 id outward
 id overlayPermissionButton
+id overlayStatusIcon
 id overlayStatusText
 id overshoot
 id packageName

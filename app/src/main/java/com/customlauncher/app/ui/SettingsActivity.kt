@@ -1,6 +1,7 @@
 package com.customlauncher.app.ui
 
 import android.app.AlertDialog
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -35,14 +36,8 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
         
         setupTabs()
-        setupKeyCombinationSelection()
         setupHomeScreenSelector()
-        setupOverlayPermission()
-        setupDndPermission()
         setupPermissionsSection()
-        updateStatusText()
-        updateOverlayStatus()
-        updateDndStatus()
         checkAllPermissions()
     }
     
@@ -109,63 +104,6 @@ class SettingsActivity : AppCompatActivity() {
         binding.statusText.text = status
     }
     
-    private fun setupOverlayPermission() {
-        binding.overlayPermissionButton.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-                intent.data = android.net.Uri.parse("package:$packageName")
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "Разрешение не требуется на этой версии Android", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-    
-    private fun updateOverlayStatus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val hasPermission = Settings.canDrawOverlays(this)
-            binding.overlayStatusText.text = if (hasPermission) {
-                "Статус: Разрешено"
-            } else {
-                "Статус: Не настроено"
-            }
-            binding.overlayStatusText.setTextColor(
-                if (hasPermission) getColor(R.color.accent_yellow) else getColor(R.color.text_gray)
-            )
-        } else {
-            binding.overlayStatusText.text = "Не требуется"
-            binding.overlayStatusText.setTextColor(getColor(R.color.text_gray))
-        }
-    }
-    
-    private fun setupDndPermission() {
-        binding.dndPermissionButton.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "Режим не беспокоить не поддерживается на этой версии Android", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-    
-    private fun updateDndStatus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            val isEnabled = notificationManager.isNotificationPolicyAccessGranted
-            binding.dndStatusText.text = if (isEnabled) {
-                "Статус: Разрешено"
-            } else {
-                "Статус: Не настроено"
-            }
-            binding.dndStatusText.setTextColor(
-                if (isEnabled) getColor(R.color.accent_yellow) else getColor(R.color.text_gray)
-            )
-        } else {
-            binding.dndStatusText.text = "Не поддерживается"
-            binding.dndStatusText.setTextColor(getColor(R.color.text_gray))
-        }
-    }
     
     private fun updateStatusText() {
         val isHidden = preferences.areAppsHidden()
@@ -229,6 +167,34 @@ class SettingsActivity : AppCompatActivity() {
             startActivityForResult(intent, REQUEST_CODE_ACCESSIBILITY)
         }
         
+        // Overlay Permission (Touch Block)
+        binding.overlayPermissionButton.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.canDrawOverlays(this)) {
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Разрешение уже предоставлено", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        
+        // Do Not Disturb Permission
+        binding.dndPermissionButton.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if (!notificationManager.isNotificationPolicyAccessGranted) {
+                    val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Разрешение уже предоставлено", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        
         // Write Settings
         binding.writeSettingsButton.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -255,6 +221,33 @@ class SettingsActivity : AppCompatActivity() {
             binding.accessibilityStatusIcon.setImageResource(R.drawable.ic_close)
             binding.accessibilityStatusText.text = "Не включено"
             binding.accessibilityStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+        }
+        
+        // Check Overlay Permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.canDrawOverlays(this)) {
+                binding.overlayStatusIcon.setImageResource(R.drawable.ic_check)
+                binding.overlayStatusText.text = "Разрешено"
+                binding.overlayStatusText.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            } else {
+                binding.overlayStatusIcon.setImageResource(R.drawable.ic_close)
+                binding.overlayStatusText.text = "Не разрешено"
+                binding.overlayStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+            }
+        }
+        
+        // Check Do Not Disturb Permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (notificationManager.isNotificationPolicyAccessGranted) {
+                binding.dndStatusIcon.setImageResource(R.drawable.ic_check)
+                binding.dndStatusText.text = "Разрешено"
+                binding.dndStatusText.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            } else {
+                binding.dndStatusIcon.setImageResource(R.drawable.ic_close)
+                binding.dndStatusText.text = "Не разрешено"
+                binding.dndStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+            }
         }
         
         // Check Write Settings
@@ -294,7 +287,5 @@ class SettingsActivity : AppCompatActivity() {
         super.onResume()
         updateUI()
         checkAllPermissions()
-        updateOverlayStatus()
-        updateDndStatus()
     }
 }

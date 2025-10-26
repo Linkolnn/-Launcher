@@ -35,12 +35,13 @@ class TouchBlockService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_BLOCK_TOUCH -> {
-                startForegroundService()
+                // Don't show notification - work silently
+                // startForegroundService()
                 blockTouch()
             }
             ACTION_UNBLOCK_TOUCH -> {
                 unblockTouch()
-                stopForeground(true)
+                // stopForeground(true)
                 stopSelf()
             }
         }

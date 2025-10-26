@@ -56,10 +56,12 @@ id comboPowerVolUp
 id comboVolDownLong
 id comboVolUpLong
 id dndPermissionButton
+id dndStatusIcon
 id dndStatusText
 id keyCombinationGroup
 id launchButton
 id overlayPermissionButton
+id overlayStatusIcon
 id overlayStatusText
 id packageName
 id searchBar
