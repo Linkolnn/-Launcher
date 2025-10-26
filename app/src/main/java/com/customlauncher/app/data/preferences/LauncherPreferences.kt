@@ -2,6 +2,7 @@ package com.customlauncher.app.data.preferences
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.customlauncher.app.data.model.KeyCombination
 
 class LauncherPreferences(context: Context) {
@@ -95,6 +96,13 @@ class LauncherPreferences(context: Context) {
         get() = prefs.getString(KEY_DEFAULT_HOME, "standard") ?: "standard"
         set(value) = prefs.edit().putString(KEY_DEFAULT_HOME, value).apply()
     
+    var selectedKeyCombination: KeyCombination
+        get() {
+            val ordinal = prefs.getInt(KEY_SELECTED_COMBINATION, KeyCombination.BOTH_VOLUME.ordinal)
+            return KeyCombination.values().getOrNull(ordinal) ?: KeyCombination.BOTH_VOLUME
+        }
+        set(value) = prefs.edit().putInt(KEY_SELECTED_COMBINATION, value.ordinal).apply()
+    
     companion object {
         private const val PREFS_NAME = "launcher_preferences"
         private const val KEY_COMBINATION = "key_combination"
@@ -103,5 +111,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_HIDDEN_APPS = "hidden_apps"
         private const val KEY_TOUCH_BLOCKED = "touch_blocked"
         private const val KEY_DEFAULT_HOME = "default_home_screen"
+        private const val KEY_SELECTED_COMBINATION = "selected_key_combination"
     }
 }

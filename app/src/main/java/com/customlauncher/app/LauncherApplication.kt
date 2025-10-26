@@ -14,6 +14,9 @@ class LauncherApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        
+        // Don't reset state - preserve user's choice
+        // The hidden mode should persist until user explicitly changes it
     }
     
     companion object {

@@ -20,6 +20,17 @@ import com.customlauncher.app.ui.adapter.AppGridAdapter
 import com.customlauncher.app.ui.viewmodel.AppViewModel
 import android.util.Log
 import android.widget.Toast
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import com.customlauncher.app.receiver.KeyCombinationReceiver
+import android.app.KeyguardManager
+import android.view.WindowManager
+import com.customlauncher.app.manager.HiddenModeStateManager
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
+import android.provider.Settings
+import android.text.TextUtils
 
 class MainActivity : AppCompatActivity() {
     
@@ -35,12 +46,35 @@ class MainActivity : AppCompatActivity() {
     private val keyPressHandler = Handler(Looper.getMainLooper())
     private var longPressRunnable: Runnable? = null
     
+    // BroadcastReceiver for key combinations from AccessibilityService
+    private val keyCombinationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                KeyCombinationReceiver.ACTION_KEY_COMBINATION_DETECTED -> {
+                    Log.d("MainActivity", "Received key combination broadcast")
+                    // Update UI after visibility change
+                    updateVisibility()
+                }
+                "com.customlauncher.HIDDEN_MODE_CHANGED" -> {
+                    val isHidden = intent.getBooleanExtra("hidden", false)
+                    Log.d("MainActivity", "Received hidden mode change broadcast: $isHidden")
+                    // Force refresh state and UI
+                    HiddenModeStateManager.refreshState(context ?: return)
+                    updateVisibility()
+                }
+            }
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
         // MainActivity is now only for HOME screen
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        
+        // Remove lock screen flags - we only want them when explicitly needed
+        // These flags were preventing normal lock screen from appearing
         
         // Make system bars transparent
         window.decorView.systemUiVisibility = (
@@ -55,8 +89,23 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         observeViewModel()
         
+        // Observe state changes from StateManager
+        lifecycleScope.launch {
+            HiddenModeStateManager.isHiddenMode.collectLatest { isHidden ->
+                Log.d("MainActivity", "State changed: hidden=$isHidden")
+                viewModel.loadApps()
+            }
+        }
+        
         // Check overlay permission for touch blocking
         checkOverlayPermission()
+        
+        // Register broadcast receiver for multiple actions
+        val filter = IntentFilter().apply {
+            addAction(KeyCombinationReceiver.ACTION_KEY_COMBINATION_DETECTED)
+            addAction("com.customlauncher.HIDDEN_MODE_CHANGED")
+        }
+        registerReceiver(keyCombinationReceiver, filter)
         
         // Check initial state
         updateVisibility()
@@ -122,23 +171,21 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         viewModel.loadApps()
         
-        // Restore touch blocking state if apps are hidden
-        if (preferences.appsHidden && preferences.touchScreenBlocked) {
-            val intent = Intent(this, TouchBlockService::class.java)
-            intent.action = TouchBlockService.ACTION_BLOCK_TOUCH
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-            Log.d("MainActivity", "Restored touch blocking on resume")
-        }
+        // Sync with state manager
+        HiddenModeStateManager.refreshState(this)
         
+        // Update UI based on current state
         updateVisibility()
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Don't handle keys if AccessibilityService is enabled
+        // Let AccessibilityService handle all key combinations
+        if (isAccessibilityServiceEnabled()) {
+            Log.d("MainActivity", "Key down: $keyCode - handled by AccessibilityService")
+            return super.onKeyDown(keyCode, event)
+        }
+        
         Log.d("MainActivity", "Key down: $keyCode")
         
         when (keyCode) {
@@ -224,6 +271,14 @@ class MainActivity : AppCompatActivity() {
     }
     
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        // Don't handle keys if AccessibilityService is enabled
+        if (isAccessibilityServiceEnabled()) {
+            Log.d("MainActivity", "Key up: $keyCode - handled by AccessibilityService")
+            return super.onKeyUp(keyCode, event)
+        }
+        
+        Log.d("MainActivity", "Key up: $keyCode")
+        
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> volumeUpPressed = false
             KeyEvent.KEYCODE_VOLUME_DOWN -> volumeDownPressed = false
@@ -283,38 +338,33 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updateVisibility() {
-        val hidden = preferences.appsHidden
+        // Use state manager for consistent state
+        val hidden = HiddenModeStateManager.currentState
         
-        // Update touch screen blocked state
-        preferences.touchScreenBlocked = hidden
+        Log.d("MainActivity", "Updating visibility: hidden=$hidden")
         
-        if (hidden) {
-            // Start touch block service as foreground service
-            val intent = Intent(this, TouchBlockService::class.java)
-            intent.action = TouchBlockService.ACTION_BLOCK_TOUCH
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-            Log.d("MainActivity", "Touch blocking enabled")
-        } else {
-            // Stop touch block service
-            val intent = Intent(this, TouchBlockService::class.java)
-            intent.action = TouchBlockService.ACTION_UNBLOCK_TOUCH
-            startService(intent)
-            Log.d("MainActivity", "Touch blocking disabled")
-        }
-        
-        // Reload apps to update visibility
+        // Update app list
         viewModel.loadApps()
+        
+        // Touch blocking is handled by StateManager
+        // No need to manage it here
+    }
+    
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val serviceName = "${packageName}/${com.customlauncher.app.service.SystemBlockAccessibilityService::class.java.canonicalName}"
+        val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        return enabledServices?.contains(serviceName) == true
     }
     
     override fun onDestroy() {
         super.onDestroy()
         longPressRunnable?.let {
             keyPressHandler.removeCallbacks(it)
+        }
+        try {
+            unregisterReceiver(keyCombinationReceiver)
+        } catch (e: Exception) {
+            // Receiver might not be registered
         }
     }
     

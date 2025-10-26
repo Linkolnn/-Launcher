@@ -19,6 +19,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.customlauncher.app.R
 import com.customlauncher.app.ui.MainActivity
+import android.app.KeyguardManager
+import com.customlauncher.app.LauncherApplication
 
 class TouchBlockService : Service() {
     
@@ -51,13 +53,14 @@ class TouchBlockService : Service() {
             val channel = NotificationChannel(
                 channelId,
                 "Touch Block Service",
-                NotificationManager.IMPORTANCE_NONE  // Changed to NONE to hide notification
+                NotificationManager.IMPORTANCE_HIGH  // High importance for lock screen
             ).apply {
                 description = "Blocks touch input when apps are hidden"
                 setShowBadge(false)
                 setSound(null, null)
                 enableVibration(false)
-                setLockscreenVisibility(Notification.VISIBILITY_SECRET)
+                setLockscreenVisibility(Notification.VISIBILITY_PUBLIC) // Show on lock screen
+                setBypassDnd(true) // Bypass Do Not Disturb
             }
             
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -73,18 +76,22 @@ class TouchBlockService : Service() {
         
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(android.R.drawable.ic_menu_info_details)
-            .setPriority(NotificationCompat.PRIORITY_MIN)  // Minimum priority
-            .setVisibility(NotificationCompat.VISIBILITY_SECRET)  // Hide from lock screen
+            .setPriority(NotificationCompat.PRIORITY_HIGH)  // High priority
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)  // Show on lock screen
             .setSilent(true)
-            .setOngoing(false)
+            .setOngoing(true) // Keep it ongoing
             .setContentIntent(pendingIntent)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
         
         startForeground(NOTIFICATION_ID, notification)
     }
     
     private fun blockTouch() {
-        if (blockView != null) return
+        if (blockView != null) {
+            android.util.Log.d("TouchBlockService", "Block view already exists")
+            return
+        }
         
         // Check permission first
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -93,6 +100,8 @@ class TouchBlockService : Service() {
                 return
             }
         }
+        
+        android.util.Log.d("TouchBlockService", "Starting touch blocking...")
         
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         
@@ -103,31 +112,24 @@ class TouchBlockService : Service() {
             WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
         }
         
-        // Enhanced flags to block everything including system UI
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+        // Flags to block all touch events completely
+        val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN or
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN
+        
+        // Add flag to show on lock screen for Android O_MR1+
+        val finalFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
         } else {
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN or
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+            @Suppress("DEPRECATION")
+            flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
         }
         
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             layoutFlag,
-            flags,
+            finalFlags,
             PixelFormat.TRANSLUCENT
         )
         
@@ -138,13 +140,27 @@ class TouchBlockService : Service() {
             params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
         
-        blockView = FrameLayout(this).apply {
-            // Transparent overlay - no darkening of screen
-            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        blockView = object : FrameLayout(this@TouchBlockService) {
+            override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+                // Intercept and consume ALL touch events at dispatch level
+                android.util.Log.d("TouchBlockService", "Touch intercepted at dispatch: ${ev?.action}")
+                return true
+            }
             
-            // Make it clickable to intercept all touches
+            override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+                // Also intercept at this level for extra safety
+                return true
+            }
+        }.apply {
+            // Semi-transparent overlay to show it's blocking
+            setBackgroundColor(0x01000000) // Almost transparent black
+            
+            // Make it intercept ALL touches
             isClickable = true
-            isFocusable = false
+            isFocusable = false  // Don't take focus to allow key events
+            isFocusableInTouchMode = false
+            isLongClickable = true
+            isEnabled = true
             
             // Set system UI visibility to hide status bar and navigation
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -161,18 +177,15 @@ class TouchBlockService : Service() {
             }
             
             setOnTouchListener { _, event ->
-                // Block all touch events including swipes from edges
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN,
-                    MotionEvent.ACTION_UP,
-                    MotionEvent.ACTION_MOVE,
-                    MotionEvent.ACTION_CANCEL,
-                    MotionEvent.ACTION_OUTSIDE -> {
-                        android.util.Log.d("TouchBlockService", "Touch blocked: ${event.action} at ${event.x}, ${event.y}")
-                        true
-                    }
-                    else -> true
-                }
+                // Block ALL touch events
+                android.util.Log.d("TouchBlockService", "Touch blocked: action=${event.action}, x=${event.x}, y=${event.y}")
+                true // Always consume the touch event
+            }
+            
+            // Also set a generic touch interceptor
+            setOnGenericMotionListener { _, event ->
+                android.util.Log.d("TouchBlockService", "Motion blocked: action=${event.action}")
+                true
             }
         }
         
@@ -336,5 +349,6 @@ class TouchBlockService : Service() {
         const val ACTION_BLOCK_TOUCH = "com.customlauncher.app.BLOCK_TOUCH"
         const val ACTION_UNBLOCK_TOUCH = "com.customlauncher.app.UNBLOCK_TOUCH"
         private const val NOTIFICATION_ID = 1001
+        private const val TAG = "TouchBlockService"
     }
 }
