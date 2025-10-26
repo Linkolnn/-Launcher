@@ -121,9 +121,16 @@ object HiddenModeStateManager {
     
     private fun stopTouchBlockService(context: Context) {
         Log.d(TAG, "Stopping touch block service")
+        // First send unblock action
         val intent = Intent(context, TouchBlockService::class.java)
         intent.action = TouchBlockService.ACTION_UNBLOCK_TOUCH
         context.startService(intent)
+        
+        // Then force stop the service after a delay to ensure cleanup
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            context.stopService(Intent(context, TouchBlockService::class.java))
+            Log.d(TAG, "Force stopped TouchBlockService")
+        }, 100)
     }
     
     private fun disableTouchSensor(context: Context) {

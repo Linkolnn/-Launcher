@@ -30,11 +30,30 @@ class TouchBlockService : Service() {
     private var lockScreenBlockView: View? = null
     private var windowManager: WindowManager? = null
     
+    override fun onCreate() {
+        super.onCreate()
+        // Check if we should run at all
+        val preferences = getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
+        val isHidden = preferences.getBoolean("apps_hidden", false)
+        if (!isHidden) {
+            android.util.Log.d(TAG, "Service created but not in hidden mode, stopping immediately")
+            stopSelf()
+        }
+    }
+    
     override fun onBind(intent: Intent?): IBinder? = null
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_BLOCK_TOUCH -> {
+                // Check if we should actually block (only in hidden mode)
+                val preferences = getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
+                val isHidden = preferences.getBoolean("apps_hidden", false)
+                if (!isHidden) {
+                    android.util.Log.d(TAG, "Not in hidden mode, stopping service")
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
                 // Don't show notification - work silently
                 // startForegroundService()
                 blockTouch()
@@ -45,7 +64,7 @@ class TouchBlockService : Service() {
                 stopSelf()
             }
         }
-        return START_STICKY
+        return START_NOT_STICKY // Don't restart if killed
     }
     
     private fun startForegroundService() {
@@ -111,6 +130,14 @@ class TouchBlockService : Service() {
     
     private fun blockTouch() {
         try {
+            // Check if we should actually block (only in hidden mode)
+            val preferences = getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
+            val isHidden = preferences.getBoolean("apps_hidden", false)
+            if (!isHidden) {
+                android.util.Log.d("TouchBlockService", "Not in hidden mode, skipping touch blocking")
+                return
+            }
+            
             if (blockView != null) {
                 android.util.Log.d("TouchBlockService", "Block view already exists")
                 return
@@ -124,7 +151,7 @@ class TouchBlockService : Service() {
                 }
             }
             
-            android.util.Log.d("TouchBlockService", "Starting touch blocking...")
+            android.util.Log.d("TouchBlockService", "Starting touch blocking in hidden mode...")
             
             windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         
@@ -640,6 +667,34 @@ class TouchBlockService : Service() {
             result = resources.getDimensionPixelSize(resourceId)
         }
         return result
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        android.util.Log.d(TAG, "TouchBlockService onDestroy called")
+        // Make sure to remove all overlays when service is destroyed
+        unblockTouch()
+        // Force cleanup
+        try {
+            windowManager?.let { wm ->
+                listOf(blockView, statusBarBlockView, navigationBarBlockView, lockScreenBlockView).forEach { view ->
+                    view?.let {
+                        try {
+                            wm.removeViewImmediate(it)
+                        } catch (e: Exception) {
+                            // Ignore - view might already be removed
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Error in final cleanup", e)
+        }
+        blockView = null
+        statusBarBlockView = null
+        navigationBarBlockView = null
+        lockScreenBlockView = null
+        windowManager = null
     }
     
     companion object {

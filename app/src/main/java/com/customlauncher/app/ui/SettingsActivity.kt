@@ -57,6 +57,9 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupKeyCombinationSelection() {
         // Key combination radio buttons
         binding.keyCombinationGroup.setOnCheckedChangeListener { _, checkedId ->
+            // Ignore if no button is checked (happens during initialization)
+            if (checkedId == -1) return@setOnCheckedChangeListener
+            
             val combination = when (checkedId) {
                 R.id.comboBothVolume -> KeyCombination.BOTH_VOLUME
                 R.id.comboPowerHold -> KeyCombination.POWER_HOLD
@@ -64,10 +67,14 @@ class SettingsActivity : AppCompatActivity() {
                 R.id.comboPowerVolDown -> KeyCombination.POWER_VOL_DOWN
                 R.id.comboVolUpLong -> KeyCombination.VOL_UP_LONG
                 R.id.comboVolDownLong -> KeyCombination.VOL_DOWN_LONG
-                else -> KeyCombination.VOL_DOWN_LONG
+                else -> return@setOnCheckedChangeListener // Don't save if unknown
             }
-            preferences.keyCombination = combination
-            Toast.makeText(this, "Комбинация клавиш сохранена", Toast.LENGTH_SHORT).show()
+            
+            // Only save if actually changed
+            if (preferences.keyCombination != combination) {
+                preferences.keyCombination = combination
+                Toast.makeText(this, "Комбинация клавиш сохранена", Toast.LENGTH_SHORT).show()
+            }
         }
     }
     
@@ -79,6 +86,9 @@ class SettingsActivity : AppCompatActivity() {
     }
     
     private fun updateUI() {
+        // Temporarily remove listener to avoid triggering save
+        binding.keyCombinationGroup.setOnCheckedChangeListener(null)
+        
         // Set selected radio button based on saved combination
         val radioButtonId = when (preferences.keyCombination) {
             KeyCombination.BOTH_VOLUME -> R.id.comboBothVolume
@@ -89,6 +99,9 @@ class SettingsActivity : AppCompatActivity() {
             KeyCombination.VOL_DOWN_LONG -> R.id.comboVolDownLong
         }
         binding.keyCombinationGroup.check(radioButtonId)
+        
+        // Re-attach listener after setting value
+        setupKeyCombinationSelection()
         
         // Update status
         val isHidden = preferences.areAppsHidden()

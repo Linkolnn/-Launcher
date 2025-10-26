@@ -18,8 +18,15 @@ class LauncherPreferences(context: Context) {
     private val cacheLock = Any()
     
     var keyCombination: KeyCombination
-        get() = KeyCombination.fromId(prefs.getInt(KEY_COMBINATION, KeyCombination.VOL_DOWN_LONG.id))
-        set(value) = prefs.edit().putInt(KEY_COMBINATION, value.id).apply()
+        get() {
+            val id = prefs.getInt(KEY_COMBINATION, KeyCombination.VOL_DOWN_LONG.id)
+            android.util.Log.d("LauncherPreferences", "Getting keyCombination: id=$id")
+            return KeyCombination.fromId(id)
+        }
+        set(value) {
+            android.util.Log.d("LauncherPreferences", "Setting keyCombination: ${value.name} (id=${value.id})")
+            prefs.edit().putInt(KEY_COMBINATION, value.id).commit() // Use commit() for immediate save
+        }
     
     var appsHidden: Boolean
         get() = prefs.getBoolean(KEY_APPS_HIDDEN, false)

@@ -106,7 +106,11 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             HiddenModeStateManager.isHiddenMode.collectLatest { isHidden ->
                 Log.d("MainActivity", "State changed: hidden=$isHidden")
-                viewModel.loadApps()
+                // Debounce app loading to avoid excessive updates
+                keyPressHandler.removeCallbacksAndMessages("load_apps")
+                keyPressHandler.postDelayed({
+                    viewModel.loadApps()
+                }, "load_apps", 200)
             }
         }
         
@@ -245,48 +249,44 @@ class MainActivity : AppCompatActivity() {
     
     private fun observeViewModel() {
         viewModel.allApps.observe(this) { apps ->
-            // Process in background thread to avoid UI blocking
-            lifecycleScope.launch(Dispatchers.Default) {
-                try {
-                    // Show all apps or only visible based on hidden state
-                    val hidden = preferences.appsHidden
-                    val appsToShow = if (hidden) {
-                        // Filter out hidden apps
-                        apps.filter { !it.isHidden }
-                    } else {
-                        // Show all apps
-                        apps
-                    }
-                    
-                    // Update UI on main thread
-                    withContext(Dispatchers.Main) {
-                        try {
-                            appAdapter.submitList(appsToShow)
-                        } catch (e: Exception) {
-                            Log.e("MainActivity", "Error updating app list", e)
+            // Debounce updates to avoid excessive recomposition
+            keyPressHandler.removeCallbacksAndMessages("update_apps")
+            keyPressHandler.postDelayed({
+                // Process in background thread to avoid UI blocking
+                lifecycleScope.launch(Dispatchers.Default) {
+                    try {
+                        // Show all apps or only visible based on hidden state
+                        val hidden = preferences.appsHidden
+                        val appsToShow = if (hidden) {
+                            // Filter out hidden apps
+                            apps.filter { !it.isHidden }
+                        } else {
+                            // Show all apps
+                            apps
                         }
+                        
+                        // Update UI on main thread
+                        withContext(Dispatchers.Main) {
+                            try {
+                                // Only update if activity is still active
+                                if (!isFinishing && !isDestroyed) {
+                                    appAdapter.submitList(appsToShow)
+                                } else {
+                                    Log.d("MainActivity", "Activity is finishing, skipping update")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("MainActivity", "Error updating app list", e)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MainActivity", "Error processing apps", e)
                     }
-                } catch (e: Exception) {
-                    Log.e("MainActivity", "Error processing apps", e)
                 }
-            }
+            }, "update_apps", 100) // 100ms debounce
         }
     }
     
-    override fun onResume() {
-        super.onResume()
-        viewModel.loadApps()
-        
-        // Sync with state manager
-        HiddenModeStateManager.refreshState(this)
-        
-        // Update UI based on current state
-        updateVisibility()
-    }
-    
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        // Don't handle keys if AccessibilityService is enabled
-        // Let AccessibilityService handle all key combinations
         if (isAccessibilityServiceEnabled()) {
             Log.d("MainActivity", "Key down: $keyCode - handled by AccessibilityService")
             return super.onKeyDown(keyCode, event)
@@ -451,8 +451,11 @@ class MainActivity : AppCompatActivity() {
         
         Log.d("MainActivity", "Updating visibility: hidden=$hidden")
         
-        // Update app list
-        viewModel.loadApps()
+        // Update app list with debounce
+        keyPressHandler.removeCallbacksAndMessages("load_apps")
+        keyPressHandler.postDelayed({
+            viewModel.loadApps()
+        }, "load_apps", 100)
         
         // Touch blocking is handled by StateManager
         // No need to manage it here
