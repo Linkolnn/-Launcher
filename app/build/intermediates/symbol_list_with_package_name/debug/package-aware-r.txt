@@ -1417,6 +1417,7 @@ color abc_tint_edittext
 color abc_tint_seek_thumb
 color abc_tint_spinner
 color abc_tint_switch_track
+color accent_green
 color accent_material_dark
 color accent_material_light
 color accent_yellow
@@ -3090,11 +3091,13 @@ drawable ic_call_answer_video
 drawable ic_call_answer_video_low
 drawable ic_call_decline
 drawable ic_call_decline_low
+drawable ic_check
 drawable ic_checkbox_checked
 drawable ic_checkbox_checked_new
 drawable ic_checkbox_unchecked
 drawable ic_clear_black_24
 drawable ic_clock_black_24dp
+drawable ic_close
 drawable ic_keyboard_black_24dp
 drawable ic_launcher_foreground
 drawable ic_lock
@@ -3207,6 +3210,9 @@ id SYM
 id TOP_END
 id TOP_START
 id accelerate
+id accessibilitySettingsButton
+id accessibilityStatusIcon
+id accessibilityStatusText
 id accessibility_action_clickable_span
 id accessibility_custom_action_0
 id accessibility_custom_action_1
@@ -3355,6 +3361,9 @@ id design_menu_item_action_area
 id design_menu_item_action_area_stub
 id design_menu_item_text
 id design_navigation_view
+id deviceAdminSettingsButton
+id deviceAdminStatusIcon
+id deviceAdminStatusText
 id dialog_button
 id dimensions
 id direct
@@ -3588,6 +3597,9 @@ id right
 id rightToLeft
 id right_icon
 id right_side
+id rootCheckButton
+id rootStatusIcon
+id rootStatusText
 id rounded
 id row_index_key
 id rtl
@@ -3732,6 +3744,9 @@ id withinBounds
 id wrap
 id wrap_content
 id wrap_content_constrained
+id writeSettingsButton
+id writeSettingsStatusIcon
+id writeSettingsStatusText
 id x_left
 id x_right
 integer abc_config_activityDefaultDur
@@ -5485,3 +5500,4 @@ styleable include constraintSet
 xml accessibility_service_config
 xml backup_rules
 xml data_extraction_rules
+xml device_admin

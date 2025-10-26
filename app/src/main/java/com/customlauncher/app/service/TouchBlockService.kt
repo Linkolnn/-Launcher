@@ -24,10 +24,11 @@ import com.customlauncher.app.LauncherApplication
 
 class TouchBlockService : Service() {
     
-    private var windowManager: WindowManager? = null
     private var blockView: View? = null
     private var statusBarBlockView: View? = null
     private var navigationBarBlockView: View? = null
+    private var lockScreenBlockView: View? = null
+    private var windowManager: WindowManager? = null
     
     override fun onBind(intent: Intent?): IBinder? = null
     
@@ -105,24 +106,40 @@ class TouchBlockService : Service() {
         
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         
-        val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+        // Use highest priority overlay type
+        val layoutFlag = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1 -> {
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_SYSTEM_ERROR
+            }
+            else -> {
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+            }
         }
         
-        // Flags to block all touch events completely
+        // Flags to block all touch events completely on all screens
         val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
         
-        // Add flag to show on lock screen for Android O_MR1+
-        val finalFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-        } else {
-            @Suppress("DEPRECATION")
-            flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+        // Add flags to show on lock screen and dismiss keyguard
+        val finalFlags = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> {
+                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            }
+            else -> {
+                @Suppress("DEPRECATION")
+                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            }
         }
         
         val params = WindowManager.LayoutParams(
@@ -151,9 +168,15 @@ class TouchBlockService : Service() {
                 // Also intercept at this level for extra safety
                 return true
             }
+            
+            override fun onTouchEvent(event: MotionEvent?): Boolean {
+                // Final level of touch interception
+                android.util.Log.d("TouchBlockService", "Touch blocked at onTouchEvent: ${event?.action}")
+                return true
+            }
         }.apply {
-            // Semi-transparent overlay to show it's blocking
-            setBackgroundColor(0x01000000) // Almost transparent black
+            // Completely transparent overlay
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
             
             // Make it intercept ALL touches
             isClickable = true
@@ -196,6 +219,16 @@ class TouchBlockService : Service() {
             // Add additional overlays for status bar and navigation bar
             addStatusBarBlock()
             addNavigationBarBlock()
+            
+            // Add extra layer for lock screen if device is locked
+            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                if (keyguardManager.isDeviceLocked) {
+                    addLockScreenBlock()
+                }
+            } else if (keyguardManager.isKeyguardLocked) {
+                addLockScreenBlock()
+            }
         } catch (e: Exception) {
             android.util.Log.e("TouchBlockService", "Failed to add overlay", e)
         }
@@ -206,31 +239,56 @@ class TouchBlockService : Service() {
         
         val statusBarHeight = getStatusBarHeight()
         
-        val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_SYSTEM_ERROR
+        val layoutFlag = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            }
+            else -> {
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_SYSTEM_ERROR
+            }
         }
         
-        // More aggressive parameters for status bar blocking
+        // Aggressive parameters for complete status bar blocking
+        val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
+        
+        // Add lock screen flags
+        val finalFlags = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> {
+                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+            }
+            else -> {
+                @Suppress("DEPRECATION")
+                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+            }
+        }
+        
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
-            statusBarHeight + 100, // Increased height to better catch swipes
+            statusBarHeight + 200, // Extra height to catch all swipes
             layoutFlag,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+            finalFlags,
             PixelFormat.TRANSLUCENT
         )
         
         params.gravity = Gravity.TOP or Gravity.START
         params.x = 0
-        params.y = -50 // More aggressive offset
+        params.y = -100 // Even more aggressive offset to cover pull-down area
         
-        statusBarBlockView = View(this).apply {
+        // Set to cover display cutout
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+        
+        statusBarBlockView = object : View(this@TouchBlockService) {
+            override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
+                android.util.Log.d("TouchBlockService", "Status bar touch intercepted: ${event?.action}")
+                return true
+            }
+        }.apply {
             setBackgroundColor(android.graphics.Color.TRANSPARENT)
             isClickable = true
             isFocusable = false
@@ -254,31 +312,51 @@ class TouchBlockService : Service() {
         
         val navBarHeight = getNavigationBarHeight()
         
-        val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_SYSTEM_ERROR
+        val layoutFlag = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            }
+            else -> {
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_SYSTEM_ERROR
+            }
         }
         
-        // More aggressive parameters for navigation bar blocking
+        // Aggressive parameters for complete navigation bar blocking
+        val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
+        
+        // Add lock screen flags
+        val finalFlags = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> {
+                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+            }
+            else -> {
+                @Suppress("DEPRECATION")
+                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+            }
+        }
+        
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
-            navBarHeight + 100, // Increased height to better catch swipes
+            navBarHeight + 200, // Extra height to catch all swipes
             layoutFlag,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+            finalFlags,
             PixelFormat.TRANSLUCENT
         )
         
         params.gravity = Gravity.BOTTOM or Gravity.START
         params.x = 0
-        params.y = -50 // More aggressive offset
+        params.y = -100 // Even more aggressive offset to cover swipe-up area
         
-        navigationBarBlockView = View(this).apply {
+        navigationBarBlockView = object : View(this@TouchBlockService) {
+            override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
+                android.util.Log.d("TouchBlockService", "Navigation bar touch intercepted: ${event?.action}")
+                return true
+            }
+        }.apply {
             setBackgroundColor(android.graphics.Color.TRANSPARENT)
             isClickable = true
             isFocusable = false
@@ -306,6 +384,83 @@ class TouchBlockService : Service() {
         return result
     }
     
+    private fun addLockScreenBlock() {
+        if (lockScreenBlockView != null) return
+        
+        android.util.Log.d("TouchBlockService", "Adding lock screen block layer")
+        
+        val layoutFlag = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            }
+            else -> {
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_SYSTEM_ERROR
+            }
+        }
+        
+        // Maximum priority flags for lock screen
+        val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
+        
+        val finalFlags = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> {
+                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            }
+            else -> {
+                @Suppress("DEPRECATION")
+                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            }
+        }
+        
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            layoutFlag,
+            finalFlags,
+            PixelFormat.TRANSLUCENT
+        )
+        
+        params.gravity = Gravity.CENTER
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+        
+        lockScreenBlockView = object : FrameLayout(this@TouchBlockService) {
+            override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+                android.util.Log.d("TouchBlockService", "Lock screen touch intercepted: ${ev?.action}")
+                return true
+            }
+            
+            override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+                return true
+            }
+        }.apply {
+            setBackgroundColor(0x05000000) // Very slight tint to show it's working
+            isClickable = true
+            isFocusable = false
+            isLongClickable = true
+            
+            setOnTouchListener { _, event ->
+                android.util.Log.d("TouchBlockService", "Lock screen touch blocked: ${event.action}")
+                true
+            }
+        }
+        
+        try {
+            windowManager?.addView(lockScreenBlockView, params)
+            android.util.Log.d("TouchBlockService", "Lock screen block layer added")
+        } catch (e: Exception) {
+            android.util.Log.e("TouchBlockService", "Failed to add lock screen block", e)
+        }
+    }
+    
     private fun getNavigationBarHeight(): Int {
         var result = 0
         val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
@@ -316,27 +471,26 @@ class TouchBlockService : Service() {
     }
     
     private fun unblockTouch() {
-        blockView?.let {
-            windowManager?.removeView(it)
-            blockView = null
-        }
-        
-        statusBarBlockView?.let {
-            try {
+        try {
+            blockView?.let {
                 windowManager?.removeView(it)
-            } catch (e: Exception) {
-                android.util.Log.e("TouchBlockService", "Error removing status bar block", e)
+                blockView = null
             }
-            statusBarBlockView = null
-        }
-        
-        navigationBarBlockView?.let {
-            try {
+            statusBarBlockView?.let {
                 windowManager?.removeView(it)
-            } catch (e: Exception) {
-                android.util.Log.e("TouchBlockService", "Error removing navigation bar block", e)
+                statusBarBlockView = null
             }
-            navigationBarBlockView = null
+            navigationBarBlockView?.let {
+                windowManager?.removeView(it)
+                navigationBarBlockView = null
+            }
+            lockScreenBlockView?.let {
+                windowManager?.removeView(it)
+                lockScreenBlockView = null
+            }
+            android.util.Log.d("TouchBlockService", "Touch unblocked - all layers removed")
+        } catch (e: Exception) {
+            android.util.Log.e("TouchBlockService", "Error removing overlay", e)
         }
     }
     

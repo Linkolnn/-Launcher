@@ -14,11 +14,25 @@ import com.customlauncher.app.LauncherApplication
 import com.customlauncher.app.R
 import com.customlauncher.app.data.model.KeyCombination
 import com.customlauncher.app.databinding.ActivitySettingsBinding
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import com.customlauncher.app.receiver.LauncherDeviceAdminReceiver
+import android.text.TextUtils
+import android.util.Log
+import androidx.core.content.ContextCompat
+import java.io.DataOutputStream
 
 class SettingsActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivitySettingsBinding
     private val preferences by lazy { LauncherApplication.instance.preferences }
+    
+    companion object {
+        private const val REQUEST_CODE_DEVICE_ADMIN = 1001
+        private const val REQUEST_CODE_WRITE_SETTINGS = 1002
+        private const val REQUEST_CODE_ACCESSIBILITY = 1003
+        private const val TAG = "SettingsActivity"
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,9 +44,11 @@ class SettingsActivity : AppCompatActivity() {
         setupHomeScreenSelector()
         setupOverlayPermission()
         setupDndPermission()
+        setupPermissionsSection()
         updateStatusText()
         updateOverlayStatus()
         updateDndStatus()
+        checkAllPermissions()
     }
     
     
@@ -205,15 +221,175 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
     
-    override fun onResume() {
-        super.onResume()
-        updateUI()
-        updateOverlayStatus()
-        updateDndStatus()
-    }
     
     override fun onBackPressed() {
         super.onBackPressed()
         finish()
+    }
+    
+    private fun setupPermissionsSection() {
+        // Accessibility Service
+        binding.accessibilitySettingsButton.setOnClickListener {
+            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            startActivityForResult(intent, REQUEST_CODE_ACCESSIBILITY)
+        }
+        
+        // Device Admin
+        binding.deviceAdminSettingsButton.setOnClickListener {
+            val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            val componentName = ComponentName(this, LauncherDeviceAdminReceiver::class.java)
+            
+            if (!devicePolicyManager.isAdminActive(componentName)) {
+                val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
+                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName)
+                intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, 
+                    "Требуется для полной блокировки сенсора в скрытом режиме")
+                startActivityForResult(intent, REQUEST_CODE_DEVICE_ADMIN)
+            } else {
+                Toast.makeText(this, "Администратор устройства уже активирован", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // Write Settings
+        binding.writeSettingsButton.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.System.canWrite(this)) {
+                    val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+                    intent.data = Uri.parse("package:$packageName")
+                    startActivityForResult(intent, REQUEST_CODE_WRITE_SETTINGS)
+                } else {
+                    Toast.makeText(this, "Разрешение уже предоставлено", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        
+        // Root Check
+        binding.rootCheckButton.setOnClickListener {
+            checkRootAccess()
+        }
+    }
+    
+    private fun checkAllPermissions() {
+        // Check Accessibility Service
+        val accessibilityEnabled = isAccessibilityServiceEnabled()
+        if (accessibilityEnabled) {
+            binding.accessibilityStatusIcon.setImageResource(R.drawable.ic_check)
+            binding.accessibilityStatusText.text = "Включено"
+            binding.accessibilityStatusText.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+        } else {
+            binding.accessibilityStatusIcon.setImageResource(R.drawable.ic_close)
+            binding.accessibilityStatusText.text = "Не включено"
+            binding.accessibilityStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+        }
+        
+        // Check Device Admin
+        val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        val componentName = ComponentName(this, LauncherDeviceAdminReceiver::class.java)
+        if (devicePolicyManager.isAdminActive(componentName)) {
+            binding.deviceAdminStatusIcon.setImageResource(R.drawable.ic_check)
+            binding.deviceAdminStatusText.text = "Активирован"
+            binding.deviceAdminStatusText.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+        } else {
+            binding.deviceAdminStatusIcon.setImageResource(R.drawable.ic_close)
+            binding.deviceAdminStatusText.text = "Не активирован"
+            binding.deviceAdminStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+        }
+        
+        // Check Write Settings
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.System.canWrite(this)) {
+                binding.writeSettingsStatusIcon.setImageResource(R.drawable.ic_check)
+                binding.writeSettingsStatusText.text = "Разрешено"
+                binding.writeSettingsStatusText.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            } else {
+                binding.writeSettingsStatusIcon.setImageResource(R.drawable.ic_close)
+                binding.writeSettingsStatusText.text = "Не разрешено"
+                binding.writeSettingsStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+            }
+        }
+    }
+    
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val serviceName = "${packageName}/${com.customlauncher.app.service.SystemBlockAccessibilityService::class.java.canonicalName}"
+        val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        return enabledServices?.contains(serviceName) == true
+    }
+    
+    private fun checkRootAccess() {
+        binding.rootCheckButton.isEnabled = false
+        binding.rootStatusText.text = "Проверка..."
+        
+        Thread {
+            val hasRoot = checkRoot()
+            runOnUiThread {
+                binding.rootCheckButton.isEnabled = true
+                if (hasRoot) {
+                    binding.rootStatusIcon.setImageResource(R.drawable.ic_check)
+                    binding.rootStatusText.text = "Доступен"
+                    binding.rootStatusText.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+                    requestRootPermission()
+                } else {
+                    binding.rootStatusIcon.setImageResource(R.drawable.ic_close)
+                    binding.rootStatusText.text = "Не доступен"
+                    binding.rootStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+                    Toast.makeText(this, "Root доступ не обнаружен на устройстве", Toast.LENGTH_LONG).show()
+                }
+            }
+        }.start()
+    }
+    
+    private fun checkRoot(): Boolean {
+        return try {
+            val process = Runtime.getRuntime().exec("su -c echo test")
+            val exitCode = process.waitFor()
+            exitCode == 0
+        } catch (e: Exception) {
+            Log.e(TAG, "Root check failed", e)
+            false
+        }
+    }
+    
+    private fun requestRootPermission() {
+        Thread {
+            try {
+                // Request root permission for the app
+                val process = Runtime.getRuntime().exec("su")
+                val os = DataOutputStream(process.outputStream)
+                os.writeBytes("echo Root permission granted\n")
+                os.writeBytes("exit\n")
+                os.flush()
+                os.close()
+                
+                val exitCode = process.waitFor()
+                runOnUiThread {
+                    if (exitCode == 0) {
+                        Toast.makeText(this, "Root доступ предоставлен", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to request root", e)
+            }
+        }.start()
+    }
+    
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        when (requestCode) {
+            REQUEST_CODE_DEVICE_ADMIN,
+            REQUEST_CODE_WRITE_SETTINGS,
+            REQUEST_CODE_ACCESSIBILITY -> {
+                // Recheck permissions after returning from settings
+                checkAllPermissions()
+            }
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        updateUI()
+        checkAllPermissions()
+        updateOverlayStatus()
+        updateDndStatus()
     }
 }

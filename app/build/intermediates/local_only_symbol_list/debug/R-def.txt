@@ -1,5 +1,6 @@
 R_DEF: Internal format may change without notice
 local
+color accent_green
 color accent_yellow
 color background_dark
 color black
@@ -22,9 +23,11 @@ drawable bg_tab_item
 drawable button_yellow
 drawable checkbox_selector
 drawable ic_apps
+drawable ic_check
 drawable ic_checkbox_checked
 drawable ic_checkbox_checked_new
 drawable ic_checkbox_unchecked
+drawable ic_close
 drawable ic_launcher_foreground
 drawable ic_lock
 drawable ic_page_apps
@@ -37,6 +40,9 @@ drawable tab_background
 font lampen
 font lampen_font
 font mal6lampen
+id accessibilitySettingsButton
+id accessibilityStatusIcon
+id accessibilityStatusText
 id appIcon
 id appName
 id appsGrid
@@ -49,6 +55,9 @@ id comboPowerVolDown
 id comboPowerVolUp
 id comboVolDownLong
 id comboVolUpLong
+id deviceAdminSettingsButton
+id deviceAdminStatusIcon
+id deviceAdminStatusText
 id dndPermissionButton
 id dndStatusText
 id keyCombinationGroup
@@ -56,6 +65,9 @@ id launchButton
 id overlayPermissionButton
 id overlayStatusText
 id packageName
+id rootCheckButton
+id rootStatusIcon
+id rootStatusText
 id searchBar
 id searchInput
 id selectAllButton
@@ -64,6 +76,9 @@ id statusText
 id tabApplications
 id tabBar
 id tabSettings
+id writeSettingsButton
+id writeSettingsStatusIcon
+id writeSettingsStatusText
 layout activity_app_list
 layout activity_main
 layout activity_settings
@@ -107,3 +122,4 @@ style YellowButton
 xml accessibility_service_config
 xml backup_rules
 xml data_extraction_rules
+xml device_admin

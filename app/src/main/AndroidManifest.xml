@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.SHOW_WHEN_LOCKED" />
     <uses-permission android:name="android.permission.TURN_SCREEN_ON" />
+    <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     
     <application
         android:name=".LauncherApplication"
@@ -87,6 +90,25 @@
                 <action android:name="com.customlauncher.app.KEY_COMBINATION_DETECTED" />
             </intent-filter>
         </receiver>
+        
+        <!-- Device Admin Receiver -->
+        <receiver
+            android:name=".receiver.LauncherDeviceAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+        
+        <!-- Sensor Control Service -->
+        <service
+            android:name=".service.SensorControlService"
+            android:enabled="true"
+            android:exported="false" />
         
     </application>
 

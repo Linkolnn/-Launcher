@@ -15,9 +15,9 @@ import android.os.Looper
 import com.customlauncher.app.data.model.KeyCombination
 import com.customlauncher.app.receiver.KeyCombinationReceiver
 import android.app.KeyguardManager
-import android.content.ComponentName
 import android.provider.Settings
 import com.customlauncher.app.manager.HiddenModeStateManager
+import android.view.accessibility.AccessibilityNodeInfo
 
 class SystemBlockAccessibilityService : AccessibilityService() {
     
@@ -71,6 +71,30 @@ class SystemBlockAccessibilityService : AccessibilityService() {
     }
     
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        // Block touch events when in hidden mode
+        if (HiddenModeStateManager.currentState) {
+            when (event?.eventType) {
+                AccessibilityEvent.TYPE_TOUCH_INTERACTION_START,
+                AccessibilityEvent.TYPE_TOUCH_INTERACTION_END,
+                AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_START,
+                AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_END,
+                AccessibilityEvent.TYPE_VIEW_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                AccessibilityEvent.TYPE_VIEW_SELECTED -> {
+                    // Consume the event by not processing it
+                    Log.d(TAG, "Touch event blocked via accessibility: ${event.eventType}")
+                    event.recycle()
+                    return
+                }
+            }
+            
+            // Also try to disable the source node if it's a touch event
+            event?.source?.let { node ->
+                disableNode(node)
+            }
+        }
+        
         val preferences = LauncherApplication.instance.preferences
         
         // Check for screen lock state changes
@@ -266,6 +290,28 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         longPressRunnable?.let {
             keyPressHandler.removeCallbacks(it)
             longPressRunnable = null
+        }
+    }
+    
+    private fun disableNode(node: AccessibilityNodeInfo) {
+        try {
+            // Make the node non-clickable and non-focusable
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                node.isClickable = false
+                node.isLongClickable = false
+                node.isFocusable = false
+                node.isEnabled = false
+            }
+            
+            // Recursively disable child nodes
+            for (i in 0 until node.childCount) {
+                node.getChild(i)?.let { child ->
+                    disableNode(child)
+                    child.recycle()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error disabling node", e)
         }
     }
     

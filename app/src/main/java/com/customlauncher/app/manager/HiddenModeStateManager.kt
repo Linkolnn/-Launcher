@@ -6,6 +6,7 @@ import android.os.Build
 import android.util.Log
 import com.customlauncher.app.LauncherApplication
 import com.customlauncher.app.service.TouchBlockService
+import com.customlauncher.app.service.SensorControlService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -57,16 +58,19 @@ object HiddenModeStateManager {
             commit() // Use commit() for immediate sync
         }
         
-        // Handle touch blocking service
+        // Handle touch blocking - prioritize overlay method as it works without root
         if (enabled) {
-            // Stop first to ensure clean state
-            stopTouchBlockService(context)
-            // Small delay to ensure service is stopped
+            // Start overlay blocking immediately (works without root)
+            startTouchBlockService(context)
+            
+            // Also try system methods if available (requires root or special permissions)
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                startTouchBlockService(context)
+                disableTouchSensor(context)
             }, 100)
         } else {
+            // Stop all blocking methods
             stopTouchBlockService(context)
+            enableTouchSensor(context)
         }
         
         // Send broadcast to update UI components
@@ -122,6 +126,20 @@ object HiddenModeStateManager {
         Log.d(TAG, "Stopping touch block service")
         val intent = Intent(context, TouchBlockService::class.java)
         intent.action = TouchBlockService.ACTION_UNBLOCK_TOUCH
+        context.startService(intent)
+    }
+    
+    private fun disableTouchSensor(context: Context) {
+        Log.d(TAG, "Disabling touch sensor")
+        val intent = Intent(context, SensorControlService::class.java)
+        intent.action = SensorControlService.ACTION_DISABLE_SENSOR
+        context.startService(intent)
+    }
+    
+    private fun enableTouchSensor(context: Context) {
+        Log.d(TAG, "Enabling touch sensor")
+        val intent = Intent(context, SensorControlService::class.java)
+        intent.action = SensorControlService.ACTION_ENABLE_SENSOR
         context.startService(intent)
     }
 }
