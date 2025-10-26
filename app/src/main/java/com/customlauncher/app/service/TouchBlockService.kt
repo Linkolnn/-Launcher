@@ -110,22 +110,23 @@ class TouchBlockService : Service() {
     }
     
     private fun blockTouch() {
-        if (blockView != null) {
-            android.util.Log.d("TouchBlockService", "Block view already exists")
-            return
-        }
-        
-        // Check permission first
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!android.provider.Settings.canDrawOverlays(this)) {
-                android.util.Log.e("TouchBlockService", "No overlay permission")
+        try {
+            if (blockView != null) {
+                android.util.Log.d("TouchBlockService", "Block view already exists")
                 return
             }
-        }
-        
-        android.util.Log.d("TouchBlockService", "Starting touch blocking...")
-        
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+            
+            // Check permission first
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!android.provider.Settings.canDrawOverlays(this)) {
+                    android.util.Log.e("TouchBlockService", "No overlay permission")
+                    return
+                }
+            }
+            
+            android.util.Log.d("TouchBlockService", "Starting touch blocking...")
+            
+            windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         
         // Use highest priority overlay type
         val layoutFlag = when {
@@ -164,11 +165,50 @@ class TouchBlockService : Service() {
         }
         
         try {
-            // Create blocking view with proper touch interception
+            // Create blocking view with proper touch interception and multitouch blocking
             blockView = object : FrameLayout(this@TouchBlockService) {
+                private var activeTouchId = -1
+                
                 override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-                    // Intercept and consume ALL touch events at dispatch level
-                    android.util.Log.d("TouchBlockService", "Touch intercepted at dispatch: ${ev?.action}")
+                    ev?.let { event ->
+                        // Block multitouch - only track first finger
+                        when (event.actionMasked) {
+                            MotionEvent.ACTION_DOWN -> {
+                                // First finger down - remember its ID
+                                activeTouchId = event.getPointerId(0)
+                                android.util.Log.d("TouchBlockService", "First touch down, ID: $activeTouchId")
+                            }
+                            MotionEvent.ACTION_POINTER_DOWN -> {
+                                // Additional finger down - block it completely
+                                android.util.Log.d("TouchBlockService", "MULTITOUCH BLOCKED! Fingers: ${event.pointerCount}")
+                                return true
+                            }
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                // Reset when all fingers up
+                                activeTouchId = -1
+                                android.util.Log.d("TouchBlockService", "Touch ended")
+                            }
+                            MotionEvent.ACTION_POINTER_UP -> {
+                                // One finger lifted but not all - keep blocking
+                                android.util.Log.d("TouchBlockService", "Pointer up, still blocking multitouch")
+                                return true
+                            }
+                            MotionEvent.ACTION_MOVE -> {
+                                // Block move events if multiple fingers detected
+                                if (event.pointerCount > 1) {
+                                    android.util.Log.d("TouchBlockService", "Multitouch move blocked")
+                                    return true
+                                } else {
+                                    // Single touch move is allowed but still blocked
+                                }
+                            }
+                            else -> {
+                                // Handle other actions
+                            }
+                        }
+                    }
+                    // Block all touch events
+                    android.util.Log.d("TouchBlockService", "Touch blocked: ${ev?.actionMasked}, pointers: ${ev?.pointerCount}")
                     return true
                 }
                 
@@ -187,8 +227,12 @@ class TouchBlockService : Service() {
                 // setBackgroundColor(android.graphics.Color.argb(10, 0, 0, 0))
                 setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 
-                // Set touch listener as additional safeguard
+                // Set touch listener as additional safeguard with multitouch blocking
                 setOnTouchListener { _, event ->
+                    if (event.pointerCount > 1) {
+                        android.util.Log.d("TouchBlockService", "MULTITOUCH blocked in listener: ${event.pointerCount} fingers")
+                        return@setOnTouchListener true
+                    }
                     android.util.Log.d("TouchBlockService", "Touch blocked via listener: ${event.action}")
                     true
                 }
@@ -248,6 +292,12 @@ class TouchBlockService : Service() {
         } catch (e: Exception) {
             android.util.Log.e("TouchBlockService", "Failed to add overlay", e)
         }
+        } catch (e: OutOfMemoryError) {
+            android.util.Log.e(TAG, "Out of memory creating overlays", e)
+            System.gc() // Force garbage collection
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Unexpected error in blockTouch", e)
+        }
     }
     
     private fun addStatusBarBlock() {
@@ -301,15 +351,26 @@ class TouchBlockService : Service() {
         
         statusBarBlockView = object : View(this@TouchBlockService) {
             override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
+                // Block multitouch in status bar area
+                event?.let {
+                    if (it.pointerCount > 1) {
+                        android.util.Log.d("TouchBlockService", "Status bar MULTITOUCH blocked: ${it.pointerCount} fingers")
+                        return true
+                    }
+                }
                 android.util.Log.d("TouchBlockService", "Status bar touch intercepted: ${event?.action}")
                 return true
             }
         }.apply {
-            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            setBackgroundColor(0x00000000) // Transparent
             isClickable = true
             isFocusable = false
+            
             setOnTouchListener { _, event ->
-                // Consume all touch events
+                if (event.pointerCount > 1) {
+                    android.util.Log.d("TouchBlockService", "Status bar MULTITOUCH blocked in listener: ${event.pointerCount}")
+                    return@setOnTouchListener true
+                }
                 android.util.Log.d("TouchBlockService", "Status bar touch blocked: ${event.action}")
                 true
             }
@@ -369,6 +430,13 @@ class TouchBlockService : Service() {
         
         navigationBarBlockView = object : View(this@TouchBlockService) {
             override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
+                // Block multitouch in navigation bar area
+                event?.let {
+                    if (it.pointerCount > 1) {
+                        android.util.Log.d("TouchBlockService", "Navigation bar MULTITOUCH blocked: ${it.pointerCount} fingers")
+                        return true
+                    }
+                }
                 android.util.Log.d("TouchBlockService", "Navigation bar touch intercepted: ${event?.action}")
                 return true
             }
@@ -377,7 +445,11 @@ class TouchBlockService : Service() {
             isClickable = true
             isFocusable = false
             setOnTouchListener { _, event ->
-                // Consume all touch events
+                // Block multitouch
+                if (event.pointerCount > 1) {
+                    android.util.Log.d("TouchBlockService", "Nav bar MULTITOUCH blocked in listener: ${event.pointerCount}")
+                    return@setOnTouchListener true
+                }
                 android.util.Log.d("TouchBlockService", "Navigation bar touch blocked: ${event.action}")
                 true
             }
@@ -389,15 +461,6 @@ class TouchBlockService : Service() {
         } catch (e: Exception) {
             android.util.Log.e("TouchBlockService", "Failed to add navigation bar block", e)
         }
-    }
-    
-    private fun getStatusBarHeight(): Int {
-        var result = 0
-        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-        if (resourceId > 0) {
-            result = resources.getDimensionPixelSize(resourceId)
-        }
-        return result
     }
     
     private fun addLockScreenBlock() {
@@ -449,8 +512,38 @@ class TouchBlockService : Service() {
         }
         
         lockScreenBlockView = object : FrameLayout(this@TouchBlockService) {
+            private var activeTouchId = -1
+            
             override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-                android.util.Log.d("TouchBlockService", "Lock screen touch intercepted: ${ev?.action}")
+                ev?.let { event ->
+                    // Block multitouch - only allow first finger
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN -> {
+                            // First finger down - remember its ID
+                            activeTouchId = event.getPointerId(0)
+                            android.util.Log.d("TouchBlockService", "First touch down, ID: $activeTouchId")
+                        }
+                        MotionEvent.ACTION_POINTER_DOWN -> {
+                            // Additional finger down - block it
+                            android.util.Log.d("TouchBlockService", "Multitouch blocked! Pointer count: ${event.pointerCount}")
+                            return true
+                        }
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                            // Reset when all fingers up
+                            activeTouchId = -1
+                            android.util.Log.d("TouchBlockService", "Touch ended")
+                        }
+                        MotionEvent.ACTION_POINTER_UP -> {
+                            // One finger lifted but not all - keep blocking
+                            android.util.Log.d("TouchBlockService", "Pointer up, still blocking")
+                            return true
+                        }
+                        else -> {
+                            // Handle other actions
+                        }
+                    }
+                }
+                android.util.Log.d("TouchBlockService", "Touch blocked: ${ev?.action}")
                 return true
             }
             
@@ -458,13 +551,18 @@ class TouchBlockService : Service() {
                 return true
             }
         }.apply {
-            setBackgroundColor(0x05000000) // Very slight tint to show it's working
+            setBackgroundColor(0x00000000) // Fully transparent
             isClickable = true
             isFocusable = false
             isLongClickable = true
             
             setOnTouchListener { _, event ->
-                android.util.Log.d("TouchBlockService", "Lock screen touch blocked: ${event.action}")
+                // Additional multitouch blocking at listener level
+                if (event.pointerCount > 1) {
+                    android.util.Log.d("TouchBlockService", "Multitouch blocked in listener: ${event.pointerCount} fingers")
+                    return@setOnTouchListener true
+                }
+                android.util.Log.d("TouchBlockService", "Touch blocked: ${event.action}")
                 true
             }
         }
@@ -477,6 +575,55 @@ class TouchBlockService : Service() {
         }
     }
     
+    private fun unblockTouch() {
+        try {
+            android.util.Log.d(TAG, "Removing touch blocking overlay...")
+            
+            // Remove all overlay views safely
+            windowManager?.let { wm ->
+                blockView?.let {
+                    try {
+                        wm.removeView(it)
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Error removing block view", e)
+                    }
+                    blockView = null
+                }
+                
+                statusBarBlockView?.let {
+                    try {
+                        wm.removeView(it)
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Error removing status bar block", e)
+                    }
+                    statusBarBlockView = null
+                }
+                
+                navigationBarBlockView?.let {
+                    try {
+                        wm.removeView(it)
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Error removing navigation bar block", e)
+                    }
+                    navigationBarBlockView = null
+                }
+                
+                lockScreenBlockView?.let {
+                    try {
+                        wm.removeView(it)
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Error removing lock screen block", e)
+                    }
+                    lockScreenBlockView = null
+                }
+            }
+            
+            android.util.Log.d(TAG, "Touch blocking overlay removed")
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Error in unblockTouch", e)
+        }
+    }
+    
     private fun getNavigationBarHeight(): Int {
         var result = 0
         val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
@@ -486,33 +633,13 @@ class TouchBlockService : Service() {
         return result
     }
     
-    private fun unblockTouch() {
-        try {
-            blockView?.let {
-                windowManager?.removeView(it)
-                blockView = null
-            }
-            statusBarBlockView?.let {
-                windowManager?.removeView(it)
-                statusBarBlockView = null
-            }
-            navigationBarBlockView?.let {
-                windowManager?.removeView(it)
-                navigationBarBlockView = null
-            }
-            lockScreenBlockView?.let {
-                windowManager?.removeView(it)
-                lockScreenBlockView = null
-            }
-            android.util.Log.d("TouchBlockService", "Touch unblocked - all layers removed")
-        } catch (e: Exception) {
-            android.util.Log.e("TouchBlockService", "Error removing overlay", e)
+    private fun getStatusBarHeight(): Int {
+        var result = 0
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            result = resources.getDimensionPixelSize(resourceId)
         }
-    }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        unblockTouch()
+        return result
     }
     
     companion object {

@@ -9,10 +9,15 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.customlauncher.app.LauncherApplication
 import com.customlauncher.app.data.model.KeyCombination
 import com.customlauncher.app.databinding.ActivityMainBinding
@@ -41,12 +46,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appAdapter: AppGridAdapter
     private val preferences by lazy { LauncherApplication.instance.preferences }
     
-    // For key combination detection
+    // Key combination tracking
     private var volumeUpPressed = false
     private var volumeDownPressed = false
     private var powerPressed = false
-    private val keyPressHandler = Handler(Looper.getMainLooper())
     private var longPressRunnable: Runnable? = null
+    private val keyPressHandler = Handler(Looper.getMainLooper())
+    
+    // Touch event throttling
+    private var lastTouchEventTime = 0L
+    private val TOUCH_THROTTLE_MS = 100L
+    private var touchEventCount = 0
+    private val MAX_TOUCH_EVENTS_PER_SECOND = 30
     
     // BroadcastReceiver for key combinations from AccessibilityService
     private val keyCombinationReceiver = object : BroadcastReceiver() {
@@ -234,19 +245,31 @@ class MainActivity : AppCompatActivity() {
     
     private fun observeViewModel() {
         viewModel.allApps.observe(this) { apps ->
-            // Delay UI update slightly for weak devices
-            binding.appsGrid.postDelayed({
-                // Show all apps or only visible based on hidden state
-                val hidden = preferences.appsHidden
-                if (hidden) {
-                    // Filter out hidden apps
-                    val visibleApps = apps.filter { !it.isHidden }
-                    appAdapter.submitList(visibleApps)
-                } else {
-                    // Show all apps
-                    appAdapter.submitList(apps)
+            // Process in background thread to avoid UI blocking
+            lifecycleScope.launch(Dispatchers.Default) {
+                try {
+                    // Show all apps or only visible based on hidden state
+                    val hidden = preferences.appsHidden
+                    val appsToShow = if (hidden) {
+                        // Filter out hidden apps
+                        apps.filter { !it.isHidden }
+                    } else {
+                        // Show all apps
+                        apps
+                    }
+                    
+                    // Update UI on main thread
+                    withContext(Dispatchers.Main) {
+                        try {
+                            appAdapter.submitList(appsToShow)
+                        } catch (e: Exception) {
+                            Log.e("MainActivity", "Error updating app list", e)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error processing apps", e)
                 }
-            }, 50) // Small delay for Android 11 optimization
+            }
         }
     }
     
@@ -443,16 +466,50 @@ class MainActivity : AppCompatActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
+        
+        // Clean up handlers to prevent memory leaks
         longPressRunnable?.let {
             keyPressHandler.removeCallbacks(it)
+            longPressRunnable = null
         }
+        keyPressHandler.removeCallbacksAndMessages(null)
+        
+        // Unregister receiver safely
         try {
             unregisterReceiver(keyCombinationReceiver)
         } catch (e: Exception) {
-            // Receiver might not be registered
+            Log.d("MainActivity", "Receiver already unregistered")
         }
+        
+        // Clear adapter to free memory
+        appAdapter.submitList(emptyList())
     }
     
+    
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        try {
+            // Throttle touch events to prevent overflow
+            val currentTime = System.currentTimeMillis()
+            
+            // Reset counter every second
+            if (currentTime - lastTouchEventTime > 1000) {
+                touchEventCount = 0
+                lastTouchEventTime = currentTime
+            }
+            
+            // If too many touch events, skip processing
+            touchEventCount++
+            if (touchEventCount > MAX_TOUCH_EVENTS_PER_SECOND) {
+                Log.w("MainActivity", "Too many touch events, throttling")
+                return true
+            }
+            
+            return super.dispatchTouchEvent(ev)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error in dispatchTouchEvent", e)
+            return true
+        }
+    }
     
     override fun onBackPressed() {
         // Do nothing - launcher shouldn't close
