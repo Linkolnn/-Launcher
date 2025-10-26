@@ -31,15 +31,9 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import android.provider.Settings
 import android.text.TextUtils
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
-import com.customlauncher.app.receiver.LauncherDeviceAdminReceiver
 
 class MainActivity : AppCompatActivity() {
     
-    companion object {
-        private const val REQUEST_CODE_DEVICE_ADMIN = 1001
-    }
     
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: AppViewModel
@@ -106,9 +100,6 @@ class MainActivity : AppCompatActivity() {
         
         // Check overlay permission for touch blocking
         checkOverlayPermission()
-        
-        // Check and request Device Admin permission
-        checkDeviceAdminPermission()
         
         // Register broadcast receiver for multiple actions
         val filter = IntentFilter().apply {
@@ -364,27 +355,6 @@ class MainActivity : AppCompatActivity() {
         val serviceName = "${packageName}/${com.customlauncher.app.service.SystemBlockAccessibilityService::class.java.canonicalName}"
         val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
         return enabledServices?.contains(serviceName) == true
-    }
-    
-    private fun checkDeviceAdminPermission() {
-        val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        val componentName = ComponentName(this, LauncherDeviceAdminReceiver::class.java)
-        
-        if (!devicePolicyManager.isAdminActive(componentName)) {
-            // Request Device Admin permission
-            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
-            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName)
-            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, 
-                "Требуется для полной блокировки сенсора в скрытом режиме")
-            try {
-                startActivityForResult(intent, REQUEST_CODE_DEVICE_ADMIN)
-            } catch (e: Exception) {
-                Log.e("MainActivity", "Failed to request device admin", e)
-                Toast.makeText(this, "Не удалось запросить права администратора", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Log.d("MainActivity", "Device admin already active")
-        }
     }
     
     override fun onDestroy() {

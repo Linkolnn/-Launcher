@@ -55,9 +55,6 @@ id comboPowerVolDown
 id comboPowerVolUp
 id comboVolDownLong
 id comboVolUpLong
-id deviceAdminSettingsButton
-id deviceAdminStatusIcon
-id deviceAdminStatusText
 id dndPermissionButton
 id dndStatusText
 id keyCombinationGroup
@@ -65,9 +62,6 @@ id launchButton
 id overlayPermissionButton
 id overlayStatusText
 id packageName
-id rootCheckButton
-id rootStatusIcon
-id rootStatusText
 id searchBar
 id searchInput
 id selectAllButton
@@ -122,4 +116,4 @@ style YellowButton
 xml accessibility_service_config
 xml backup_rules
 xml data_extraction_rules
-xml device_admin
+xml file_paths

@@ -35,289 +35,288 @@
 19    <uses-permission android:name="android.permission.TURN_SCREEN_ON" />
 19-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:14:5-73
 19-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:14:22-70
-20    <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN" />
-20-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:15:5-76
-20-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:15:22-73
-21    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-21-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:16:5-73
-21-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:16:22-70
-22    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
-22-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:17:5-80
-22-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:17:22-77
-23
-24    <permission
-24-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
-25        android:name="com.customlauncher.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-25-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
-26        android:protectionLevel="signature" />
-26-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
-27
-28    <uses-permission android:name="com.customlauncher.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-28-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
-28-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+20    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+20-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:15:5-73
+20-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:15:22-70
+21    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+21-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:16:5-80
+21-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:16:22-77
+22    <uses-permission android:name="android.permission.INTERNET" />
+22-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:17:5-67
+22-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:17:22-64
+23    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+23-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:18:5-81
+23-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:18:22-78
+24    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+24-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-83
+24-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:22-80
+25
+26    <permission
+26-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+27        android:name="com.customlauncher.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+27-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+28        android:protectionLevel="signature" />
+28-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
 29
-30    <application
-30-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-113:19
-31        android:name="com.customlauncher.app.LauncherApplication"
-31-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:20:9-44
-32        android:allowBackup="true"
-32-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:21:9-35
-33        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-33-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
-34        android:debuggable="true"
-35        android:extractNativeLibs="false"
-36        android:icon="@mipmap/ic_launcher"
-36-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:22:9-43
-37        android:label="@string/app_name"
-37-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:23:9-41
-38        android:roundIcon="@mipmap/ic_launcher_round"
-38-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:24:9-54
-39        android:supportsRtl="true"
-39-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:25:9-35
-40        android:theme="@style/Theme.CustomLauncher" >
-40-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:26:9-52
-41
-42        <!-- Main Launcher Activity (Home Screen) -->
-43        <activity
-43-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:30:9-44:20
-44            android:name="com.customlauncher.app.ui.MainActivity"
-44-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:31:13-44
-45            android:clearTaskOnLaunch="true"
-45-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:34:13-45
-46            android:exported="true"
-46-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:32:13-36
-47            android:launchMode="singleTask"
-47-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:33:13-44
-48            android:screenOrientation="portrait"
-48-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:36:13-49
-49            android:stateNotNeeded="true"
-49-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:35:13-42
-50            android:theme="@style/Theme.CustomLauncher.Transparent"
-50-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:38:13-68
-51            android:windowSoftInputMode="adjustPan" >
-51-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:37:13-52
-52            <intent-filter>
-52-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:39:13-43:29
-53                <action android:name="android.intent.action.MAIN" />
-53-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:40:17-69
-53-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:40:25-66
-54
-55                <category android:name="android.intent.category.HOME" />
-55-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:41:17-73
-55-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:41:27-70
-56                <category android:name="android.intent.category.DEFAULT" />
-56-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:17-76
-56-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:27-73
-57            </intent-filter>
-58        </activity>
-59
-60        <!-- App List Activity (App Icon Entry Point) -->
-61        <activity
-61-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:47:9-56:20
-62            android:name="com.customlauncher.app.ui.AppListActivity"
-62-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:48:13-47
-63            android:exported="true"
-63-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:49:13-36
-64            android:screenOrientation="portrait"
-64-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:51:13-49
-65            android:theme="@style/Theme.CustomLauncher" >
-65-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:50:13-56
-66            <intent-filter>
-66-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:52:13-55:29
-67                <action android:name="android.intent.action.MAIN" />
-67-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:40:17-69
-67-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:40:25-66
-68
-69                <category android:name="android.intent.category.LAUNCHER" />
-69-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:54:17-77
-69-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:54:27-74
-70            </intent-filter>
-71        </activity>
-72
-73        <!-- Settings Activity -->
-74        <activity
-74-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:59:9-63:52
-75            android:name="com.customlauncher.app.ui.SettingsActivity"
-75-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:60:13-48
-76            android:exported="false"
-76-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:61:13-37
-77            android:screenOrientation="portrait"
-77-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:63:13-49
-78            android:theme="@style/Theme.CustomLauncher" />
-78-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:62:13-56
-79
-80        <!-- Touch Block Service -->
-81        <service
-81-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:66:9-69:40
-82            android:name="com.customlauncher.app.service.TouchBlockService"
-82-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:67:13-54
-83            android:enabled="true"
-83-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:68:13-35
-84            android:exported="false" />
-84-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:69:13-37
-85        <service
-85-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:71:9-82:19
-86            android:name="com.customlauncher.app.service.SystemBlockAccessibilityService"
-86-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:72:13-68
-87            android:directBootAware="true"
-87-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:75:13-43
-88            android:exported="true"
-88-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:74:13-36
-89            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
-89-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:73:13-79
-90            <intent-filter>
-90-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:76:13-78:29
-91                <action android:name="android.accessibilityservice.AccessibilityService" />
-91-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:77:17-92
-91-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:77:25-89
-92            </intent-filter>
-93
-94            <meta-data
-94-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:79:13-81:72
-95                android:name="android.accessibilityservice"
-95-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:80:17-60
-96                android:resource="@xml/accessibility_service_config" />
-96-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:81:17-69
-97        </service>
-98
-99        <!-- Key Combination Receiver -->
-100        <receiver
-100-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:85:9-92:20
-101            android:name="com.customlauncher.app.receiver.KeyCombinationReceiver"
-101-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:86:13-60
-102            android:enabled="true"
-102-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:87:13-35
-103            android:exported="false" >
-103-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:88:13-37
-104            <intent-filter>
-104-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:89:13-91:29
-105                <action android:name="com.customlauncher.app.KEY_COMBINATION_DETECTED" />
-105-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:90:17-90
-105-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:90:25-87
-106            </intent-filter>
-107        </receiver>
-108
-109        <!-- Device Admin Receiver -->
-110        <receiver
-110-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:95:9-105:20
-111            android:name="com.customlauncher.app.receiver.LauncherDeviceAdminReceiver"
-111-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:96:13-65
-112            android:exported="true"
-112-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:98:13-36
-113            android:permission="android.permission.BIND_DEVICE_ADMIN" >
-113-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:97:13-70
-114            <meta-data
-114-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:99:13-101:56
-115                android:name="android.app.device_admin"
-115-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:100:17-56
-116                android:resource="@xml/device_admin" />
-116-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:101:17-53
-117
-118            <intent-filter>
-118-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:102:13-104:29
-119                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
-119-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:103:17-82
-119-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:103:25-79
-120            </intent-filter>
-121        </receiver>
-122
-123        <!-- Sensor Control Service -->
-124        <service
-124-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:108:9-111:40
-125            android:name="com.customlauncher.app.service.SensorControlService"
-125-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:109:13-57
-126            android:enabled="true"
-126-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:110:13-35
-127            android:exported="false" />
-127-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:111:13-37
-128
-129        <provider
-129-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
-130            android:name="androidx.startup.InitializationProvider"
-130-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
-131            android:authorities="com.customlauncher.app.androidx-startup"
-131-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
-132            android:exported="false" >
-132-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
-133            <meta-data
-133-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
-134                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-134-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
-135                android:value="androidx.startup" />
-135-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
-136            <meta-data
-136-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/linkoln/.gradle/caches/transforms-3/2562856de88312af16f6b6bfa181b318/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
-137                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-137-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/linkoln/.gradle/caches/transforms-3/2562856de88312af16f6b6bfa181b318/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
-138                android:value="androidx.startup" />
-138-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/linkoln/.gradle/caches/transforms-3/2562856de88312af16f6b6bfa181b318/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
-139            <meta-data
-139-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
-140                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-140-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
-141                android:value="androidx.startup" />
-141-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
-142        </provider>
-143
-144        <uses-library
-144-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:25:9-27:40
-145            android:name="androidx.window.extensions"
-145-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:26:13-54
-146            android:required="false" />
-146-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:27:13-37
-147        <uses-library
-147-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:28:9-30:40
-148            android:name="androidx.window.sidecar"
-148-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:29:13-51
-149            android:required="false" />
-149-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:30:13-37
-150
-151        <service
-151-->[androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:24:9-28:63
-152            android:name="androidx.room.MultiInstanceInvalidationService"
-152-->[androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:25:13-74
-153            android:directBootAware="true"
-153-->[androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:26:13-43
-154            android:exported="false" />
-154-->[androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:27:13-37
-155
-156        <receiver
-156-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
-157            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-157-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
-158            android:directBootAware="false"
-158-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
-159            android:enabled="true"
-159-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
-160            android:exported="true"
-160-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
-161            android:permission="android.permission.DUMP" >
-161-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
-162            <intent-filter>
-162-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
-163                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-163-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
-163-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
-164            </intent-filter>
-165            <intent-filter>
-165-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
-166                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-166-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
-166-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
-167            </intent-filter>
-168            <intent-filter>
-168-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
-169                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-169-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
-169-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
-170            </intent-filter>
-171            <intent-filter>
-171-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
-172                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-172-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
-172-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
-173            </intent-filter>
-174        </receiver>
-175    </application>
-176
-177</manifest>
+30    <uses-permission android:name="com.customlauncher.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+30-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+30-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+31
+32    <application
+32-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:21:5-113:19
+33        android:name="com.customlauncher.app.LauncherApplication"
+33-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:22:9-44
+34        android:allowBackup="true"
+34-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:23:9-35
+35        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+35-->[androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+36        android:debuggable="true"
+37        android:extractNativeLibs="false"
+38        android:icon="@mipmap/ic_launcher"
+38-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:24:9-43
+39        android:label="@string/app_name"
+39-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:25:9-41
+40        android:roundIcon="@mipmap/ic_launcher_round"
+40-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:26:9-54
+41        android:supportsRtl="true"
+41-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:27:9-35
+42        android:theme="@style/Theme.CustomLauncher" >
+42-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:28:9-52
+43
+44        <!-- Main Launcher Activity (Home Screen) -->
+45        <activity
+45-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:32:9-46:20
+46            android:name="com.customlauncher.app.ui.MainActivity"
+46-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:33:13-44
+47            android:clearTaskOnLaunch="true"
+47-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:36:13-45
+48            android:exported="true"
+48-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:34:13-36
+49            android:launchMode="singleTask"
+49-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:35:13-44
+50            android:screenOrientation="portrait"
+50-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:38:13-49
+51            android:stateNotNeeded="true"
+51-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:37:13-42
+52            android:theme="@style/Theme.CustomLauncher.Transparent"
+52-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:40:13-68
+53            android:windowSoftInputMode="adjustPan" >
+53-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:39:13-52
+54            <intent-filter>
+54-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:41:13-45:29
+55                <action android:name="android.intent.action.MAIN" />
+55-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:17-69
+55-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:25-66
+56
+57                <category android:name="android.intent.category.HOME" />
+57-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:43:17-73
+57-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:43:27-70
+58                <category android:name="android.intent.category.DEFAULT" />
+58-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:44:17-76
+58-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:44:27-73
+59            </intent-filter>
+60        </activity>
+61
+62        <!-- App List Activity (App Icon Entry Point) -->
+63        <activity
+63-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:49:9-58:20
+64            android:name="com.customlauncher.app.ui.AppListActivity"
+64-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:50:13-47
+65            android:exported="true"
+65-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:51:13-36
+66            android:screenOrientation="portrait"
+66-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:53:13-49
+67            android:theme="@style/Theme.CustomLauncher" >
+67-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:52:13-56
+68            <intent-filter>
+68-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:54:13-57:29
+69                <action android:name="android.intent.action.MAIN" />
+69-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:17-69
+69-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:25-66
+70
+71                <category android:name="android.intent.category.LAUNCHER" />
+71-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:56:17-77
+71-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:56:27-74
+72            </intent-filter>
+73        </activity>
+74
+75        <!-- Settings Activity -->
+76        <activity
+76-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:61:9-65:52
+77            android:name="com.customlauncher.app.ui.SettingsActivity"
+77-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:62:13-48
+78            android:exported="false"
+78-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:63:13-37
+79            android:screenOrientation="portrait"
+79-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:65:13-49
+80            android:theme="@style/Theme.CustomLauncher" />
+80-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:64:13-56
+81
+82        <!-- Touch Block Service -->
+83        <service
+83-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:68:9-71:40
+84            android:name="com.customlauncher.app.service.TouchBlockService"
+84-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:69:13-54
+85            android:enabled="true"
+85-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:70:13-35
+86            android:exported="false" />
+86-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:71:13-37
+87        <service
+87-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:73:9-84:19
+88            android:name="com.customlauncher.app.service.SystemBlockAccessibilityService"
+88-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:74:13-68
+89            android:directBootAware="true"
+89-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:77:13-43
+90            android:exported="true"
+90-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:76:13-36
+91            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
+91-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:75:13-79
+92            <intent-filter>
+92-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:78:13-80:29
+93                <action android:name="android.accessibilityservice.AccessibilityService" />
+93-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:79:17-92
+93-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:79:25-89
+94            </intent-filter>
+95
+96            <meta-data
+96-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:81:13-83:72
+97                android:name="android.accessibilityservice"
+97-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:82:17-60
+98                android:resource="@xml/accessibility_service_config" />
+98-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:83:17-69
+99        </service>
+100
+101        <!-- Key Combination Receiver -->
+102        <receiver
+102-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:87:9-94:20
+103            android:name="com.customlauncher.app.receiver.KeyCombinationReceiver"
+103-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:88:13-60
+104            android:enabled="true"
+104-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:89:13-35
+105            android:exported="false" >
+105-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:90:13-37
+106            <intent-filter>
+106-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:91:13-93:29
+107                <action android:name="com.customlauncher.app.KEY_COMBINATION_DETECTED" />
+107-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:92:17-90
+107-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:92:25-87
+108            </intent-filter>
+109        </receiver>
+110
+111        <!-- Sensor Control Service -->
+112        <service
+112-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:97:9-100:40
+113            android:name="com.customlauncher.app.service.SensorControlService"
+113-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:98:13-57
+114            android:enabled="true"
+114-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:99:13-35
+115            android:exported="false" />
+115-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:100:13-37
+116
+117        <!-- FileProvider for APK installation -->
+118        <provider
+119            android:name="androidx.core.content.FileProvider"
+119-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:104:13-62
+120            android:authorities="com.customlauncher.app.fileprovider"
+120-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:105:13-64
+121            android:exported="false"
+121-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:106:13-37
+122            android:grantUriPermissions="true" >
+122-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:107:13-47
+123            <meta-data
+123-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:108:13-110:54
+124                android:name="android.support.FILE_PROVIDER_PATHS"
+124-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:109:17-67
+125                android:resource="@xml/file_paths" />
+125-->/home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:110:17-51
+126        </provider>
+127        <provider
+127-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+128            android:name="androidx.startup.InitializationProvider"
+128-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
+129            android:authorities="com.customlauncher.app.androidx-startup"
+129-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
+130            android:exported="false" >
+130-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
+131            <meta-data
+131-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+132                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+132-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
+133                android:value="androidx.startup" />
+133-->[androidx.emoji2:emoji2:1.2.0] /home/linkoln/.gradle/caches/transforms-3/ee1025cbc6c8bdae12388e839ec3fd6e/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
+134            <meta-data
+134-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/linkoln/.gradle/caches/transforms-3/2562856de88312af16f6b6bfa181b318/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+135                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+135-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/linkoln/.gradle/caches/transforms-3/2562856de88312af16f6b6bfa181b318/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+136                android:value="androidx.startup" />
+136-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/linkoln/.gradle/caches/transforms-3/2562856de88312af16f6b6bfa181b318/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+137            <meta-data
+137-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+138                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+138-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+139                android:value="androidx.startup" />
+139-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+140        </provider>
+141
+142        <uses-library
+142-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:25:9-27:40
+143            android:name="androidx.window.extensions"
+143-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:26:13-54
+144            android:required="false" />
+144-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:27:13-37
+145        <uses-library
+145-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:28:9-30:40
+146            android:name="androidx.window.sidecar"
+146-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:29:13-51
+147            android:required="false" />
+147-->[androidx.window:window:1.0.0] /home/linkoln/.gradle/caches/transforms-3/f79e17bbfbed44e717a6c0511d04fd9b/transformed/jetified-window-1.0.0/AndroidManifest.xml:30:13-37
+148
+149        <service
+149-->[androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:24:9-28:63
+150            android:name="androidx.room.MultiInstanceInvalidationService"
+150-->[androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:25:13-74
+151            android:directBootAware="true"
+151-->[androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:26:13-43
+152            android:exported="false" />
+152-->[androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:27:13-37
+153
+154        <receiver
+154-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+155            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+155-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+156            android:directBootAware="false"
+156-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+157            android:enabled="true"
+157-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+158            android:exported="true"
+158-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+159            android:permission="android.permission.DUMP" >
+159-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+160            <intent-filter>
+160-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+161                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+161-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+161-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+162            </intent-filter>
+163            <intent-filter>
+163-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+164                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+164-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+164-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+165            </intent-filter>
+166            <intent-filter>
+166-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+167                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+167-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+167-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+168            </intent-filter>
+169            <intent-filter>
+169-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+170                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+170-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+170-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+171            </intent-filter>
+172        </receiver>
+173    </application>
+174
+175</manifest>

@@ -3361,9 +3361,6 @@ id design_menu_item_action_area
 id design_menu_item_action_area_stub
 id design_menu_item_text
 id design_navigation_view
-id deviceAdminSettingsButton
-id deviceAdminStatusIcon
-id deviceAdminStatusText
 id dialog_button
 id dimensions
 id direct
@@ -3597,9 +3594,6 @@ id right
 id rightToLeft
 id right_icon
 id right_side
-id rootCheckButton
-id rootStatusIcon
-id rootStatusText
 id rounded
 id row_index_key
 id rtl
@@ -5500,4 +5494,4 @@ styleable include constraintSet
 xml accessibility_service_config
 xml backup_rules
 xml data_extraction_rules
-xml device_admin
+xml file_paths

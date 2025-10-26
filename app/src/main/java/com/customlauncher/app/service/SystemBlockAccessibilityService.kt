@@ -22,7 +22,9 @@ import android.view.accessibility.AccessibilityNodeInfo
 class SystemBlockAccessibilityService : AccessibilityService() {
     
     companion object {
-        private const val TAG = "SystemBlockService"
+        private const val TAG = "SystemBlockAccessibility"
+        const val ACTION_BLOCK_TOUCHES = "com.customlauncher.app.BLOCK_TOUCHES"
+        const val ACTION_UNBLOCK_TOUCHES = "com.customlauncher.app.UNBLOCK_TOUCHES"
         private const val ACTION_TOGGLE_APPS = "com.customlauncher.app.TOGGLE_APPS"
         var instance: SystemBlockAccessibilityService? = null
         private const val KEYGUARD_CHECK_DELAY = 50L
@@ -38,6 +40,7 @@ class SystemBlockAccessibilityService : AccessibilityService() {
     private val KEY_EVENT_TIMEOUT = 100L // milliseconds
     private var isScreenLocked = false
     private lateinit var keyguardManager: KeyguardManager
+    private var isTouchExplorationEnabled = false
     
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -48,19 +51,19 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         
         val info = AccessibilityServiceInfo().apply {
             // Listen to key events primarily
-            eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
-                        AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED
-            
-            // Set flags to intercept key events
+            eventTypes = AccessibilityEvent.TYPES_ALL_MASK
+            // Set flags to intercept key events BUT NOT touch exploration by default
             flags = AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS or
-                    AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+                    AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
+                    AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
+            // Remove FLAG_REQUEST_TOUCH_EXPLORATION_MODE from default flags
             
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
             notificationTimeout = 100
         }
         
         serviceInfo = info
-        Log.d(TAG, "Accessibility service connected")
+        Log.d(TAG, "Accessibility service connected - touch blocking OFF by default")
         
         // Check initial lock state
         checkScreenLockState()
@@ -68,30 +71,55 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         // Initialize state manager
         HiddenModeStateManager.initializeState()
         Log.d(TAG, "Initial state - Hidden mode: ${HiddenModeStateManager.currentState}")
+        
+        // Only enable touch blocking if already in hidden mode
+        if (HiddenModeStateManager.currentState) {
+            enableTouchBlocking()
+        }
     }
     
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // Block touch events when in hidden mode
+        // Block ALL events when in hidden mode
         if (HiddenModeStateManager.currentState) {
+            // Block all touch and gesture events
             when (event?.eventType) {
                 AccessibilityEvent.TYPE_TOUCH_INTERACTION_START,
                 AccessibilityEvent.TYPE_TOUCH_INTERACTION_END,
                 AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_START,
                 AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_END,
+                AccessibilityEvent.TYPE_GESTURE_DETECTION_START,
+                AccessibilityEvent.TYPE_GESTURE_DETECTION_END,
                 AccessibilityEvent.TYPE_VIEW_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                AccessibilityEvent.TYPE_VIEW_SELECTED -> {
-                    // Consume the event by not processing it
-                    Log.d(TAG, "Touch event blocked via accessibility: ${event.eventType}")
+                AccessibilityEvent.TYPE_VIEW_SELECTED,
+                AccessibilityEvent.TYPE_VIEW_HOVER_ENTER,
+                AccessibilityEvent.TYPE_VIEW_HOVER_EXIT,
+                AccessibilityEvent.TYPE_VIEW_SCROLLED,
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
+                AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> {
+                    // Block the event completely
+                    Log.d(TAG, "Event blocked in hidden mode: ${event.eventType}")
+                    
+                    // Try to prevent system UI interactions
+                    if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                        val packageName = event.packageName?.toString()
+                        if (packageName == "com.android.systemui") {
+                            // Block system UI interactions (status bar, navigation)
+                            performGlobalAction(GLOBAL_ACTION_BACK)
+                            Log.d(TAG, "Blocked SystemUI interaction")
+                        }
+                    }
+                    
                     event.recycle()
                     return
                 }
             }
             
-            // Also try to disable the source node if it's a touch event
+            // Disable interaction with any UI element
             event?.source?.let { node ->
                 disableNode(node)
+                node.recycle()
             }
         }
         
@@ -247,7 +275,7 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         }
         
         if (detected) {
-            toggleAppsVisibility()
+            toggleHiddenMode()
             resetKeyStates()
         }
     }
@@ -280,7 +308,7 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         cancelLongPress()
         longPressRunnable = Runnable {
             Log.d(TAG, "Long press triggered!")
-            toggleAppsVisibility()
+            toggleHiddenMode()
             resetKeyStates()
         }
         keyPressHandler.postDelayed(longPressRunnable!!, 1000)
@@ -329,20 +357,27 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         }
     }
     
-    private fun toggleAppsVisibility() {
-        val wasBefore = HiddenModeStateManager.currentState
-        Log.d(TAG, "Toggling apps visibility: wasHidden=$wasBefore, fromLockScreen=$isScreenLocked")
+    private fun toggleHiddenMode() {
+        Log.d(TAG, "Toggling hidden mode from accessibility service")
         
-        // Use centralized state manager for consistent state
-        HiddenModeStateManager.toggleHiddenMode(this)
+        val currentState = HiddenModeStateManager.currentState
+        val newState = !currentState
         
-        val isNow = HiddenModeStateManager.currentState
-        Log.d(TAG, "State toggled: wasHidden=$wasBefore -> isHidden=$isNow")
+        Log.d(TAG, "Current state: $currentState, new state: $newState")
         
-        // Send broadcast to notify about the change
+        // Enable/disable touch blocking based on new state
+        if (newState) {
+            enableTouchBlocking()
+        } else {
+            disableTouchBlocking()
+        }
+        
+        // Update the state through the manager
+        HiddenModeStateManager.setHiddenMode(this, newState)
+        
+        // Send broadcast to notify other components
         val intent = Intent(ACTION_TOGGLE_APPS)
-        intent.setPackage(packageName) // Make it explicit
-        intent.putExtra("from_lock_screen", isScreenLocked)
+        val isNow = HiddenModeStateManager.currentState
         intent.putExtra("hidden", isNow)
         sendBroadcast(intent)
         
@@ -353,23 +388,72 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         Log.d(TAG, "Accessibility service interrupted")
     }
     
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand: ${intent?.action}")
+        
+        when (intent?.action) {
+            ACTION_BLOCK_TOUCHES -> enableTouchBlocking()
+            ACTION_UNBLOCK_TOUCHES -> disableTouchBlocking()
+            Intent.ACTION_SCREEN_OFF -> {
+                // Optional: Can lock screen if needed
+                // performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
+            }
+        }
+        
+        return super.onStartCommand(intent, flags, startId)
+    }
+    
+    private fun enableTouchBlocking() {
+        try {
+            Log.d(TAG, "Enabling touch blocking...")
+            
+            // Hide keyboard if visible
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val controller = softKeyboardController
+                controller?.showMode = AccessibilityService.SHOW_MODE_HIDDEN
+            }
+            
+            // Add touch exploration flag to enable touch blocking
+            val info = serviceInfo
+            info.flags = info.flags or AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE
+            serviceInfo = info
+            
+            isTouchExplorationEnabled = true
+            Log.d(TAG, "Touch blocking ENABLED - exploration mode active")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to enable touch blocking", e)
+        }
+    }
+    
+    private fun disableTouchBlocking() {
+        try {
+            Log.d(TAG, "Disabling touch blocking...")
+            
+            // Remove touch exploration flag to disable touch blocking
+            val info = serviceInfo
+            info.flags = info.flags and AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE.inv()
+            serviceInfo = info
+            
+            isTouchExplorationEnabled = false
+            Log.d(TAG, "Touch blocking DISABLED - exploration mode inactive")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to disable touch blocking", e)
+        }
+    }
+    
+    override fun onGesture(gestureId: Int): Boolean {
+        // Block all gestures when in hidden mode
+        if (HiddenModeStateManager.currentState) {
+            Log.d(TAG, "Gesture blocked: $gestureId")
+            return true // Consume the gesture
+        }
+        return super.onGesture(gestureId)
+    }
+    
     override fun onDestroy() {
         super.onDestroy()
         instance = null
         cancelLongPress()
         Log.d(TAG, "Accessibility service destroyed")
-    }
-    
-    fun blockSystemGestures(block: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            if (block) {
-                // Disable gesture detection
-                disableSelf()
-                Thread.sleep(100)
-                // Re-enable with blocking
-                val intent = Intent(this, SystemBlockAccessibilityService::class.java)
-                startService(intent)
-            }
-        }
     }
 }

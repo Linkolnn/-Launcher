@@ -7,6 +7,7 @@ import android.util.Log
 import com.customlauncher.app.LauncherApplication
 import com.customlauncher.app.service.TouchBlockService
 import com.customlauncher.app.service.SensorControlService
+import com.customlauncher.app.service.SystemBlockAccessibilityService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -46,22 +47,16 @@ object HiddenModeStateManager {
         _isHiddenMode.value = enabled
         
         // Update preferences - force commit for immediate persistence
-        val preferences = LauncherApplication.instance.preferences
-        preferences.appsHidden = enabled
-        preferences.touchScreenBlocked = enabled
-        
-        // Force sync to disk immediately
         val prefs = context.getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
-        prefs.edit().apply {
-            putBoolean("apps_hidden", enabled)
-            putBoolean("touch_blocked", enabled)
-            commit() // Use commit() for immediate sync
-        }
+        prefs.edit().putBoolean("apps_hidden", enabled).apply()
         
         // Handle touch blocking - prioritize overlay method as it works without root
         if (enabled) {
             // Start overlay blocking immediately (works without root)
             startTouchBlockService(context)
+            
+            // Enable Do Not Disturb mode
+            enableDoNotDisturb(context)
             
             // Also try system methods if available (requires root or special permissions)
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
@@ -71,15 +66,17 @@ object HiddenModeStateManager {
             // Stop all blocking methods
             stopTouchBlockService(context)
             enableTouchSensor(context)
+            
+            // Disable Do Not Disturb mode
+            disableDoNotDisturb(context)
         }
         
-        // Send broadcast to update UI components
+        // Send broadcast about state change
         val intent = Intent("com.customlauncher.HIDDEN_MODE_CHANGED")
         intent.putExtra("hidden", enabled)
-        intent.setPackage(context.packageName) // Make it explicit
         context.sendBroadcast(intent)
         
-        Log.d(TAG, "Hidden mode changed to: $enabled (forced update)")
+        Log.d(TAG, "Hidden mode set to: $enabled, broadcast sent")
     }
     
     /**
@@ -131,15 +128,71 @@ object HiddenModeStateManager {
     
     private fun disableTouchSensor(context: Context) {
         Log.d(TAG, "Disabling touch sensor")
-        val intent = Intent(context, SensorControlService::class.java)
-        intent.action = SensorControlService.ACTION_DISABLE_SENSOR
-        context.startService(intent)
+        
+        // First try AccessibilityService method
+        val accessibilityIntent = Intent(context, SystemBlockAccessibilityService::class.java).apply {
+            action = SystemBlockAccessibilityService.ACTION_BLOCK_TOUCHES
+        }
+        context.startService(accessibilityIntent)
+        
+        // Also use SensorControlService as backup
+        val sensorIntent = Intent(context, SensorControlService::class.java).apply {
+            action = SensorControlService.ACTION_DISABLE_SENSOR
+        }
+        context.startService(sensorIntent)
     }
     
     private fun enableTouchSensor(context: Context) {
-        Log.d(TAG, "Enabling touch sensor")
-        val intent = Intent(context, SensorControlService::class.java)
-        intent.action = SensorControlService.ACTION_ENABLE_SENSOR
-        context.startService(intent)
+        // Disable via AccessibilityService
+        val accessibilityIntent = Intent(context, SystemBlockAccessibilityService::class.java).apply {
+            action = SystemBlockAccessibilityService.ACTION_UNBLOCK_TOUCHES
+        }
+        context.startService(accessibilityIntent)
+        
+        // Also stop SensorControlService
+        val sensorIntent = Intent(context, SensorControlService::class.java).apply {
+            action = SensorControlService.ACTION_ENABLE_SENSOR
+        }
+        context.startService(sensorIntent)
+    }
+    
+    private fun enableDoNotDisturb(context: Context) {
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            
+            // Check if we have DND access
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                if (!notificationManager.isNotificationPolicyAccessGranted) {
+                    Log.w(TAG, "No DND access permission")
+                    // Request permission
+                    val intent = Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    context.startActivity(intent)
+                    return
+                }
+                
+                // Enable DND - Priority only mode
+                notificationManager.setInterruptionFilter(android.app.NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+                Log.d(TAG, "Do Not Disturb enabled")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to enable DND", e)
+        }
+    }
+    
+    private fun disableDoNotDisturb(context: Context) {
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                if (notificationManager.isNotificationPolicyAccessGranted) {
+                    // Disable DND - All notifications
+                    notificationManager.setInterruptionFilter(android.app.NotificationManager.INTERRUPTION_FILTER_ALL)
+                    Log.d(TAG, "Do Not Disturb disabled")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to disable DND", e)
+        }
     }
 }

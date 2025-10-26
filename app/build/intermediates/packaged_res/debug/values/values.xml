@@ -12,7 +12,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="text_gray">#808080</color>
     <color name="text_white">#FFFFFF</color>
-    <string name="accessibility_service_description">Блокировка системных жестов в скрытом режиме</string>
+    <string name="accessibility_service_description">Этот сервис необходим для расширенной блокировки:\n• Блокировка панели уведомлений (свайп сверху)\n• Блокировка панели навигации\n• Блокировка свайпа назад (свайп слева-направо)\n• Блокировка кнопок громкости\n• Полная блокировка сенсора экрана\n\nПриложение НЕ собирает и НЕ передает личные данные.</string>
     <string name="app_name">ИLauncher</string>
     <string name="app_name_label">НАЗВАНИЕ ПРИЛОЖЕНИЯ</string>
     <string name="applications">ПРИЛОЖЕНИЯ</string>

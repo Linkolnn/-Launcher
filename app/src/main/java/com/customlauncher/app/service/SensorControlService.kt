@@ -3,17 +3,10 @@ package com.customlauncher.app.service
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.hardware.Sensor
-import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
-import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
-import java.io.DataOutputStream
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
-import com.customlauncher.app.receiver.LauncherDeviceAdminReceiver
 
 class SensorControlService : Service() {
     
@@ -25,16 +18,9 @@ class SensorControlService : Service() {
         private var isDisabled = false
     }
     
-    private lateinit var powerManager: PowerManager
-    private lateinit var wakeLock: PowerManager.WakeLock
-    private lateinit var devicePolicyManager: DevicePolicyManager
-    private lateinit var componentName: ComponentName
-    
     override fun onCreate() {
         super.onCreate()
-        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        componentName = ComponentName(this, LauncherDeviceAdminReceiver::class.java)
+        Log.d(TAG, "SensorControlService created")
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -53,163 +39,51 @@ class SensorControlService : Service() {
     
     private fun disableTouchSensor() {
         if (isDisabled) {
-            Log.d(TAG, "Sensor already disabled")
+            Log.d(TAG, "Touch already disabled")
             return
         }
-        
-        Log.d(TAG, "Attempting to disable touch sensor")
-        
+
+        Log.d(TAG, "Disabling touch via AccessibilityService")
+
         try {
-            // Don't use lockNow() as it turns off the screen
-            // Instead try alternative methods
-            
-            // Method 1: Try to disable touch via root (most effective)
-            val rootSuccess = tryDisableTouchViaRoot()
-            
-            // Method 2: Try to disable via accessibility settings
+            // Method 1: Try to disable via accessibility settings
             val settingsSuccess = tryDisableTouchViaSettings()
             
-            // Method 3: Use Device Admin for other restrictions if available
-            if (devicePolicyManager.isAdminActive(componentName)) {
-                // Keep screen on but try to restrict interaction
-                @Suppress("DEPRECATION")
-                wakeLock = powerManager.newWakeLock(
-                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
-                    "LauncherApp:TouchDisable"
-                )
-                wakeLock.acquire(10*60*1000L /*10 minutes*/)
-                
-                // Try to disable keyguard features instead of locking
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    devicePolicyManager.setKeyguardDisabledFeatures(
-                        componentName,
-                        DevicePolicyManager.KEYGUARD_DISABLE_FINGERPRINT or
-                        DevicePolicyManager.KEYGUARD_DISABLE_TRUST_AGENTS or
-                        DevicePolicyManager.KEYGUARD_DISABLE_UNREDACTED_NOTIFICATIONS
-                    )
-                }
-                
-                Log.d(TAG, "Device Admin restrictions applied")
-            }
+            // Method 2: Request AccessibilityService to handle blocking
+            val intent = Intent("com.customlauncher.app.BLOCK_TOUCH")
+            intent.setPackage(packageName)
+            sendBroadcast(intent)
             
-            if (rootSuccess || settingsSuccess) {
-                isDisabled = true
-                Log.d(TAG, "Touch sensor disabled successfully")
-            } else {
-                Log.w(TAG, "Could not disable touch sensor via system methods")
-            }
+            isDisabled = true
+            Log.d(TAG, "Touch disable request sent to AccessibilityService")
+            
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to disable touch sensor", e)
+            Log.e(TAG, "Error disabling touch", e)
         }
     }
     
     private fun enableTouchSensor() {
         if (!isDisabled) {
-            Log.d(TAG, "Sensor already enabled")
+            Log.d(TAG, "Touch already enabled")
             return
         }
-        
-        Log.d(TAG, "Attempting to enable touch sensor")
-        
+
+        Log.d(TAG, "Enabling touch via AccessibilityService")
+
         try {
-            // Release wake lock if held
-            if (::wakeLock.isInitialized && wakeLock.isHeld) {
-                wakeLock.release()
-            }
-            
-            // Try to re-enable touch
-            tryEnableTouchViaRoot()
+            // Re-enable via settings
             tryEnableTouchViaSettings()
             
+            // Request AccessibilityService to stop blocking
+            val intent = Intent("com.customlauncher.app.UNBLOCK_TOUCH")
+            intent.setPackage(packageName)
+            sendBroadcast(intent)
+            
             isDisabled = false
-            Log.d(TAG, "Touch sensor enabled")
+            Log.d(TAG, "Touch enable request sent to AccessibilityService")
+            
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to enable touch sensor", e)
-        }
-    }
-    
-    private fun tryDisableTouchViaRoot(): Boolean {
-        return try {
-            // This requires root access
-            val process = Runtime.getRuntime().exec("su")
-            val os = DataOutputStream(process.outputStream)
-            
-            // Find all touch input devices and disable them
-            os.writeBytes("for i in /sys/class/input/input*/name; do\n")
-            os.writeBytes("  name=$(cat \"\$i\")\n")
-            os.writeBytes("  if [[ \"\$name\" == *touch* ]] || [[ \"\$name\" == *Touch* ]]; then\n")
-            os.writeBytes("    dir=\$(dirname \"\$i\")\n")
-            os.writeBytes("    echo 0 > \"\$dir/enabled\" 2>/dev/null\n")
-            os.writeBytes("  fi\n")
-            os.writeBytes("done\n")
-            
-            // Also try common touch device paths
-            os.writeBytes("echo 0 > /sys/class/input/input0/enabled 2>/dev/null\n")
-            os.writeBytes("echo 0 > /sys/class/input/input1/enabled 2>/dev/null\n")
-            os.writeBytes("echo 0 > /sys/class/input/input2/enabled 2>/dev/null\n")
-            os.writeBytes("echo 0 > /sys/class/input/input3/enabled 2>/dev/null\n")
-            
-            // Alternative methods
-            os.writeBytes("echo 0 > /sys/android_touch/enabled 2>/dev/null\n")
-            os.writeBytes("echo 0 > /sys/devices/virtual/input/input1/enabled 2>/dev/null\n")
-            
-            os.writeBytes("exit\n")
-            os.flush()
-            os.close()
-            
-            val exitCode = process.waitFor()
-            if (exitCode == 0) {
-                Log.d(TAG, "Touch disabled via root")
-                true
-            } else {
-                Log.e(TAG, "Root command failed with exit code: $exitCode")
-                false
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Root method failed", e)
-            false
-        }
-    }
-    
-    private fun tryEnableTouchViaRoot(): Boolean {
-        return try {
-            val process = Runtime.getRuntime().exec("su")
-            val os = DataOutputStream(process.outputStream)
-            
-            // Find all touch input devices and enable them
-            os.writeBytes("for i in /sys/class/input/input*/name; do\n")
-            os.writeBytes("  name=$(cat \"\$i\")\n")
-            os.writeBytes("  if [[ \"\$name\" == *touch* ]] || [[ \"\$name\" == *Touch* ]]; then\n")
-            os.writeBytes("    dir=\$(dirname \"\$i\")\n")
-            os.writeBytes("    echo 1 > \"\$dir/enabled\" 2>/dev/null\n")
-            os.writeBytes("  fi\n")
-            os.writeBytes("done\n")
-            
-            // Also try common touch device paths
-            os.writeBytes("echo 1 > /sys/class/input/input0/enabled 2>/dev/null\n")
-            os.writeBytes("echo 1 > /sys/class/input/input1/enabled 2>/dev/null\n")
-            os.writeBytes("echo 1 > /sys/class/input/input2/enabled 2>/dev/null\n")
-            os.writeBytes("echo 1 > /sys/class/input/input3/enabled 2>/dev/null\n")
-            
-            // Alternative methods
-            os.writeBytes("echo 1 > /sys/android_touch/enabled 2>/dev/null\n")
-            os.writeBytes("echo 1 > /sys/devices/virtual/input/input1/enabled 2>/dev/null\n")
-            
-            os.writeBytes("exit\n")
-            os.flush()
-            os.close()
-            
-            val exitCode = process.waitFor()
-            if (exitCode == 0) {
-                Log.d(TAG, "Touch enabled via root")
-                true
-            } else {
-                Log.e(TAG, "Root command failed with exit code: $exitCode")
-                false
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Root method failed", e)
-            false
+            Log.e(TAG, "Error enabling touch", e)
         }
     }
     

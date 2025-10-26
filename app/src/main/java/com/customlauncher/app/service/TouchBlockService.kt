@@ -56,7 +56,7 @@ class TouchBlockService : Service() {
                 "Touch Block Service",
                 NotificationManager.IMPORTANCE_HIGH  // High importance for lock screen
             ).apply {
-                description = "Blocks touch input when apps are hidden"
+                description = "Блокировка сенсора активна"
                 setShowBadge(false)
                 setSound(null, null)
                 enableVibration(false)
@@ -68,20 +68,40 @@ class TouchBlockService : Service() {
             notificationManager.createNotificationChannel(channel)
         }
         
-        val pendingIntent = PendingIntent.getActivity(
+        // Intent to disable blocking
+        val disableIntent = Intent(this, TouchBlockService::class.java).apply {
+            action = ACTION_UNBLOCK_TOUCH
+        }
+        val disablePendingIntent = PendingIntent.getService(
+            this,
+            1,
+            disableIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        // Intent to open app
+        val appIntent = Intent(this, MainActivity::class.java)
+        val appPendingIntent = PendingIntent.getActivity(
             this,
             0,
-            Intent(this, MainActivity::class.java),
+            appIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.ic_menu_info_details)
+            .setSmallIcon(android.R.drawable.ic_lock_lock)
+            .setContentTitle("🔒 Сенсор заблокирован")
+            .setContentText("Касания экрана отключены")
             .setPriority(NotificationCompat.PRIORITY_HIGH)  // High priority
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)  // Show on lock screen
             .setSilent(true)
             .setOngoing(true) // Keep it ongoing
-            .setContentIntent(pendingIntent)
+            .setContentIntent(appPendingIntent)
+            .addAction(
+                android.R.drawable.ic_lock_power_off,
+                "Разблокировать",
+                disablePendingIntent
+            )
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
         
@@ -142,85 +162,80 @@ class TouchBlockService : Service() {
             }
         }
         
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            layoutFlag,
-            finalFlags,
-            PixelFormat.TRANSLUCENT
-        )
-        
-        params.gravity = Gravity.TOP or Gravity.START
-        
-        // Set to cover entire screen including system UI
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-        
-        blockView = object : FrameLayout(this@TouchBlockService) {
-            override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
-                // Intercept and consume ALL touch events at dispatch level
-                android.util.Log.d("TouchBlockService", "Touch intercepted at dispatch: ${ev?.action}")
-                return true
-            }
-            
-            override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-                // Also intercept at this level for extra safety
-                return true
-            }
-            
-            override fun onTouchEvent(event: MotionEvent?): Boolean {
-                // Final level of touch interception
-                android.util.Log.d("TouchBlockService", "Touch blocked at onTouchEvent: ${event?.action}")
-                return true
-            }
-        }.apply {
-            // Completely transparent overlay
-            setBackgroundColor(android.graphics.Color.TRANSPARENT)
-            
-            // Make it intercept ALL touches
-            isClickable = true
-            isFocusable = false  // Don't take focus to allow key events
-            isFocusableInTouchMode = false
-            isLongClickable = true
-            isEnabled = true
-            
-            // Set system UI visibility to hide status bar and navigation
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // Android 11+
-                windowInsetsController?.hide(android.view.WindowInsets.Type.systemBars())
-            } else {
-                @Suppress("DEPRECATION")
-                systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
-            }
-            
-            setOnTouchListener { _, event ->
-                // Block ALL touch events
-                android.util.Log.d("TouchBlockService", "Touch blocked: action=${event.action}, x=${event.x}, y=${event.y}")
-                true // Always consume the touch event
-            }
-            
-            // Also set a generic touch interceptor
-            setOnGenericMotionListener { _, event ->
-                android.util.Log.d("TouchBlockService", "Motion blocked: action=${event.action}")
-                true
-            }
-        }
-        
         try {
-            windowManager?.addView(blockView, params)
-            android.util.Log.d("TouchBlockService", "Full screen touch blocking overlay added")
+            // Create blocking view with proper touch interception
+            blockView = object : FrameLayout(this@TouchBlockService) {
+                override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+                    // Intercept and consume ALL touch events at dispatch level
+                    android.util.Log.d("TouchBlockService", "Touch intercepted at dispatch: ${ev?.action}")
+                    return true
+                }
+                
+                override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+                    // Also intercept at this level for extra safety
+                    return true
+                }
+                
+                override fun onTouchEvent(event: MotionEvent?): Boolean {
+                    // Final level of touch interception
+                    android.util.Log.d("TouchBlockService", "Touch blocked at onTouchEvent: ${event?.action}")
+                    return true
+                }
+            }.apply {
+                // Completely transparent overlay - можно сделать слегка видимым для отладки
+                // setBackgroundColor(android.graphics.Color.argb(10, 0, 0, 0))
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                
+                // Set touch listener as additional safeguard
+                setOnTouchListener { _, event ->
+                    android.util.Log.d("TouchBlockService", "Touch blocked via listener: ${event.action}")
+                    true
+                }
+                
+                // Make sure the view is focusable to capture events
+                isFocusable = true
+                isFocusableInTouchMode = true
+                isClickable = true
+                isLongClickable = true
+            }
             
-            // Add additional overlays for status bar and navigation bar
+            // Create params for full screen overlay
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                layoutFlag,
+                // Важно: убираем FLAG_NOT_FOCUSABLE чтобы перехватывать касания!
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or
+                finalFlags,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = Gravity.TOP or Gravity.START
+                x = 0
+                y = 0
+                
+                // Ensure we cover the entire screen including system bars
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                }
+                
+                // Покрываем весь экран включая статус бар и навигацию
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    fitInsetsTypes = 0 // Не учитываем insets, покрываем всё
+                }
+            }
+            
+            windowManager?.addView(blockView, params)
+            android.util.Log.d(TAG, "Touch blocking overlay created and added - full screen coverage")
+            
+            // Also add status bar and navigation bar blocks
             addStatusBarBlock()
             addNavigationBarBlock()
             
-            // Add extra layer for lock screen if device is locked
+            // Check if on lock screen
             val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
                 if (keyguardManager.isDeviceLocked) {

@@ -17,9 +17,11 @@
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.SHOW_WHEN_LOCKED" />
     <uses-permission android:name="android.permission.TURN_SCREEN_ON" />
-    <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <permission
         android:name="com.customlauncher.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -106,26 +108,22 @@
             </intent-filter>
         </receiver>
 
-        <!-- Device Admin Receiver -->
-        <receiver
-            android:name="com.customlauncher.app.receiver.LauncherDeviceAdminReceiver"
-            android:exported="true"
-            android:permission="android.permission.BIND_DEVICE_ADMIN" >
-            <meta-data
-                android:name="android.app.device_admin"
-                android:resource="@xml/device_admin" />
-
-            <intent-filter>
-                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
-            </intent-filter>
-        </receiver>
-
         <!-- Sensor Control Service -->
         <service
             android:name="com.customlauncher.app.service.SensorControlService"
             android:enabled="true"
             android:exported="false" />
 
+        <!-- FileProvider for APK installation -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.customlauncher.app.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="com.customlauncher.app.androidx-startup"

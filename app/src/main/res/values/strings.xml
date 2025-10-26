@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ИLauncher</string>
-    <string name="accessibility_service_description">Блокировка системных жестов в скрытом режиме</string>
+    <string name="accessibility_service_description">Этот сервис необходим для расширенной блокировки:\n• Блокировка панели уведомлений (свайп сверху)\n• Блокировка панели навигации\n• Блокировка свайпа назад (свайп слева-направо)\n• Блокировка кнопок громкости\n• Полная блокировка сенсора экрана\n\nПриложение НЕ собирает и НЕ передает личные данные.</string>
     <string name="applications">ПРИЛОЖЕНИЯ</string>
     <string name="settings">НАСТРОЙКИ</string>
     <string name="select_all">ВЫБРАТЬ ВСЕ</string>
