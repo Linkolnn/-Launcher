@@ -112,16 +112,25 @@ class MainActivity : AppCompatActivity() {
             setupListeners()
             observeViewModel()
             
-            // Observe state changes from StateManager
+            // Observe state changes from StateManager with better debouncing
             lifecycleScope.launch {
                 try {
+                    var lastUpdateTime = 0L
                     HiddenModeStateManager.isHiddenMode.collectLatest { isHidden ->
                         Log.d("MainActivity", "State changed: hidden=$isHidden")
-                        // Debounce app loading to avoid excessive updates
+                        
+                        val currentTime = System.currentTimeMillis()
+                        // Prevent too frequent updates (min 500ms between updates)
+                        if (currentTime - lastUpdateTime < 500) {
+                            return@collectLatest
+                        }
+                        lastUpdateTime = currentTime
+                        
+                        // Longer debounce for better performance
                         keyPressHandler.removeCallbacksAndMessages("load_apps")
                         keyPressHandler.postDelayed({
                             viewModel.loadApps()
-                        }, "load_apps", 200)
+                        }, "load_apps", 500)
                     }
                 } catch (e: Exception) {
                     Log.e("MainActivity", "Error observing state changes", e)
@@ -175,6 +184,12 @@ class MainActivity : AppCompatActivity() {
         binding.appsGrid.apply {
             layoutManager = GridLayoutManager(this@MainActivity, 4)
             adapter = appAdapter
+            
+            // Performance optimizations
+            setHasFixedSize(true)
+            setItemViewCacheSize(20) // Cache more views
+            recycledViewPool.setMaxRecycledViews(0, 20) // Increase recycled view pool
+            isNestedScrollingEnabled = false // Disable nested scrolling if not needed
             
             // Set custom fade sizes to match padding
             val topFadeSize = (50 * resources.displayMetrics.density).toInt()

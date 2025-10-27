@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 class AppViewModel : ViewModel() {
     
@@ -57,16 +58,28 @@ class AppViewModel : ViewModel() {
                         tempSelection
                     }
                     
-                    val appsWithSelection = apps.map { app ->
-                        app.copy(isSelected = savedHiddenApps.contains(app.packageName))
+                    // Single pass processing - more efficient
+                    val visibleList = mutableListOf<AppInfo>()
+                    val hiddenList = mutableListOf<AppInfo>()
+                    val allList = mutableListOf<AppInfo>()
+                    
+                    apps.forEach { app ->
+                        val appWithSelection = app.copy(isSelected = savedHiddenApps.contains(app.packageName))
+                        allList.add(appWithSelection)
+                        
+                        if (appWithSelection.isHidden) {
+                            hiddenList.add(appWithSelection)
+                        } else {
+                            visibleList.add(appWithSelection)
+                        }
                     }
                     
-                    // Switch to Main thread for UI updates
-                    launch(Dispatchers.Main) {
-                        _allApps.value = appsWithSelection
-                        _visibleApps.value = appsWithSelection.filter { !it.isHidden }
-                        _hiddenApps.value = appsWithSelection.filter { it.isHidden }
-                        _filteredApps.value = appsWithSelection
+                    // Switch to Main thread for UI updates - single update
+                    withContext(Dispatchers.Main) {
+                        _allApps.value = allList
+                        _visibleApps.value = visibleList
+                        _hiddenApps.value = hiddenList
+                        _filteredApps.value = allList
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()

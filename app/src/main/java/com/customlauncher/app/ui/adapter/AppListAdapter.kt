@@ -10,6 +10,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.customlauncher.app.R
 import com.customlauncher.app.data.model.AppInfo
+import com.customlauncher.app.utils.IconCache
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AppListAdapter(
     private val onAppClick: (AppInfo) -> Unit,
@@ -26,6 +32,11 @@ class AppListAdapter(
         holder.bind(getItem(position))
     }
     
+    override fun onViewRecycled(holder: AppViewHolder) {
+        super.onViewRecycled(holder)
+        holder.cancelIconLoad()
+    }
+    
     class AppViewHolder(
         itemView: View,
         private val onAppClick: (AppInfo) -> Unit,
@@ -37,11 +48,33 @@ class AppListAdapter(
         private val packageName: TextView = itemView.findViewById(R.id.packageName)
         private val checkBox: android.widget.FrameLayout = itemView.findViewById(R.id.checkBox)
         private val checkIcon: ImageView = itemView.findViewById(R.id.checkIcon)
+        private var iconLoadJob: Job? = null
         
         fun bind(app: AppInfo) {
-            appIcon.setImageDrawable(app.icon)
             appName.text = app.appName
             packageName.text = app.packageName
+            
+            // Set placeholder immediately
+            appIcon.setImageDrawable(app.icon)
+            
+            // Cancel previous icon load
+            iconLoadJob?.cancel()
+            
+            // Load real icon asynchronously
+            iconLoadJob = CoroutineScope(Dispatchers.Main).launch {
+                val icon = withContext(Dispatchers.IO) {
+                    try {
+                        IconCache.loadIcon(
+                            itemView.context,
+                            app.packageName,
+                            itemView.context.packageManager
+                        )
+                    } catch (e: Exception) {
+                        app.icon // Use placeholder on error
+                    }
+                }
+                appIcon.setImageDrawable(icon)
+            }
             
             // Update checkbox state
             checkIcon.visibility = if (app.isSelected) View.VISIBLE else View.GONE
@@ -63,6 +96,10 @@ class AppListAdapter(
                 onAppLongClick(app)
                 true
             }
+        }
+        
+        fun cancelIconLoad() {
+            iconLoadJob?.cancel()
         }
     }
     

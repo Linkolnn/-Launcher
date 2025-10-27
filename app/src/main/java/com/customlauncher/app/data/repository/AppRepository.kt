@@ -59,13 +59,20 @@ class AppRepository(
         }
         val hiddenPackages = getHiddenPackages()
         
-        apps.map { resolveInfo ->
-            val appName = resolveInfo.loadLabel(packageManager).toString()
-            val packageName = resolveInfo.activityInfo.packageName
-            val icon = resolveInfo.loadIcon(packageManager)
-            val isHidden = hiddenPackages.contains(packageName)
-            
-            AppInfo(appName, packageName, icon, isHidden)
+        // Use default icon initially, load real icons lazily
+        val defaultIcon = context.packageManager.defaultActivityIcon
+        
+        apps.mapNotNull { resolveInfo ->
+            try {
+                val appName = resolveInfo.loadLabel(packageManager).toString()
+                val packageName = resolveInfo.activityInfo.packageName
+                val isHidden = hiddenPackages.contains(packageName)
+                
+                // Use placeholder icon first, real icon will be loaded in adapter
+                AppInfo(appName, packageName, defaultIcon, isHidden)
+            } catch (e: Exception) {
+                null // Skip apps that cause errors
+            }
         }.sortedBy { it.appName.lowercase() }
     }
     
