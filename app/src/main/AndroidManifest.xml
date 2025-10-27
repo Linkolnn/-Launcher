@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.SHOW_WHEN_LOCKED" />
@@ -65,10 +66,14 @@
             android:screenOrientation="portrait" />
         
         <!-- Touch Block Service -->
-        <service 
+        <service
             android:name=".service.TouchBlockService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Accessibility overlay for touch blocking" />
+        </service>
         
         <service
             android:name=".service.SystemBlockAccessibilityService"

@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark"
+    android:padding="5dp"
+    tools:context=".ui.SettingsActivity">
+    
+    <!-- Tab Bar -->
+    <LinearLayout
+        android:id="@+id/tabBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="12dp"
+        android:padding="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+            
+            <LinearLayout
+                android:id="@+id/tabApplications"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:padding="12dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_tab_item"
+                android:elevation="2dp"
+                android:clickable="true"
+                android:focusable="true">
+                
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_page_apps_new"
+                    android:layout_marginEnd="8dp" />
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/applications"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/lampen"
+                    android:letterSpacing="0.02"
+                    tools:ignore="UnusedAttribute" />
+            </LinearLayout>
+            
+            <LinearLayout
+                android:id="@+id/tabSettings"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:padding="12dp"
+                android:layout_marginStart="4dp"
+                android:background="@drawable/bg_tab_item"
+                android:elevation="2dp"
+                android:clickable="true"
+                android:focusable="true">
+                
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_settings_new"
+                    android:layout_marginEnd="8dp" />
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/lampen"
+                    android:letterSpacing="0.02"
+                    tools:ignore="UnusedAttribute" />
+            </LinearLayout>
+        </LinearLayout>
+    
+    <!-- Settings Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tabBar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            
+            <!-- Key Combination Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_settings_section_30"
+                android:padding="16dp"
+                android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/key_configuration"
+                    android:textColor="@color/text_white"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/lampen"
+                    android:layout_marginBottom="12dp" />
+                
+                <RadioGroup
+                    android:id="@+id/keyCombinationGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                
+                <RadioButton
+                    android:id="@+id/comboBothVolume"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/combo_both_volume"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:padding="12dp"
+                    android:buttonTint="@color/accent_yellow" />
+                
+                <RadioButton
+                    android:id="@+id/comboPowerHold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/combo_power_hold"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:padding="12dp"
+                    android:buttonTint="@color/accent_yellow" />
+                
+                <RadioButton
+                    android:id="@+id/comboPowerVolUp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/combo_power_vol_up"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:padding="12dp"
+                    android:buttonTint="@color/accent_yellow" />
+                
+                <RadioButton
+                    android:id="@+id/comboPowerVolDown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/combo_power_vol_down"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:padding="12dp"
+                    android:buttonTint="@color/accent_yellow" />
+                
+                <RadioButton
+                    android:id="@+id/comboVolUpLong"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/combo_vol_up_long"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:padding="12dp"
+                    android:buttonTint="@color/accent_yellow" />
+                
+                <RadioButton
+                    android:id="@+id/comboVolDownLong"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/combo_vol_down_long"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:padding="12dp"
+                    android:buttonTint="@color/accent_yellow" />
+                </RadioGroup>
+            </LinearLayout>
+            
+            <!-- Default Home Screen Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_settings_section_30"
+                android:padding="16dp"
+                android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/default_home_screen"
+                    android:textColor="@color/text_white"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/lampen"
+                    android:layout_marginBottom="12dp" />
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/selectHomeScreenButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="ВЫБРАТЬ РАБОЧИЙ СТОЛ"
+                    android:textColor="@color/background_dark"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/lampen"
+                    android:letterSpacing="0.05"
+                    app:backgroundTint="@color/accent_yellow"
+                    app:cornerRadius="100px"
+                    android:elevation="4dp" />
+            </LinearLayout>
+            
+            <!-- Permissions Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_settings_section_30"
+                android:padding="16dp"
+                android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Необходимые разрешения"
+                    android:textColor="@color/text_white"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/lampen"
+                    android:layout_marginBottom="12dp" />
+                
+                <!-- Accessibility Service -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    
+                    <ImageView
+                        android:id="@+id/accessibilityStatusIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_close"
+                        android:layout_marginEnd="12dp" />
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Специальные возможности"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:id="@+id/accessibilityStatusText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Не включено"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/accessibilitySettingsButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="НАСТРОИТЬ"
+                        android:textColor="@color/background_dark"
+                        android:textSize="12sp"
+                        app:backgroundTint="@color/accent_yellow"
+                        app:cornerRadius="20dp" />
+                </LinearLayout>
+                
+                <!-- Overlay Permission (Touch Block) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    
+                    <ImageView
+                        android:id="@+id/overlayStatusIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_close"
+                        android:layout_marginEnd="12dp" />
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Наложение поверх окон"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:id="@+id/overlayStatusText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Не включено"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/overlayPermissionButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="НАСТРОИТЬ"
+                        android:textColor="@color/background_dark"
+                        android:textSize="12sp"
+                        app:backgroundTint="@color/accent_yellow"
+                        app:cornerRadius="20dp" />
+                </LinearLayout>
+                
+                <!-- Do Not Disturb Permission -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    
+                    <ImageView
+                        android:id="@+id/dndStatusIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_close"
+                        android:layout_marginEnd="12dp" />
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Режим не беспокоить"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:id="@+id/dndStatusText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Не включено"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dndPermissionButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="НАСТРОИТЬ"
+                        android:textColor="@color/background_dark"
+                        android:textSize="12sp"
+                        app:backgroundTint="@color/accent_yellow"
+                        app:cornerRadius="20dp" />
+                </LinearLayout>
+                    
+                <!-- Write Settings -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    
+                    <ImageView
+                        android:id="@+id/writeSettingsStatusIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_close"
+                        android:layout_marginEnd="12dp" />
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Изменение системных настроек"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:id="@+id/writeSettingsStatusText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Не разрешено"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/writeSettingsButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="НАСТРОИТЬ"
+                        android:textColor="@color/background_dark"
+                        android:textSize="12sp"
+                        app:backgroundTint="@color/accent_yellow"
+                        app:cornerRadius="20dp" />
+                </LinearLayout>
+                
+                </LinearLayout>
+            
+            <!-- Status Info -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_settings_section_30"
+                android:padding="16dp"
+                android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Статус"
+                    android:textColor="@color/text_white"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/lampen"
+                    android:layout_marginBottom="12dp" />
+                
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Приложения видимы, сенсор активен"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

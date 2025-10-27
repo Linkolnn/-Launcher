@@ -46,7 +46,17 @@ class AppRepository(
         val intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
         
-        val apps = packageManager.queryIntentActivities(intent, 0)
+        val apps = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ requires ResolveInfoFlags
+            packageManager.queryIntentActivities(
+                intent,
+                android.content.pm.PackageManager.ResolveInfoFlags.of(0L)
+            )
+        } else {
+            // Android 12 and below
+            @Suppress("DEPRECATION")
+            packageManager.queryIntentActivities(intent, 0)
+        }
         val hiddenPackages = getHiddenPackages()
         
         apps.map { resolveInfo ->

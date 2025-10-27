@@ -82,36 +82,53 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // MainActivity is now only for HOME screen
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        
-        // Remove lock screen flags - we only want them when explicitly needed
-        // These flags were preventing normal lock screen from appearing
-        
-        // Make system bars transparent
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        )
-        
-        viewModel = ViewModelProvider(this)[AppViewModel::class.java]
-        
-        setupRecyclerView()
-        setupListeners()
-        observeViewModel()
-        
-        // Observe state changes from StateManager
-        lifecycleScope.launch {
-            HiddenModeStateManager.isHiddenMode.collectLatest { isHidden ->
-                Log.d("MainActivity", "State changed: hidden=$isHidden")
-                // Debounce app loading to avoid excessive updates
-                keyPressHandler.removeCallbacksAndMessages("load_apps")
-                keyPressHandler.postDelayed({
-                    viewModel.loadApps()
-                }, "load_apps", 200)
+        try {
+            // MainActivity is now only for HOME screen
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            
+            // Remove lock screen flags - we only want them when explicitly needed
+            // These flags were preventing normal lock screen from appearing
+            
+            // Make system bars transparent - use new API for Android 12+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.setDecorFitsSystemWindows(false)
+            } else {
+                @Suppress("DEPRECATION")
+                window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                )
             }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error in onCreate setup", e)
+        }
+        
+        try {
+            viewModel = ViewModelProvider(this)[AppViewModel::class.java]
+            
+            setupRecyclerView()
+            setupListeners()
+            observeViewModel()
+            
+            // Observe state changes from StateManager
+            lifecycleScope.launch {
+                try {
+                    HiddenModeStateManager.isHiddenMode.collectLatest { isHidden ->
+                        Log.d("MainActivity", "State changed: hidden=$isHidden")
+                        // Debounce app loading to avoid excessive updates
+                        keyPressHandler.removeCallbacksAndMessages("load_apps")
+                        keyPressHandler.postDelayed({
+                            viewModel.loadApps()
+                        }, "load_apps", 200)
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error observing state changes", e)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error initializing viewModel", e)
         }
         
         // Check overlay permission for touch blocking
@@ -122,7 +139,18 @@ class MainActivity : AppCompatActivity() {
             addAction(KeyCombinationReceiver.ACTION_KEY_COMBINATION_DETECTED)
             addAction("com.customlauncher.HIDDEN_MODE_CHANGED")
         }
-        registerReceiver(keyCombinationReceiver, filter)
+        
+        // Android 12+ requires explicit export flag
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ has the constant
+            registerReceiver(keyCombinationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android 12 needs the flag value directly (2)
+            registerReceiver(keyCombinationReceiver, filter, 2) // RECEIVER_NOT_EXPORTED = 2
+        } else {
+            // Android 11 and below
+            registerReceiver(keyCombinationReceiver, filter)
+        }
         
         // Check initial state
         updateVisibility()
