@@ -52,6 +52,9 @@ object HiddenModeStateManager {
         
         // Handle touch blocking - prioritize overlay method as it works without root
         if (enabled) {
+            // Close all apps and go to home screen first
+            closeAllAppsAndGoHome(context)
+            
             // Start overlay blocking immediately (works without root)
             startTouchBlockService(context)
             
@@ -99,6 +102,36 @@ object HiddenModeStateManager {
         if (currentPrefState != currentState) {
             Log.d(TAG, "State mismatch detected. Preferences: $currentPrefState, Manager: $currentState")
             setHiddenMode(context, currentPrefState)
+        }
+    }
+    
+    private fun closeAllAppsAndGoHome(context: Context) {
+        try {
+            Log.d(TAG, "Closing all apps and going to home screen")
+            
+            // Method 1: Use accessibility service first for immediate action
+            val accessibilityIntent = Intent(context, SystemBlockAccessibilityService::class.java).apply {
+                action = "com.customlauncher.CLOSE_ALL_APPS"
+            }
+            context.startService(accessibilityIntent)
+            
+            // Method 2: Broadcast to close system dialogs immediately
+            val closeIntent = Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
+            context.sendBroadcast(closeIntent)
+            
+            // Method 3: Send home intent as backup (with small delay)
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or 
+                           Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+                context.startActivity(homeIntent)
+            }, 150)
+            
+            Log.d(TAG, "Home screen activated, apps closing")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing apps and going home", e)
         }
     }
     

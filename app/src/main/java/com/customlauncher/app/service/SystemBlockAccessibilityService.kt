@@ -473,6 +473,7 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         when (intent?.action) {
             ACTION_BLOCK_TOUCHES -> enableTouchBlocking()
             ACTION_UNBLOCK_TOUCHES -> disableTouchBlocking()
+            "com.customlauncher.CLOSE_ALL_APPS" -> closeAllApps()
             Intent.ACTION_SCREEN_OFF -> {
                 // Optional: Can lock screen if needed
                 // performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
@@ -507,9 +508,38 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         }
     }
     
+    private fun closeAllApps() {
+        try {
+            Log.d(TAG, "Attempting to close all apps via accessibility service")
+            
+            // Method 1: Go directly to home screen (fastest)
+            performGlobalAction(GLOBAL_ACTION_HOME)
+            
+            // Method 2: Send back button to ensure current app is closed
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                performGlobalAction(GLOBAL_ACTION_BACK)
+                // One more home to ensure we're on launcher
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    performGlobalAction(GLOBAL_ACTION_HOME)
+                }, 50)
+            }, 100)
+            
+            Log.d(TAG, "Close all apps commands sent")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to close all apps", e)
+        }
+    }
+    
     private fun disableTouchBlocking() {
         try {
             Log.d(TAG, "Disabling touch blocking...")
+            
+            // Restore keyboard to normal mode
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val controller = softKeyboardController
+                controller?.showMode = AccessibilityService.SHOW_MODE_AUTO
+                Log.d(TAG, "Keyboard restored to auto mode")
+            }
             
             // Remove touch exploration and multitouch flags to disable touch blocking
             val info = serviceInfo
