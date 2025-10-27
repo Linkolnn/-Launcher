@@ -110,6 +110,14 @@ class LauncherPreferences(context: Context) {
         }
         set(value) = prefs.edit().putInt(KEY_SELECTED_COMBINATION, value.ordinal).apply()
     
+    var gridColumnCount: Int
+        get() = prefs.getInt(KEY_GRID_COLUMNS, 4)
+        set(value) {
+            if (value in 3..5) {
+                prefs.edit().putInt(KEY_GRID_COLUMNS, value).apply()
+            }
+        }
+    
     companion object {
         private const val PREFS_NAME = "launcher_preferences"
         private const val KEY_COMBINATION = "key_combination"
@@ -119,5 +127,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_TOUCH_BLOCKED = "touch_blocked"
         private const val KEY_DEFAULT_HOME = "default_home_screen"
         private const val KEY_SELECTED_COMBINATION = "selected_key_combination"
+        private const val KEY_GRID_COLUMNS = "grid_columns"
     }
 }

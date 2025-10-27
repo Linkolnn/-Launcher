@@ -37,6 +37,8 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
         
         setupTabs()
+        setupKeyCombinationSelection()
+        setupGridSelection()
         setupHomeScreenSelector()
         setupPermissionsSection()
         checkAllPermissions()
@@ -52,6 +54,32 @@ class SettingsActivity : AppCompatActivity() {
         
         binding.tabSettings.setOnClickListener {
             // Already on settings tab
+        }
+    }
+    
+    private fun setupGridSelection() {
+        val preferences = LauncherApplication.instance.preferences
+        
+        // Set initial selection based on saved preference
+        val currentColumns = preferences.gridColumnCount
+        when (currentColumns) {
+            3 -> binding.grid3Columns.isChecked = true
+            4 -> binding.grid4Columns.isChecked = true
+            5 -> binding.grid5Columns.isChecked = true
+            else -> binding.grid4Columns.isChecked = true // Default to 4 columns
+        }
+        
+        // Handle grid selection changes
+        binding.gridColumnsGroup.setOnCheckedChangeListener { _, checkedId ->
+            val columns = when (checkedId) {
+                R.id.grid3Columns -> 3
+                R.id.grid4Columns -> 4
+                R.id.grid5Columns -> 5
+                else -> 4 // Default to 4
+            }
+            
+            preferences.gridColumnCount = columns
+            Toast.makeText(this, "Сетка изменена на $columns столбца", Toast.LENGTH_SHORT).show()
         }
     }
     

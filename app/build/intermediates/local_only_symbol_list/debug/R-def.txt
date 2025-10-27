@@ -58,6 +58,10 @@ id comboVolUpLong
 id dndPermissionButton
 id dndStatusIcon
 id dndStatusText
+id grid3Columns
+id grid4Columns
+id grid5Columns
+id gridColumnsGroup
 id homeScreenStatusIcon
 id homeScreenStatusText
 id keyCombinationGroup

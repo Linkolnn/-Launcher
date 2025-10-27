@@ -182,7 +182,9 @@ class MainActivity : AppCompatActivity() {
         }
         
         binding.appsGrid.apply {
-            layoutManager = GridLayoutManager(this@MainActivity, 4)
+            // Get column count from preferences
+            val columnCount = LauncherApplication.instance.preferences.gridColumnCount
+            layoutManager = GridLayoutManager(this@MainActivity, columnCount)
             adapter = appAdapter
             
             // Performance optimizations
@@ -508,6 +510,18 @@ class MainActivity : AppCompatActivity() {
         val serviceName = "${packageName}/${com.customlauncher.app.service.SystemBlockAccessibilityService::class.java.canonicalName}"
         val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
         return enabledServices?.contains(serviceName) == true
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Update grid columns if changed in settings
+        updateGridColumns()
+    }
+    
+    private fun updateGridColumns() {
+        val columnCount = LauncherApplication.instance.preferences.gridColumnCount
+        val layoutManager = binding.appsGrid.layoutManager as? GridLayoutManager
+        layoutManager?.spanCount = columnCount
     }
     
     override fun onDestroy() {
