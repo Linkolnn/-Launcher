@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -174,53 +175,54 @@ class SettingsActivity : AppCompatActivity() {
     }
     
     private fun setupPermissionsSection() {
-        // Accessibility Service
+        // Accessibility Service - always open settings
         binding.accessibilitySettingsButton.setOnClickListener {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            startActivityForResult(intent, REQUEST_CODE_ACCESSIBILITY)
+            startActivity(intent)
         }
         
-        // Overlay Permission (Touch Block)
+        // Overlay Permission - always open settings
         binding.overlayPermissionButton.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!Settings.canDrawOverlays(this)) {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:$packageName")
-                    )
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this, "Разрешение уже предоставлено", Toast.LENGTH_SHORT).show()
-                }
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Разрешение уже предоставлено", Toast.LENGTH_SHORT).show()
             }
         }
         
         // Do Not Disturb Permission
         binding.dndPermissionButton.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                if (!notificationManager.isNotificationPolicyAccessGranted) {
-                    val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this, "Разрешение уже предоставлено", Toast.LENGTH_SHORT).show()
-                }
+                val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                startActivity(intent)
             }
         }
         
         // Write Settings
         binding.writeSettingsButton.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!Settings.System.canWrite(this)) {
-                    val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
-                    intent.data = Uri.parse("package:$packageName")
-                    startActivityForResult(intent, REQUEST_CODE_WRITE_SETTINGS)
-                } else {
-                    Toast.makeText(this, "Разрешение уже предоставлено", Toast.LENGTH_SHORT).show()
-                }
+                val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+                intent.data = Uri.parse("package:$packageName")
+                startActivity(intent)
             }
         }
         
+        // Home Screen Default - always open settings
+        binding.selectHomeScreenButton.setOnClickListener {
+            try {
+                val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+                startActivity(intent)
+            } catch (e: Exception) {
+                // Fallback to app info if home settings not available
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.parse("package:$packageName")
+                startActivity(intent)
+            }
+        }
     }
     
     private fun checkAllPermissions() {
@@ -275,12 +277,41 @@ class SettingsActivity : AppCompatActivity() {
                 binding.writeSettingsStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
             }
         }
+        
+        // Check Home Screen Default
+        if (isDefaultLauncher()) {
+            binding.homeScreenStatusIcon.setImageResource(R.drawable.ic_check)
+            binding.homeScreenStatusText.text = "Установлен"
+            binding.homeScreenStatusText.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+        } else {
+            binding.homeScreenStatusIcon.setImageResource(R.drawable.ic_close)
+            binding.homeScreenStatusText.text = "Не установлен"
+            binding.homeScreenStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+        }
     }
     
     private fun isAccessibilityServiceEnabled(): Boolean {
         val serviceName = "${packageName}/${com.customlauncher.app.service.SystemBlockAccessibilityService::class.java.canonicalName}"
         val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
         return enabledServices?.contains(serviceName) == true
+    }
+    
+    private fun isDefaultLauncher(): Boolean {
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.addCategory(Intent.CATEGORY_HOME)
+        val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        return resolveInfo?.activityInfo?.packageName == packageName
+    }
+    
+    fun areAllPermissionsGranted(): Boolean {
+        val accessibilityEnabled = isAccessibilityServiceEnabled()
+        val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val dndGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || notificationManager.isNotificationPolicyAccessGranted
+        val writeSettingsGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.System.canWrite(this)
+        val isDefaultHome = isDefaultLauncher()
+        
+        return accessibilityEnabled && overlayGranted && dndGranted && writeSettingsGranted && isDefaultHome
     }
     
     

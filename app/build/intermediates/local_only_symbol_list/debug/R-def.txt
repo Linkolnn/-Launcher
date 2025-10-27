@@ -58,6 +58,8 @@ id comboVolUpLong
 id dndPermissionButton
 id dndStatusIcon
 id dndStatusText
+id homeScreenStatusIcon
+id homeScreenStatusText
 id keyCombinationGroup
 id launchButton
 id overlayPermissionButton

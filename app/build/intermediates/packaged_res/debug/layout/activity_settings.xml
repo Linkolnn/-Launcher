@@ -185,39 +185,6 @@
                 </RadioGroup>
             </LinearLayout>
             
-            <!-- Default Home Screen Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_settings_section_30"
-                android:padding="16dp"
-                android:elevation="2dp"
-                android:layout_marginBottom="16dp">
-                
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/default_home_screen"
-                    android:textColor="@color/text_white"
-                    android:textSize="18sp"
-                    android:fontFamily="@font/lampen"
-                    android:layout_marginBottom="12dp" />
-                
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/selectHomeScreenButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:text="ВЫБРАТЬ РАБОЧИЙ СТОЛ"
-                    android:textColor="@color/background_dark"
-                    android:textSize="18sp"
-                    android:fontFamily="@font/lampen"
-                    android:letterSpacing="0.05"
-                    app:backgroundTint="@color/accent_yellow"
-                    app:cornerRadius="100px"
-                    android:elevation="4dp" />
-            </LinearLayout>
-            
             <!-- Permissions Section -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -281,6 +248,7 @@
                         android:text="НАСТРОИТЬ"
                         android:textColor="@color/background_dark"
                         android:textSize="12sp"
+                        android:fontFamily="@font/mal6lampen"
                         app:backgroundTint="@color/accent_yellow"
                         app:cornerRadius="20dp" />
                 </LinearLayout>
@@ -329,6 +297,7 @@
                         android:text="НАСТРОИТЬ"
                         android:textColor="@color/background_dark"
                         android:textSize="12sp"
+                        android:fontFamily="@font/mal6lampen"
                         app:backgroundTint="@color/accent_yellow"
                         app:cornerRadius="20dp" />
                 </LinearLayout>
@@ -377,6 +346,7 @@
                         android:text="НАСТРОИТЬ"
                         android:textColor="@color/background_dark"
                         android:textSize="12sp"
+                        android:fontFamily="@font/mal6lampen"
                         app:backgroundTint="@color/accent_yellow"
                         app:cornerRadius="20dp" />
                 </LinearLayout>
@@ -425,6 +395,56 @@
                         android:text="НАСТРОИТЬ"
                         android:textColor="@color/background_dark"
                         android:textSize="12sp"
+                        android:fontFamily="@font/mal6lampen"
+                        app:backgroundTint="@color/accent_yellow"
+                        app:cornerRadius="20dp" />
+                </LinearLayout>
+                
+                <!-- Home Screen Default -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp">
+                    
+                    <ImageView
+                        android:id="@+id/homeScreenStatusIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_close"
+                        android:layout_marginEnd="12dp" />
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Рабочий стол по умолчанию"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:id="@+id/homeScreenStatusText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Не установлен"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/selectHomeScreenButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="НАСТРОИТЬ"
+                        android:textColor="@color/background_dark"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/mal6lampen"
                         app:backgroundTint="@color/accent_yellow"
                         app:cornerRadius="20dp" />
                 </LinearLayout>

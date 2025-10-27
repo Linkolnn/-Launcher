@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -98,6 +99,17 @@ class AppListActivity : AppCompatActivity() {
         
         // Launch button - saves selected apps as hidden and goes to home screen
         binding.launchButton.setOnClickListener {
+            // Check if all permissions are granted
+            val settingsActivity = SettingsActivity()
+            val allPermissionsGranted = checkAllPermissionsGranted()
+            
+            if (!allPermissionsGranted) {
+                // Open settings page if permissions not granted
+                Toast.makeText(this, "Необходимо активировать все разрешения", Toast.LENGTH_LONG).show()
+                startActivity(Intent(this, SettingsActivity::class.java))
+                return@setOnClickListener
+            }
+            
             // Save current selection to both SelectionManager and preferences
             val selectedApps = viewModel.getSelectedApps()
             val packageNames = selectedApps.map { it.packageName }.toSet()
@@ -137,6 +149,29 @@ class AppListActivity : AppCompatActivity() {
     private fun updateLaunchButton() {
         binding.launchButton.isEnabled = true
         binding.launchButton.text = "ЗАПУСТИТЬ"
+    }
+    
+    private fun checkAllPermissionsGranted(): Boolean {
+        val serviceName = "${packageName}/${com.customlauncher.app.service.SystemBlockAccessibilityService::class.java.canonicalName}"
+        val enabledServices = android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        val accessibilityEnabled = enabledServices?.contains(serviceName) == true
+        
+        val overlayGranted = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M || 
+                            android.provider.Settings.canDrawOverlays(this)
+        
+        val notificationManager = getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val dndGranted = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M || 
+                        notificationManager.isNotificationPolicyAccessGranted
+        
+        val writeSettingsGranted = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M || 
+                                  android.provider.Settings.System.canWrite(this)
+        
+        val intent = android.content.Intent(android.content.Intent.ACTION_MAIN)
+        intent.addCategory(android.content.Intent.CATEGORY_HOME)
+        val resolveInfo = packageManager.resolveActivity(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+        val isDefaultHome = resolveInfo?.activityInfo?.packageName == packageName
+        
+        return accessibilityEnabled && overlayGranted && dndGranted && writeSettingsGranted && isDefaultHome
     }
     
     override fun onPause() {

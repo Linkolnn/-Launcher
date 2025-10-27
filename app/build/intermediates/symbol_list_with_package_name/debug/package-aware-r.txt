@@ -3427,6 +3427,8 @@ id hide_ime_id
 id hideable
 id home
 id homeAsUp
+id homeScreenStatusIcon
+id homeScreenStatusText
 id honorRequest
 id horizontal_only
 id icon
