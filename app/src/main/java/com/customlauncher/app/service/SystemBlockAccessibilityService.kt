@@ -12,8 +12,9 @@ import com.customlauncher.app.LauncherApplication
 import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
-import com.customlauncher.app.data.model.KeyCombination
 import com.customlauncher.app.receiver.KeyCombinationReceiver
+import com.customlauncher.app.receiver.CustomKeyListener
+import com.customlauncher.app.data.model.CustomKeyCombination
 import android.app.KeyguardManager
 import android.provider.Settings
 import com.customlauncher.app.manager.HiddenModeStateManager
@@ -25,17 +26,15 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         private const val TAG = "SystemBlockAccessibility"
         const val ACTION_BLOCK_TOUCHES = "com.customlauncher.app.BLOCK_TOUCHES"
         const val ACTION_UNBLOCK_TOUCHES = "com.customlauncher.app.UNBLOCK_TOUCHES"
+        const val ACTION_REFRESH_KEYS = "com.customlauncher.app.REFRESH_KEYS"
         private const val ACTION_TOGGLE_APPS = "com.customlauncher.app.TOGGLE_APPS"
         var instance: SystemBlockAccessibilityService? = null
         private const val KEYGUARD_CHECK_DELAY = 50L
     }
     
     // For key combination detection
-    private var volumeUpPressed = false
-    private var volumeDownPressed = false
-    private var powerPressed = false
+    private var customKeyListener: CustomKeyListener? = null
     private val keyPressHandler = Handler(Looper.getMainLooper())
-    private var longPressRunnable: Runnable? = null
     private var lastKeyEventTime = 0L
     private val KEY_EVENT_TIMEOUT = 100L // milliseconds
     private var isScreenLocked = false
@@ -76,6 +75,9 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         if (HiddenModeStateManager.currentState) {
             enableTouchBlocking()
         }
+        
+        // Setup custom key listener
+        setupCustomKeyListener()
     }
     
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -206,61 +208,28 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         }
     }
     
-    override fun onKeyEvent(event: KeyEvent?): Boolean {
-        if (event == null) return false
-        
-        val preferences = LauncherApplication.instance.preferences
-        val currentTime = System.currentTimeMillis()
-        
-        // Update screen lock state
-        checkScreenLockState()
-        
-        // Reset key states if timeout exceeded
-        if (currentTime - lastKeyEventTime > KEY_EVENT_TIMEOUT * 10) {
-            resetKeyStates()
+    override fun onKeyEvent(event: KeyEvent): Boolean {
+        // Only handle key down events
+        if (event.action != KeyEvent.ACTION_DOWN) {
+            return false
         }
+        
+        val currentTime = System.currentTimeMillis()
         lastKeyEventTime = currentTime
         
-        Log.d(TAG, "KeyEvent: action=${event.action}, keyCode=${event.keyCode}, hidden=${preferences.appsHidden}, locked=$isScreenLocked")
+        // Check if screen is locked with delay to ensure accurate state
+        keyPressHandler.postDelayed({
+            checkScreenLockState()
+        }, KEYGUARD_CHECK_DELAY)
         
-        // Handle key events for combination detection
-        when (event.action) {
-            KeyEvent.ACTION_DOWN -> {
-                when (event.keyCode) {
-                    KeyEvent.KEYCODE_VOLUME_UP -> {
-                        volumeUpPressed = true
-                        Log.d(TAG, "Volume UP pressed")
-                        checkKeyCombination()
-                        handleLongPress(event.keyCode)
-                    }
-                    KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                        volumeDownPressed = true
-                        Log.d(TAG, "Volume DOWN pressed")
-                        checkKeyCombination()
-                        handleLongPress(event.keyCode)
-                    }
-                    KeyEvent.KEYCODE_POWER -> {
-                        powerPressed = true
-                        Log.d(TAG, "Power pressed")
-                        checkKeyCombination()
-                        handleLongPress(event.keyCode)
-                    }
-                }
-            }
-            KeyEvent.ACTION_UP -> {
-                when (event.keyCode) {
-                    KeyEvent.KEYCODE_VOLUME_UP -> {
-                        volumeUpPressed = false
-                        cancelLongPress()
-                    }
-                    KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                        volumeDownPressed = false
-                        cancelLongPress()
-                    }
-                    KeyEvent.KEYCODE_POWER -> {
-                        powerPressed = false
-                        cancelLongPress()
-                    }
+        Log.d(TAG, "KeyEvent: action=${event.action}, keyCode=${event.keyCode}, hidden=${HiddenModeStateManager.currentState}, locked=$isScreenLocked")
+        
+        // Handle custom key combinations if enabled
+        val preferences = LauncherApplication.instance.preferences
+        if (preferences.useCustomKeys) {
+            customKeyListener?.let { listener ->
+                if (listener.onKeyEvent(event.keyCode)) {
+                    return true
                 }
             }
         }
@@ -278,96 +247,50 @@ class SystemBlockAccessibilityService : AccessibilityService() {
             }
         }
         
-        // Always allow key combinations to work, even on lock screen
+        // Let other keys pass through
         return false // Let the system handle other keys
     }
     
-    private fun resetKeyStates() {
-        volumeUpPressed = false
-        volumeDownPressed = false
-        powerPressed = false
-        cancelLongPress()
-    }
-    
-    private fun checkKeyCombination() {
+    private fun setupCustomKeyListener() {
+        // Clean up old listener first
+        customKeyListener?.destroy()
+        customKeyListener = null
+        
         val preferences = LauncherApplication.instance.preferences
-        val combo = preferences.selectedKeyCombination
         
-        Log.d(TAG, "Checking key combination: combo=$combo, volUp=$volumeUpPressed, volDown=$volumeDownPressed, power=$powerPressed")
-        
-        var detected = false
-        
-        when (combo) {
-            KeyCombination.BOTH_VOLUME -> {
-                if (volumeUpPressed && volumeDownPressed) {
-                    Log.d(TAG, "Both volume buttons detected!")
-                    detected = true
+        if (preferences.useCustomKeys) {
+            val customKeysString = preferences.customKeyCombination
+            if (customKeysString != null) {
+                val keys = customKeysString.split(",").mapNotNull { it.toIntOrNull() }
+                if (keys.isNotEmpty()) {
+                    val combination = CustomKeyCombination(keys)
+                    customKeyListener = CustomKeyListener {
+                        Log.d(TAG, "Custom key combination detected!")
+                        sendKeyCombinationBroadcast()
+                    }
+                    customKeyListener?.setCombination(combination)
+                    Log.d(TAG, "Custom key listener setup with keys: $keys")
                 }
             }
-            KeyCombination.POWER_VOL_UP -> {
-                if (powerPressed && volumeUpPressed) {
-                    Log.d(TAG, "Power + Vol Up detected!")
-                    detected = true
-                }
-            }
-            KeyCombination.POWER_VOL_DOWN -> {
-                if (powerPressed && volumeDownPressed) {
-                    Log.d(TAG, "Power + Vol Down detected!")
-                    detected = true
-                }
-            }
-            KeyCombination.POWER_HOLD,
-            KeyCombination.VOL_UP_LONG,
-            KeyCombination.VOL_DOWN_LONG -> {
-                // These are handled in handleLongPress method
-            }
-        }
-        
-        if (detected) {
-            toggleHiddenMode()
-            resetKeyStates()
         }
     }
     
-    private fun handleLongPress(keyCode: Int) {
-        val preferences = LauncherApplication.instance.preferences
-        val combo = preferences.keyCombination
+    private fun sendKeyCombinationBroadcast() {
+        Log.d(TAG, "Key combination detected, toggling hidden mode")
         
-        when (combo) {
-            KeyCombination.VOL_UP_LONG -> {
-                if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-                    startLongPressTimer()
-                }
-            }
-            KeyCombination.VOL_DOWN_LONG -> {
-                if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-                    startLongPressTimer()
-                }
-            }
-            KeyCombination.POWER_HOLD -> {
-                if (keyCode == KeyEvent.KEYCODE_POWER) {
-                    startLongPressTimer()
-                }
-            }
-            else -> {}
-        }
-    }
-    
-    private fun startLongPressTimer() {
-        cancelLongPress()
-        longPressRunnable = Runnable {
-            Log.d(TAG, "Long press triggered!")
-            toggleHiddenMode()
-            resetKeyStates()
-        }
-        keyPressHandler.postDelayed(longPressRunnable!!, 1000)
-    }
-    
-    private fun cancelLongPress() {
-        longPressRunnable?.let {
-            keyPressHandler.removeCallbacks(it)
-            longPressRunnable = null
-        }
+        // Get current state
+        val currentState = HiddenModeStateManager.currentState
+        val newState = !currentState
+        
+        Log.d(TAG, "Toggling from $currentState to $newState")
+        
+        // Toggle the state
+        HiddenModeStateManager.setHiddenMode(this, newState)
+        
+        // Also send broadcast to MainActivity to update UI
+        val intent = Intent("com.customlauncher.HIDDEN_MODE_CHANGED")
+        intent.putExtra("hidden", newState)
+        sendBroadcast(intent)
     }
     
     private fun disableNode(node: AccessibilityNodeInfo) {
@@ -471,9 +394,25 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         Log.d(TAG, "onStartCommand: ${intent?.action}")
         
         when (intent?.action) {
-            ACTION_BLOCK_TOUCHES -> enableTouchBlocking()
-            ACTION_UNBLOCK_TOUCHES -> disableTouchBlocking()
-            "com.customlauncher.CLOSE_ALL_APPS" -> closeAllApps()
+            ACTION_BLOCK_TOUCHES -> {
+                enableTouchBlocking()
+                // Refresh key listener when entering hidden mode
+                setupCustomKeyListener()
+            }
+            ACTION_UNBLOCK_TOUCHES -> {
+                disableTouchBlocking()
+                // Refresh key listener when exiting hidden mode
+                setupCustomKeyListener()
+            }
+            ACTION_REFRESH_KEYS -> {
+                Log.d(TAG, "Refreshing custom key listener")
+                setupCustomKeyListener()
+            }
+            "com.customlauncher.CLOSE_ALL_APPS" -> {
+                closeAllApps()
+                // Also refresh keys after closing apps
+                setupCustomKeyListener()
+            }
             Intent.ACTION_SCREEN_OFF -> {
                 // Optional: Can lock screen if needed
                 // performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)

@@ -3,7 +3,6 @@ package com.customlauncher.app.data.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import com.customlauncher.app.data.model.KeyCombination
 
 class LauncherPreferences(context: Context) {
     
@@ -16,17 +15,6 @@ class LauncherPreferences(context: Context) {
     @Volatile
     private var hiddenAppsCache: Set<String>? = null
     private val cacheLock = Any()
-    
-    var keyCombination: KeyCombination
-        get() {
-            val id = prefs.getInt(KEY_COMBINATION, KeyCombination.VOL_DOWN_LONG.id)
-            android.util.Log.d("LauncherPreferences", "Getting keyCombination: id=$id")
-            return KeyCombination.fromId(id)
-        }
-        set(value) {
-            android.util.Log.d("LauncherPreferences", "Setting keyCombination: ${value.name} (id=${value.id})")
-            prefs.edit().putInt(KEY_COMBINATION, value.id).commit() // Use commit() for immediate save
-        }
     
     var appsHidden: Boolean
         get() = prefs.getBoolean(KEY_APPS_HIDDEN, false)
@@ -103,13 +91,6 @@ class LauncherPreferences(context: Context) {
         get() = prefs.getString(KEY_DEFAULT_HOME, "standard") ?: "standard"
         set(value) = prefs.edit().putString(KEY_DEFAULT_HOME, value).apply()
     
-    var selectedKeyCombination: KeyCombination
-        get() {
-            val ordinal = prefs.getInt(KEY_SELECTED_COMBINATION, KeyCombination.BOTH_VOLUME.ordinal)
-            return KeyCombination.values().getOrNull(ordinal) ?: KeyCombination.BOTH_VOLUME
-        }
-        set(value) = prefs.edit().putInt(KEY_SELECTED_COMBINATION, value.ordinal).apply()
-    
     var gridColumnCount: Int
         get() = prefs.getInt(KEY_GRID_COLUMNS, 4)
         set(value) {
@@ -118,15 +99,23 @@ class LauncherPreferences(context: Context) {
             }
         }
     
+    var customKeyCombination: String?
+        get() = prefs.getString(KEY_CUSTOM_KEY_COMBINATION, null)
+        set(value) = prefs.edit().putString(KEY_CUSTOM_KEY_COMBINATION, value).apply()
+    
+    var useCustomKeys: Boolean
+        get() = prefs.getBoolean(KEY_USE_CUSTOM_KEYS, false)
+        set(value) = prefs.edit().putBoolean(KEY_USE_CUSTOM_KEYS, value).apply()
+    
     companion object {
         private const val PREFS_NAME = "launcher_preferences"
-        private const val KEY_COMBINATION = "key_combination"
         private const val KEY_APPS_HIDDEN = "apps_hidden"
         private const val KEY_ICON_PACK = "icon_pack"
         private const val KEY_HIDDEN_APPS = "hidden_apps"
         private const val KEY_TOUCH_BLOCKED = "touch_blocked"
         private const val KEY_DEFAULT_HOME = "default_home_screen"
-        private const val KEY_SELECTED_COMBINATION = "selected_key_combination"
         private const val KEY_GRID_COLUMNS = "grid_columns"
+        private const val KEY_CUSTOM_KEY_COMBINATION = "custom_key_combination"
+        private const val KEY_USE_CUSTOM_KEYS = "use_custom_keys"
     }
 }

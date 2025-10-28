@@ -112,77 +112,49 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/key_configuration"
+                    android:text="Комбинация клавиш"
                     android:textColor="@color/text_white"
                     android:textSize="18sp"
                     android:fontFamily="@font/lampen"
                     android:layout_marginBottom="12dp" />
                 
-                <RadioGroup
-                    android:id="@+id/keyCombinationGroup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                
-                <RadioButton
-                    android:id="@+id/comboBothVolume"
+                <!-- Custom Key Combination -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/combo_both_volume"
-                    android:textColor="@color/text_white"
-                    android:textSize="14sp"
-                    android:padding="12dp"
-                    android:buttonTint="@color/accent_yellow" />
-                
-                <RadioButton
-                    android:id="@+id/comboPowerHold"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/combo_power_hold"
-                    android:textColor="@color/text_white"
-                    android:textSize="14sp"
-                    android:padding="12dp"
-                    android:buttonTint="@color/accent_yellow" />
-                
-                <RadioButton
-                    android:id="@+id/comboPowerVolUp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/combo_power_vol_up"
-                    android:textColor="@color/text_white"
-                    android:textSize="14sp"
-                    android:padding="12dp"
-                    android:buttonTint="@color/accent_yellow" />
-                
-                <RadioButton
-                    android:id="@+id/comboPowerVolDown"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/combo_power_vol_down"
-                    android:textColor="@color/text_white"
-                    android:textSize="14sp"
-                    android:padding="12dp"
-                    android:buttonTint="@color/accent_yellow" />
-                
-                <RadioButton
-                    android:id="@+id/comboVolUpLong"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/combo_vol_up_long"
-                    android:textColor="@color/text_white"
-                    android:textSize="14sp"
-                    android:padding="12dp"
-                    android:buttonTint="@color/accent_yellow" />
-                
-                <RadioButton
-                    android:id="@+id/comboVolDownLong"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/combo_vol_down_long"
-                    android:textColor="@color/text_white"
-                    android:textSize="14sp"
-                    android:padding="12dp"
-                    android:buttonTint="@color/accent_yellow" />
-                </RadioGroup>
+                    android:orientation="vertical">
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/recordKeysButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="НАСТРОИТЬ КОМБИНАЦИЮ"
+                        android:textColor="@color/background_dark"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/mal6lampen"
+                        app:backgroundTint="@color/accent_yellow"
+                        app:cornerRadius="24dp" />
+                    
+                    <TextView
+                        android:id="@+id/customKeysText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Комбинация не задана"
+                        android:textColor="@color/accent_yellow"
+                        android:textSize="14sp"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center" />
+                    
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Настройте последовательность клавиш для скрытия/показа приложений"
+                        android:textColor="@color/text_gray"
+                        android:textSize="11sp"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:id="@+id/customKeysHint" />
+                </LinearLayout>
             </LinearLayout>
             
             <!-- Grid Settings Section -->
@@ -548,6 +520,41 @@
                     android:text="Приложения видимы, сенсор активен"
                     android:textColor="@color/text_white"
                     android:textSize="14sp" />
+            </LinearLayout>
+            
+            <!-- App Version Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ИLauncher"
+                    android:textColor="@color/text_white"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/lampen"
+                    android:layout_marginBottom="4dp" />
+                
+                <TextView
+                    android:id="@+id/appVersionText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Версия 3.0"
+                    android:textColor="@color/text_gray"
+                    android:textSize="14sp" />
+                    
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="© 2025"
+                    android:textColor="@color/text_gray"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

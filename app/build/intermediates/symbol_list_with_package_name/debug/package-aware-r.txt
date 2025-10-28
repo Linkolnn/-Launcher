@@ -3061,6 +3061,7 @@ drawable avd_hide_password
 drawable avd_show_password
 drawable bg_app_item
 drawable bg_checkbox_unchecked
+drawable bg_keys_display
 drawable bg_search_bar
 drawable bg_search_input
 drawable bg_select_all_button
@@ -3281,6 +3282,7 @@ id antiClockwise
 id anticipate
 id appIcon
 id appName
+id appVersionText
 id appsGrid
 id appsList
 id arc
@@ -3304,6 +3306,7 @@ id bounceStart
 id buttonPanel
 id cache_measures
 id callMeasure
+id cancelButton
 id cancel_button
 id carryVelocity
 id center
@@ -3320,18 +3323,13 @@ id checkbox
 id checked
 id chronometer
 id circle_center
+id clearButton
 id clear_text
 id clip_horizontal
 id clip_vertical
 id clockwise
 id closest
 id collapseActionView
-id comboBothVolume
-id comboPowerHold
-id comboPowerVolDown
-id comboPowerVolUp
-id comboVolDownLong
-id comboVolUpLong
 id compress
 id confirm_button
 id constraint
@@ -3346,6 +3344,8 @@ id counterclockwise
 id cradle
 id currentState
 id custom
+id customKeysHint
+id customKeysText
 id customPanel
 id cut
 id dataBinding
@@ -3453,7 +3453,7 @@ id italic
 id item_touch_helper_previous_elevation
 id jumpToEnd
 id jumpToStart
-id keyCombinationGroup
+id keyCountText
 id labeled
 id launchButton
 id layout
@@ -3594,6 +3594,9 @@ id progress_circular
 id progress_horizontal
 id radio
 id ratio
+id recordKeysButton
+id recordedKeysText
+id recordingStatus
 id rectangles
 id recycler_view
 id report_drawn
@@ -3605,6 +3608,7 @@ id right_side
 id rounded
 id row_index_key
 id rtl
+id saveButton
 id save_non_transition_alpha
 id save_overlay_view
 id sawtooth
@@ -3886,6 +3890,7 @@ layout design_navigation_menu
 layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
+layout dialog_record_keys
 layout expand_button
 layout image_frame
 layout ime_base_split_test_activity

@@ -66,12 +66,23 @@ object HiddenModeStateManager {
                 disableTouchSensor(context)
             }, 100)
         } else {
-            // Stop all blocking methods
-            stopTouchBlockService(context)
-            enableTouchSensor(context)
+            // Optimize exit from hidden mode - do operations asynchronously
+            // to prevent UI freezing
             
-            // Disable Do Not Disturb mode
-            disableDoNotDisturb(context)
+            // First, update state immediately for responsiveness
+            val handler = android.os.Handler(android.os.Looper.getMainLooper())
+            
+            // Stop touch blocking service immediately
+            stopTouchBlockService(context)
+            
+            // Enable touch sensor and DND with small delays to prevent UI freeze
+            handler.postDelayed({
+                enableTouchSensor(context)
+            }, 50)
+            
+            handler.postDelayed({
+                disableDoNotDisturb(context)
+            }, 100)
         }
         
         // Send broadcast about state change
@@ -141,29 +152,35 @@ object HiddenModeStateManager {
         intent.action = TouchBlockService.ACTION_BLOCK_TOUCH
         
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
-            }
-            Log.d(TAG, "Touch block service start command sent")
+            // Use regular startService since we're not using foreground anymore
+            context.startService(intent)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start touch block service", e)
+            Log.e(TAG, "Failed to start TouchBlockService", e)
         }
     }
     
     private fun stopTouchBlockService(context: Context) {
         Log.d(TAG, "Stopping touch block service")
+        
         // First send unblock action
         val intent = Intent(context, TouchBlockService::class.java)
         intent.action = TouchBlockService.ACTION_UNBLOCK_TOUCH
-        context.startService(intent)
         
-        // Then force stop the service after a delay to ensure cleanup
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+        try {
+            // Use regular startService since we're not using foreground anymore
+            context.startService(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send unblock action", e)
+        }
+        
+        // Stop service immediately after sending unblock action
+        // The service will handle cleanup in its onDestroy
+        try {
             context.stopService(Intent(context, TouchBlockService::class.java))
-            Log.d(TAG, "Force stopped TouchBlockService")
-        }, 100)
+            Log.d(TAG, "TouchBlockService stopped")
+        } catch (e: Exception) {
+            // Service might already be stopped
+        }
     }
     
     private fun disableTouchSensor(context: Context) {

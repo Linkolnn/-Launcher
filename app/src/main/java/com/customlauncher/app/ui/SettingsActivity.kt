@@ -10,12 +10,13 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.RadioButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.customlauncher.app.LauncherApplication
 import com.customlauncher.app.R
-import com.customlauncher.app.data.model.KeyCombination
 import com.customlauncher.app.databinding.ActivitySettingsBinding
+import com.customlauncher.app.service.SystemBlockAccessibilityService
 import android.text.TextUtils
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -37,11 +38,12 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
         
         setupTabs()
-        setupKeyCombinationSelection()
+        setupCustomKeyCombination()
         setupGridSelection()
         setupHomeScreenSelector()
         setupPermissionsSection()
         checkAllPermissions()
+        setupAppVersion()
     }
     
     
@@ -55,6 +57,131 @@ class SettingsActivity : AppCompatActivity() {
         binding.tabSettings.setOnClickListener {
             // Already on settings tab
         }
+    }
+    
+    private fun setupCustomKeyCombination() {
+        val preferences = LauncherApplication.instance.preferences
+        
+        // Always use custom keys
+        preferences.useCustomKeys = true
+        
+        // Load saved combination
+        val customKeys = preferences.customKeyCombination
+        if (customKeys != null) {
+            displayCustomKeys(customKeys)
+        } else {
+            binding.customKeysText.text = "Комбинация не задана"
+        }
+        
+        // Record button listener
+        binding.recordKeysButton.setOnClickListener {
+            showRecordKeysDialog()
+        }
+    }
+    
+    
+    private fun displayCustomKeys(keysString: String) {
+        val keys = keysString.split(",").mapNotNull { it.toIntOrNull() }
+        if (keys.isNotEmpty()) {
+            val keyNames = keys.map { getKeyName(it) }.joinToString(" → ")
+            binding.customKeysText.text = "Комбинация: $keyNames"
+        }
+    }
+    
+    private fun getKeyName(keyCode: Int): String {
+        return when (keyCode) {
+            android.view.KeyEvent.KEYCODE_0 -> "0"
+            android.view.KeyEvent.KEYCODE_1 -> "1"
+            android.view.KeyEvent.KEYCODE_2 -> "2"
+            android.view.KeyEvent.KEYCODE_3 -> "3"
+            android.view.KeyEvent.KEYCODE_4 -> "4"
+            android.view.KeyEvent.KEYCODE_5 -> "5"
+            android.view.KeyEvent.KEYCODE_6 -> "6"
+            android.view.KeyEvent.KEYCODE_7 -> "7"
+            android.view.KeyEvent.KEYCODE_8 -> "8"
+            android.view.KeyEvent.KEYCODE_9 -> "9"
+            android.view.KeyEvent.KEYCODE_STAR -> "*"
+            android.view.KeyEvent.KEYCODE_POUND -> "#"
+            android.view.KeyEvent.KEYCODE_VOLUME_UP -> "Vol+"
+            android.view.KeyEvent.KEYCODE_VOLUME_DOWN -> "Vol-"
+            android.view.KeyEvent.KEYCODE_POWER -> "Power"
+            android.view.KeyEvent.KEYCODE_MENU -> "Menu"
+            android.view.KeyEvent.KEYCODE_BACK -> "Back"
+            android.view.KeyEvent.KEYCODE_HOME -> "Home"
+            android.view.KeyEvent.KEYCODE_CALL -> "Call"
+            android.view.KeyEvent.KEYCODE_ENDCALL -> "EndCall"
+            else -> "Key$keyCode"
+        }
+    }
+    
+    private fun showRecordKeysDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_record_keys, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+        
+        // Make dialog background transparent to show rounded corners
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        val recordedKeys = mutableListOf<Int>()
+        val recordedKeysText = dialogView.findViewById<TextView>(R.id.recordedKeysText)
+        val keyCountText = dialogView.findViewById<TextView>(R.id.keyCountText)
+        val saveButton = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.saveButton)
+        val clearButton = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.clearButton)
+        val cancelButton = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.cancelButton)
+        
+        fun updateDisplay() {
+            val keyNames = recordedKeys.map { getKeyName(it) }.joinToString(" → ")
+            recordedKeysText.text = keyNames
+            keyCountText.text = "${recordedKeys.size} клавиш"
+            saveButton.isEnabled = recordedKeys.isNotEmpty()
+        }
+        
+        // Intercept key events in dialog
+        dialog.setOnKeyListener { _, keyCode, event ->
+            if (event.action == android.view.KeyEvent.ACTION_DOWN) {
+                // Skip system keys
+                if (keyCode != android.view.KeyEvent.KEYCODE_BACK && 
+                    keyCode != android.view.KeyEvent.KEYCODE_HOME &&
+                    keyCode != android.view.KeyEvent.KEYCODE_APP_SWITCH &&
+                    keyCode != android.view.KeyEvent.KEYCODE_RECENT_APPS) {
+                    
+                    recordedKeys.add(keyCode)
+                    updateDisplay()
+                    return@setOnKeyListener true
+                }
+            }
+            false
+        }
+        
+        clearButton.setOnClickListener {
+            recordedKeys.clear()
+            updateDisplay()
+        }
+        
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        saveButton.setOnClickListener {
+            if (recordedKeys.isNotEmpty()) {
+                val keysString = recordedKeys.joinToString(",")
+                LauncherApplication.instance.preferences.customKeyCombination = keysString
+                displayCustomKeys(keysString)
+                Toast.makeText(this, "Комбинация сохранена", Toast.LENGTH_SHORT).show()
+                
+                // Notify AccessibilityService to refresh its key listener
+                val refreshIntent = Intent(this, SystemBlockAccessibilityService::class.java)
+                refreshIntent.action = SystemBlockAccessibilityService.ACTION_REFRESH_KEYS
+                startService(refreshIntent)
+                
+                dialog.dismiss()
+            } else {
+                Toast.makeText(this, "Сначала запишите комбинацию", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        dialog.show()
     }
     
     private fun setupGridSelection() {
@@ -83,30 +210,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
     
-    private fun setupKeyCombinationSelection() {
-        // Key combination radio buttons
-        binding.keyCombinationGroup.setOnCheckedChangeListener { _, checkedId ->
-            // Ignore if no button is checked (happens during initialization)
-            if (checkedId == -1) return@setOnCheckedChangeListener
-            
-            val combination = when (checkedId) {
-                R.id.comboBothVolume -> KeyCombination.BOTH_VOLUME
-                R.id.comboPowerHold -> KeyCombination.POWER_HOLD
-                R.id.comboPowerVolUp -> KeyCombination.POWER_VOL_UP
-                R.id.comboPowerVolDown -> KeyCombination.POWER_VOL_DOWN
-                R.id.comboVolUpLong -> KeyCombination.VOL_UP_LONG
-                R.id.comboVolDownLong -> KeyCombination.VOL_DOWN_LONG
-                else -> return@setOnCheckedChangeListener // Don't save if unknown
-            }
-            
-            // Only save if actually changed
-            if (preferences.keyCombination != combination) {
-                preferences.keyCombination = combination
-                Toast.makeText(this, "Комбинация клавиш сохранена", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-    
     private fun setupHomeScreenSelector() {
         // Home screen selector
         binding.selectHomeScreenButton.setOnClickListener {
@@ -114,38 +217,10 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
     
-    private fun updateUI() {
-        // Temporarily remove listener to avoid triggering save
-        binding.keyCombinationGroup.setOnCheckedChangeListener(null)
-        
-        // Set selected radio button based on saved combination
-        val radioButtonId = when (preferences.keyCombination) {
-            KeyCombination.BOTH_VOLUME -> R.id.comboBothVolume
-            KeyCombination.POWER_HOLD -> R.id.comboPowerHold
-            KeyCombination.POWER_VOL_UP -> R.id.comboPowerVolUp
-            KeyCombination.POWER_VOL_DOWN -> R.id.comboPowerVolDown
-            KeyCombination.VOL_UP_LONG -> R.id.comboVolUpLong
-            KeyCombination.VOL_DOWN_LONG -> R.id.comboVolDownLong
-        }
-        binding.keyCombinationGroup.check(radioButtonId)
-        
-        // Re-attach listener after setting value
-        setupKeyCombinationSelection()
-        
-        // Update status
-        val isHidden = preferences.areAppsHidden()
-        val isSensorActive = preferences.isSensorActive()
-        
-        val status = when {
-            isHidden && isSensorActive -> "Приложения скрыты, сенсор активен"
-            isHidden && !isSensorActive -> "Приложения скрыты, сенсор не активен"
-            !isHidden && isSensorActive -> "Приложения видимы, сенсор активен"
-            else -> "Приложения видимы, сенсор не активен"
-        }
-        
-        binding.statusText.text = status
-    }
     
+    private fun updateUI() {
+        updateStatusText()
+    }
     
     private fun updateStatusText() {
         val isHidden = preferences.areAppsHidden()
@@ -352,6 +427,16 @@ class SettingsActivity : AppCompatActivity() {
                 // Recheck permissions after returning from settings
                 checkAllPermissions()
             }
+        }
+    }
+    
+    private fun setupAppVersion() {
+        try {
+            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            val versionName = packageInfo.versionName
+            binding.appVersionText.text = "Версия $versionName"
+        } catch (e: Exception) {
+            binding.appVersionText.text = "Версия 3.0"
         }
     }
     

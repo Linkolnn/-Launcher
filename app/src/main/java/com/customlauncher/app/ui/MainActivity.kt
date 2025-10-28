@@ -19,19 +19,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.customlauncher.app.LauncherApplication
-import com.customlauncher.app.data.model.KeyCombination
 import com.customlauncher.app.databinding.ActivityMainBinding
-import com.customlauncher.app.service.TouchBlockService
+import com.customlauncher.app.manager.HiddenModeStateManager
+import com.customlauncher.app.receiver.KeyCombinationReceiver
+import com.customlauncher.app.receiver.CustomKeyListener
+import com.customlauncher.app.data.model.CustomKeyCombination
 import com.customlauncher.app.ui.adapter.AppGridAdapter
 import com.customlauncher.app.ui.viewmodel.AppViewModel
 import android.util.Log
 import android.widget.Toast
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
-import com.customlauncher.app.receiver.KeyCombinationReceiver
 import android.app.KeyguardManager
 import android.view.WindowManager
-import com.customlauncher.app.manager.HiddenModeStateManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
@@ -47,10 +47,7 @@ class MainActivity : AppCompatActivity() {
     private val preferences by lazy { LauncherApplication.instance.preferences }
     
     // Key combination tracking
-    private var volumeUpPressed = false
-    private var volumeDownPressed = false
-    private var powerPressed = false
-    private var longPressRunnable: Runnable? = null
+    private var customKeyListener: CustomKeyListener? = null
     private val keyPressHandler = Handler(Looper.getMainLooper())
     
     // Touch event throttling
@@ -163,6 +160,35 @@ class MainActivity : AppCompatActivity() {
         
         // Check initial state
         updateVisibility()
+        
+        // Initialize custom key listener
+        setupCustomKeyListener()
+    }
+    
+    private fun setupCustomKeyListener() {
+        // Clean up old listener first
+        customKeyListener?.destroy()
+        customKeyListener = null
+        
+        val preferences = LauncherApplication.instance.preferences
+        
+        if (preferences.useCustomKeys) {
+            val customKeysString = preferences.customKeyCombination
+            if (customKeysString != null) {
+                val keys = customKeysString.split(",").mapNotNull { it.toIntOrNull() }
+                if (keys.isNotEmpty()) {
+                    val combination = CustomKeyCombination(keys)
+                    customKeyListener = CustomKeyListener {
+                        Log.d("MainActivity", "Custom key combination triggered")
+                        toggleHiddenMode()
+                    }
+                    customKeyListener?.setCombination(combination)
+                    Log.d("MainActivity", "Custom key listener setup with keys: $keys")
+                }
+            }
+        } else {
+            Log.d("MainActivity", "Custom keys disabled")
+        }
     }
     
     private fun checkOverlayPermission() {
@@ -332,87 +358,10 @@ class MainActivity : AppCompatActivity() {
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (isAccessibilityServiceEnabled()) {
-            Log.d("MainActivity", "Key down: $keyCode - handled by AccessibilityService")
-            return super.onKeyDown(keyCode, event)
-        }
-        
-        Log.d("MainActivity", "Key down: $keyCode")
-        
-        when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP -> {
-                volumeUpPressed = true
-                Log.d("MainActivity", "Volume UP pressed")
-            }
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                volumeDownPressed = true
-                Log.d("MainActivity", "Volume DOWN pressed")
-            }
-            KeyEvent.KEYCODE_POWER -> {
-                powerPressed = true
-                Log.d("MainActivity", "Power pressed")
-            }
-        }
-        
-        val combo = preferences.keyCombination
-        Log.d("MainActivity", "Current combo setting: $combo")
-        
-        // Check for simultaneous button presses
-        when (combo) {
-            KeyCombination.BOTH_VOLUME -> {
-                if (volumeUpPressed && volumeDownPressed) {
-                    Log.d("MainActivity", "Both volume buttons detected!")
-                    toggleHiddenMode()
-                    return true
-                }
-            }
-            KeyCombination.POWER_VOL_UP -> {
-                if (powerPressed && volumeUpPressed) {
-                    Log.d("MainActivity", "Power + Vol Up detected!")
-                    toggleHiddenMode()
-                    return true
-                }
-            }
-            KeyCombination.POWER_VOL_DOWN -> {
-                if (powerPressed && volumeDownPressed) {
-                    Log.d("MainActivity", "Power + Vol Down detected!")
-                    toggleHiddenMode()
-                    return true
-                }
-            }
-            KeyCombination.VOL_UP_LONG -> {
-                if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && event?.repeatCount == 0) {
-                    Log.d("MainActivity", "Starting Vol Up long press timer")
-                    longPressRunnable?.let { keyPressHandler.removeCallbacks(it) }
-                    longPressRunnable = Runnable {
-                        Log.d("MainActivity", "Vol Up long press triggered!")
-                        toggleHiddenMode()
-                    }
-                    keyPressHandler.postDelayed(longPressRunnable!!, 1000)
-                    return true
-                }
-            }
-            KeyCombination.VOL_DOWN_LONG -> {
-                if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && event?.repeatCount == 0) {
-                    Log.d("MainActivity", "Starting Vol Down long press timer")
-                    longPressRunnable?.let { keyPressHandler.removeCallbacks(it) }
-                    longPressRunnable = Runnable {
-                        Log.d("MainActivity", "Vol Down long press triggered!")
-                        toggleHiddenMode()
-                    }
-                    keyPressHandler.postDelayed(longPressRunnable!!, 1000)
-                    return true
-                }
-            }
-            KeyCombination.POWER_HOLD -> {
-                if (keyCode == KeyEvent.KEYCODE_POWER && event?.repeatCount == 0) {
-                    Log.d("MainActivity", "Starting Power long press timer")
-                    longPressRunnable?.let { keyPressHandler.removeCallbacks(it) }
-                    longPressRunnable = Runnable {
-                        Log.d("MainActivity", "Power long press triggered!")
-                        toggleHiddenMode()
-                    }
-                    keyPressHandler.postDelayed(longPressRunnable!!, 1000)
+        // Handle custom key combinations
+        if (preferences.useCustomKeys) {
+            customKeyListener?.let { listener ->
+                if (listener.onKeyEvent(keyCode)) {
                     return true
                 }
             }
@@ -422,26 +371,6 @@ class MainActivity : AppCompatActivity() {
     }
     
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        // Don't handle keys if AccessibilityService is enabled
-        if (isAccessibilityServiceEnabled()) {
-            Log.d("MainActivity", "Key up: $keyCode - handled by AccessibilityService")
-            return super.onKeyUp(keyCode, event)
-        }
-        
-        Log.d("MainActivity", "Key up: $keyCode")
-        
-        when (keyCode) {
-            KeyEvent.KEYCODE_VOLUME_UP -> volumeUpPressed = false
-            KeyEvent.KEYCODE_VOLUME_DOWN -> volumeDownPressed = false
-            KeyEvent.KEYCODE_POWER -> powerPressed = false
-        }
-        
-        // Cancel long press if key is released
-        longPressRunnable?.let {
-            keyPressHandler.removeCallbacks(it)
-            longPressRunnable = null
-        }
-        
         return super.onKeyUp(keyCode, event)
     }
     
@@ -453,14 +382,6 @@ class MainActivity : AppCompatActivity() {
         
         // Update UI immediately
         updateVisibility()
-        
-        // Show feedback
-        val message = if (newState) {
-            "Приложения скрыты, сенсор заблокирован"
-        } else {
-            "Приложения видимы, сенсор активен"
-        }
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
     
     private fun toggleDoNotDisturb(enable: Boolean) {
@@ -496,11 +417,13 @@ class MainActivity : AppCompatActivity() {
         
         Log.d("MainActivity", "Updating visibility: hidden=$hidden")
         
-        // Update app list with debounce
+        // Update app list with longer debounce when exiting hidden mode
+        // to give time for other operations to complete
         keyPressHandler.removeCallbacksAndMessages("load_apps")
+        val delay = if (!hidden) 200L else 100L // Longer delay when showing apps
         keyPressHandler.postDelayed({
             viewModel.loadApps()
-        }, "load_apps", 100)
+        }, "load_apps", delay)
         
         // Touch blocking is handled by StateManager
         // No need to manage it here
@@ -516,6 +439,8 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // Update grid columns if changed in settings
         updateGridColumns()
+        // Update custom key listener
+        setupCustomKeyListener()
     }
     
     private fun updateGridColumns() {
@@ -527,11 +452,11 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         
+        // Clean up custom key listener
+        customKeyListener?.destroy()
+        customKeyListener = null
+        
         // Clean up handlers to prevent memory leaks
-        longPressRunnable?.let {
-            keyPressHandler.removeCallbacks(it)
-            longPressRunnable = null
-        }
         keyPressHandler.removeCallbacksAndMessages(null)
         
         // Unregister receiver safely
