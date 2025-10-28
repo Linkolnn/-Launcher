@@ -15,6 +15,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.isActive
+import android.util.Log
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class AppViewModel : ViewModel() {
     
@@ -36,19 +40,43 @@ class AppViewModel : ViewModel() {
     private val loadMutex = Mutex()
     private var loadJob: Job? = null
     private var saveJob: Job? = null
+    private val isLoading = AtomicBoolean(false)
+    private val loadCounter = AtomicInteger(0)
     
     init {
         loadApps()
     }
     
     fun loadApps() {
+        val loadId = loadCounter.incrementAndGet()
+        Log.d("AppViewModel", "loadApps() called, loadId=$loadId")
+        
+        // Don't start new load if already loading
+        if (isLoading.get()) {
+            Log.d("AppViewModel", "Already loading, skipping loadId=$loadId")
+            return
+        }
+        
         // Cancel previous load job if still running
         loadJob?.cancel()
         
         loadJob = viewModelScope.launch(Dispatchers.IO) {
-            loadMutex.withLock {
-                try {
-                    val apps = repository.getAllInstalledApps()
+            if (!isActive) return@launch
+            
+            isLoading.set(true)
+            try {
+                // Use tryLock with timeout instead of blocking lock
+                if (loadMutex.tryLock()) {
+                    try {
+                        Log.d("AppViewModel", "Loading apps from repository, loadId=$loadId")
+                        val apps = repository.getAllInstalledApps()
+                        
+                        if (!isActive) {
+                            Log.d("AppViewModel", "Job cancelled during loading, loadId=$loadId")
+                            return@launch
+                        }
+                        
+                        Log.d("AppViewModel", "Loaded ${apps.size} apps from repository, loadId=$loadId")
                     
                     // First check temporary selection, then saved hidden apps
                     val tempSelection = SelectionManager.getSelection()
@@ -74,16 +102,44 @@ class AppViewModel : ViewModel() {
                         }
                     }
                     
-                    // Switch to Main thread for UI updates - single update
-                    withContext(Dispatchers.Main) {
-                        _allApps.value = allList
-                        _visibleApps.value = visibleList
-                        _hiddenApps.value = hiddenList
-                        _filteredApps.value = allList
+                        Log.d("AppViewModel", "Processed apps - visible: ${visibleList.size}, hidden: ${hiddenList.size}, loadId=$loadId")
+                        
+                        if (!isActive) {
+                            Log.d("AppViewModel", "Job cancelled before UI update, loadId=$loadId")
+                            return@launch
+                        }
+                        
+                        // Switch to Main thread for UI updates - single update
+                        withContext(Dispatchers.Main) {
+                            if (isActive) {
+                                _allApps.value = allList
+                                _visibleApps.value = visibleList
+                                _hiddenApps.value = hiddenList
+                                _filteredApps.value = allList
+                                Log.d("AppViewModel", "UI updated successfully, loadId=$loadId")
+                            }
+                        }
+                    } finally {
+                        loadMutex.unlock()
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } else {
+                    Log.d("AppViewModel", "Could not acquire lock, skipping loadId=$loadId")
                 }
+            } catch (e: Exception) {
+                Log.e("AppViewModel", "Error loading apps, loadId=$loadId", e)
+                e.printStackTrace()
+                
+                // Set empty lists on error to prevent crash but keep existing data if possible
+                withContext(Dispatchers.Main) {
+                    if (isActive && _allApps.value.isNullOrEmpty()) {
+                        _allApps.value = emptyList()
+                        _visibleApps.value = emptyList()
+                        _hiddenApps.value = emptyList()
+                        _filteredApps.value = emptyList()
+                    }
+                }
+            } finally {
+                isLoading.set(false)
             }
         }
     }

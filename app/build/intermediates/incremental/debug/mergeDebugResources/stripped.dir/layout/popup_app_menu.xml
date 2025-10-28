@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/transparent"
+    android:paddingBottom="6dp">
+    
+    <!-- Menu container with rounded corners -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/popup_menu_background"
+        android:elevation="6dp"
+        android:padding="4dp">
+        
+        <!-- App Info -->
+        <TextView
+            android:id="@+id/menu_app_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="О приложении"
+            android:textSize="@dimen/popup_menu_text_size"
+            android:fontFamily="@font/mal6lampen"
+            android:textColor="@android:color/white"
+            android:padding="12dp"
+            android:background="@drawable/simple_menu_selector"
+            android:clickable="true"
+            android:focusable="true" />
+            
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="#4A4A4A"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp" />
+        
+        <!-- Uninstall -->
+        <TextView
+            android:id="@+id/menu_uninstall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Удалить"
+            android:textSize="@dimen/popup_menu_text_size"
+            android:fontFamily="@font/mal6lampen"
+            android:textColor="@android:color/white"
+            android:padding="12dp"
+            android:background="@drawable/simple_menu_selector"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+    
+    <!-- Arrow pointing to the icon -->
+    <ImageView
+        android:id="@+id/menu_arrow"
+        android:layout_width="20dp"
+        android:layout_height="8dp"
+        android:src="@drawable/popup_menu_arrow"
+        android:layout_gravity="left"
+        android:layout_marginTop="-3dp" />
+    
+</LinearLayout>

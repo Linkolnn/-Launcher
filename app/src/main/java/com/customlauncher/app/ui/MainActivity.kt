@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.customlauncher.app.LauncherApplication
-import com.customlauncher.app.databinding.ActivityMainBinding
+import com.customlauncher.app.service.TouchBlockService
 import com.customlauncher.app.manager.HiddenModeStateManager
 import com.customlauncher.app.receiver.KeyCombinationReceiver
 import com.customlauncher.app.receiver.CustomKeyListener
@@ -37,6 +37,15 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import android.provider.Settings
 import android.text.TextUtils
+import android.widget.PopupWindow
+import com.customlauncher.app.data.model.AppInfo
+import android.graphics.drawable.ColorDrawable
+import android.view.LayoutInflater
+import android.net.Uri
+import android.view.Gravity
+import com.customlauncher.app.databinding.ActivityMainBinding
+import android.content.ActivityNotFoundException
+import com.customlauncher.app.R
 
 class MainActivity : AppCompatActivity() {
     
@@ -45,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: AppViewModel
     private lateinit var appAdapter: AppGridAdapter
     private val preferences by lazy { LauncherApplication.instance.preferences }
+    private var currentPopupWindow: PopupWindow? = null
     
     // Key combination tracking
     private var customKeyListener: CustomKeyListener? = null
@@ -65,12 +75,53 @@ class MainActivity : AppCompatActivity() {
                     // Update UI after visibility change
                     updateVisibility()
                 }
+            }
+        }
+    }
+    
+    // BroadcastReceiver for hidden mode changes
+    private val hiddenModeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
                 "com.customlauncher.HIDDEN_MODE_CHANGED" -> {
-                    val isHidden = intent.getBooleanExtra("hidden", false)
+                    val isHidden = intent.getBooleanExtra("is_hidden", false)
                     Log.d("MainActivity", "Received hidden mode change broadcast: $isHidden")
                     // Force refresh state and UI
                     HiddenModeStateManager.refreshState(context ?: return)
                     updateVisibility()
+                }
+            }
+        }
+    }
+    
+    // Add handler for debouncing reloads
+    private val reloadHandler = Handler(Looper.getMainLooper())
+    private var reloadRunnable: Runnable? = null
+    
+    // BroadcastReceiver for package changes (install/uninstall)
+    private val packageChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_PACKAGE_REMOVED,
+                Intent.ACTION_PACKAGE_ADDED,
+                Intent.ACTION_PACKAGE_REPLACED -> {
+                    val packageName = intent.dataString?.removePrefix("package:")
+                    Log.d("MainActivity", "Package changed: ${intent.action} - $packageName")
+                    
+                    // Cancel previous reload if pending
+                    reloadRunnable?.let { reloadHandler.removeCallbacks(it) }
+                    
+                    // Invalidate cache when package changes
+                    LauncherApplication.instance.repository.invalidateAppCache()
+                    
+                    // Schedule new reload with shorter delay for responsiveness
+                    reloadRunnable = Runnable {
+                        Log.d("MainActivity", "Executing debounced app reload")
+                        if (!isFinishing && !isDestroyed) {
+                            viewModel.loadApps()
+                        }
+                    }
+                    reloadHandler.postDelayed(reloadRunnable!!, 150) // 150ms for quick response
                 }
             }
         }
@@ -146,16 +197,30 @@ class MainActivity : AppCompatActivity() {
             addAction("com.customlauncher.HIDDEN_MODE_CHANGED")
         }
         
+        // Register package change receiver
+        val packageFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")
+        }
+        
         // Android 12+ requires explicit export flag
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Android 13+ has the constant
             registerReceiver(keyCombinationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(hiddenModeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12 needs the flag value directly (2)
             registerReceiver(keyCombinationReceiver, filter, 2) // RECEIVER_NOT_EXPORTED = 2
+            registerReceiver(hiddenModeReceiver, filter, 2)
+            registerReceiver(packageChangeReceiver, packageFilter, 2)
         } else {
             // Android 11 and below
             registerReceiver(keyCombinationReceiver, filter)
+            registerReceiver(hiddenModeReceiver, filter)
+            registerReceiver(packageChangeReceiver, packageFilter)
         }
         
         // Check initial state
@@ -203,9 +268,14 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupRecyclerView() {
-        appAdapter = AppGridAdapter { app ->
-            viewModel.launchApp(app.packageName)
-        }
+        appAdapter = AppGridAdapter(
+            onAppClick = { app ->
+                viewModel.launchApp(app.packageName)
+            },
+            onAppLongClick = { app, view ->
+                showAppContextMenu(app, view)
+            }
+        )
         
         binding.appsGrid.apply {
             // Get column count from preferences
@@ -226,6 +296,27 @@ class MainActivity : AppCompatActivity() {
             
             // Disable overscroll effect
             overScrollMode = View.OVER_SCROLL_NEVER
+            
+            // Add scroll listener to dismiss popup menu
+            addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: androidx.recyclerview.widget.RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    // Dismiss popup when scrolling starts
+                    if (newState != androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE) {
+                        currentPopupWindow?.dismiss()
+                        currentPopupWindow = null
+                    }
+                }
+                
+                override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    // Also dismiss on any scroll movement
+                    if (dx != 0 || dy != 0) {
+                        currentPopupWindow?.dismiss()
+                        currentPopupWindow = null
+                    }
+                }
+            })
         }
     }
     
@@ -384,6 +475,183 @@ class MainActivity : AppCompatActivity() {
         updateVisibility()
     }
     
+    private fun showAppContextMenu(app: AppInfo, anchor: View) {
+        // Dismiss any existing popup
+        currentPopupWindow?.dismiss()
+        
+        // Inflate the popup menu layout
+        val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val popupView = inflater.inflate(R.layout.popup_app_menu, null)
+        
+        // Create the popup window
+        val popupWindow = PopupWindow(
+            popupView,
+            resources.getDimensionPixelSize(R.dimen.popup_menu_width),
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        
+        // Save reference to current popup
+        currentPopupWindow = popupWindow
+        
+        // Set background for proper dismissal
+        popupWindow.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+        popupWindow.isOutsideTouchable = true
+        popupWindow.isFocusable = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            popupWindow.elevation = 8f
+        }
+        
+        // Set dismiss listener to clear reference
+        popupWindow.setOnDismissListener {
+            currentPopupWindow = null
+        }
+        
+        // Setup click listeners for menu items
+        val menuAppInfo = popupView.findViewById<android.widget.TextView>(R.id.menu_app_info)
+        val menuUninstall = popupView.findViewById<android.widget.TextView>(R.id.menu_uninstall)
+        val menuArrow = popupView.findViewById<View>(R.id.menu_arrow)
+        
+        Log.d("MainActivity", "Menu views found - AppInfo: ${menuAppInfo != null}, Uninstall: ${menuUninstall != null}")
+        
+        if (menuAppInfo != null) {
+            menuAppInfo.setOnClickListener {
+                Log.d("MainActivity", "App info button clicked")
+                popupWindow.dismiss()
+                openAppInfo(app.packageName)
+            }
+        } else {
+            Log.e("MainActivity", "menuAppInfo is null!")
+        }
+        
+        if (menuUninstall != null) {
+            menuUninstall.setOnClickListener { view ->
+                Log.d("MainActivity", "=== UNINSTALL CLICKED ===")
+                Log.d("MainActivity", "App: ${app.appName}")
+                Log.d("MainActivity", "Package: ${app.packageName}")
+                
+                // Show debug toast
+                Toast.makeText(this@MainActivity, "Удаляем: ${app.appName}", Toast.LENGTH_SHORT).show()
+                
+                // Dismiss popup first
+                popupWindow.dismiss()
+                currentPopupWindow = null
+                
+                // Validate and uninstall
+                if (!app.packageName.isNullOrEmpty() && app.packageName != "null") {
+                    // Direct call, no delay
+                    uninstallApp(app.packageName.trim())
+                } else {
+                    Log.e("MainActivity", "Invalid package name: ${app.packageName}")
+                    Toast.makeText(this@MainActivity, "Ошибка: неверное имя пакета", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Log.e("MainActivity", "menuUninstall is null!")
+        }
+        
+        // Calculate popup position (above the icon with more space)
+        val location = IntArray(2)
+        anchor.getLocationOnScreen(location)
+        
+        val popupWidth = resources.getDimensionPixelSize(R.dimen.popup_menu_width)
+        val popupHeight = resources.getDimensionPixelSize(R.dimen.popup_menu_height)
+        val screenWidth = resources.displayMetrics.widthPixels
+        
+        // Calculate icon center position
+        val iconCenterX = location[0] + (anchor.width / 2)
+        
+        // Calculate popup X position (try to center on icon)
+        var xPos = iconCenterX - (popupWidth / 2)
+        
+        // Adjust if goes off screen edges
+        val margin = 10
+        if (xPos < margin) {
+            xPos = margin
+        } else if (xPos + popupWidth > screenWidth - margin) {
+            xPos = screenWidth - popupWidth - margin
+        }
+        
+        // Position above the icon with arrow overlapping the icon significantly
+        var yPos = location[1] - popupHeight + 30  // Large overlap with icon (30dp)
+        
+        // If too close to top, show below icon instead
+        if (yPos < 50) {  // Give some margin at top
+            yPos = location[1] + anchor.height - 50
+            // Hide arrow when showing below (or flip it)
+            menuArrow.visibility = View.GONE
+        } else {
+            // Calculate arrow position to always point to icon
+            menuArrow.visibility = View.VISIBLE
+            
+            // Calculate how much to shift the arrow horizontally
+            val popupCenterX = xPos + (popupWidth / 2)
+            val arrowOffsetX = iconCenterX - popupCenterX
+            
+            // Apply horizontal offset to arrow
+            val layoutParams = menuArrow.layoutParams as android.widget.LinearLayout.LayoutParams
+            layoutParams.leftMargin = (popupWidth / 2 - 10 + arrowOffsetX).toInt() // 10 is half of arrow width
+            menuArrow.layoutParams = layoutParams
+        }
+        
+        // Show the popup with animation
+        popupWindow.animationStyle = android.R.style.Animation_Dialog
+        popupWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos)
+    }
+    
+    private fun openAppInfo(packageName: String) {
+        try {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            intent.data = Uri.parse("package:$packageName")
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Не удалось открыть информацию о приложении", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun uninstallApp(packageName: String) {
+        Log.d("MainActivity", "Starting uninstall for package: $packageName")
+        
+        // Verify package exists
+        try {
+            val appInfo = packageManager.getApplicationInfo(packageName, 0)
+            Log.d("MainActivity", "Package found: ${appInfo.packageName}")
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Package not found: $packageName", e)
+            Toast.makeText(this, "Приложение не найдено", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        try {
+            // Use standard ACTION_DELETE which works on all Android versions
+            val packageUri = Uri.parse("package:$packageName")
+            val uninstallIntent = Intent(Intent.ACTION_DELETE, packageUri)
+            
+            // This will show the system's uninstall dialog
+            startActivity(uninstallIntent)
+            
+            Log.d("MainActivity", "Uninstall dialog launched successfully for: $packageName")
+            
+        } catch (e: ActivityNotFoundException) {
+            Log.e("MainActivity", "No uninstall activity found", e)
+            
+            // Fallback: Open app info page where user can uninstall manually
+            try {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                val uri = Uri.fromParts("package", packageName, null)
+                intent.data = uri
+                startActivity(intent)
+                Toast.makeText(this, "Нажмите 'Удалить' в настройках приложения", Toast.LENGTH_LONG).show()
+            } catch (ex: Exception) {
+                Log.e("MainActivity", "Cannot open app settings", ex)
+                Toast.makeText(this, "Не удалось открыть настройки", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error launching uninstall", e)
+            Toast.makeText(this, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
     private fun toggleDoNotDisturb(enable: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -411,18 +679,33 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private var lastVisibilityUpdate = 0L
+    private val VISIBILITY_UPDATE_DEBOUNCE = 100L // Reduced to 100ms for responsiveness
+    
     private fun updateVisibility() {
+        // Prevent rapid consecutive calls
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastVisibilityUpdate < VISIBILITY_UPDATE_DEBOUNCE) {
+            Log.d("MainActivity", "Skipping visibility update - too frequent")
+            return
+        }
+        lastVisibilityUpdate = currentTime
+        
         // Use state manager for consistent state
         val hidden = HiddenModeStateManager.currentState
         
         Log.d("MainActivity", "Updating visibility: hidden=$hidden")
         
-        // Update app list with longer debounce when exiting hidden mode
-        // to give time for other operations to complete
+        // Cancel previous app reload
         keyPressHandler.removeCallbacksAndMessages("load_apps")
-        val delay = if (!hidden) 200L else 100L // Longer delay when showing apps
+        
+        // Optimized delay - 150ms max for UI responsiveness
+        val delay = if (!hidden) 150L else 100L 
         keyPressHandler.postDelayed({
-            viewModel.loadApps()
+            if (!isFinishing && !isDestroyed) {
+                Log.d("MainActivity", "Executing delayed app reload")
+                viewModel.loadApps()
+            }
         }, "load_apps", delay)
         
         // Touch blocking is handled by StateManager
@@ -458,12 +741,26 @@ class MainActivity : AppCompatActivity() {
         
         // Clean up handlers to prevent memory leaks
         keyPressHandler.removeCallbacksAndMessages(null)
+        reloadHandler.removeCallbacksAndMessages(null)
+        reloadRunnable = null
         
-        // Unregister receiver safely
+        // Unregister receivers safely
         try {
             unregisterReceiver(keyCombinationReceiver)
         } catch (e: Exception) {
-            Log.d("MainActivity", "Receiver already unregistered")
+            Log.d("MainActivity", "keyCombinationReceiver already unregistered")
+        }
+        
+        try {
+            unregisterReceiver(hiddenModeReceiver)
+        } catch (e: Exception) {
+            Log.d("MainActivity", "hiddenModeReceiver already unregistered")
+        }
+        
+        try {
+            unregisterReceiver(packageChangeReceiver)
+        } catch (e: Exception) {
+            Log.d("MainActivity", "packageChangeReceiver already unregistered")
         }
         
         // Clear adapter to free memory

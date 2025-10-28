@@ -10,6 +10,7 @@ import com.customlauncher.app.data.model.AppInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 class AppRepository(
     private val context: Context,
@@ -21,6 +22,15 @@ class AppRepository(
     private var cachedHiddenApps: Set<String> = emptySet()
     private var lastCacheUpdate: Long = 0
     private val CACHE_VALIDITY_MS = 1000L // 1 second cache
+    
+    // App list caching for performance
+    private val appListCache = ConcurrentHashMap<String, AppInfo>()
+    private var lastAppListUpdate: Long = 0
+    private val APP_CACHE_DURATION = 2000L // 2 seconds cache - shorter for quick updates
+    
+    private companion object {
+        const val CACHE_DURATION_MS = 30000L // 30 seconds
+    }
     
     @Synchronized
     private fun getHiddenPackages(): Set<String> {
@@ -43,6 +53,16 @@ class AppRepository(
     }
     
     suspend fun getAllInstalledApps(): List<AppInfo> = withContext(Dispatchers.IO) {
+        val currentTime = System.currentTimeMillis()
+        
+        // Return cached list if still valid
+        if (currentTime - lastAppListUpdate < APP_CACHE_DURATION && appListCache.isNotEmpty()) {
+            val hiddenPackages = getHiddenPackages()
+            return@withContext appListCache.values.map { app ->
+                app.copy(isHidden = hiddenPackages.contains(app.packageName))
+            }.sortedBy { it.appName.lowercase() }
+        }
+        
         val intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
         
@@ -57,23 +77,38 @@ class AppRepository(
             @Suppress("DEPRECATION")
             packageManager.queryIntentActivities(intent, 0)
         }
+        
         val hiddenPackages = getHiddenPackages()
         
         // Use default icon initially, load real icons lazily
         val defaultIcon = context.packageManager.defaultActivityIcon
         
-        apps.mapNotNull { resolveInfo ->
+        // Clear and rebuild cache
+        appListCache.clear()
+        
+        val result = apps.mapNotNull { resolveInfo ->
             try {
                 val appName = resolveInfo.loadLabel(packageManager).toString()
                 val packageName = resolveInfo.activityInfo.packageName
                 val isHidden = hiddenPackages.contains(packageName)
                 
                 // Use placeholder icon first, real icon will be loaded in adapter
-                AppInfo(appName, packageName, defaultIcon, isHidden)
+                val appInfo = AppInfo(appName, packageName, defaultIcon, isHidden)
+                appListCache[packageName] = appInfo
+                appInfo
             } catch (e: Exception) {
                 null // Skip apps that cause errors
             }
         }.sortedBy { it.appName.lowercase() }
+        
+        lastAppListUpdate = currentTime
+        result
+    }
+    
+    // Force cache refresh on package changes
+    fun invalidateAppCache() {
+        lastAppListUpdate = 0
+        appListCache.clear()
     }
     
     suspend fun getVisibleApps(): List<AppInfo> = withContext(Dispatchers.IO) {

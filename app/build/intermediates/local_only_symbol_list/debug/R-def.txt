@@ -12,6 +12,10 @@ color teal_200
 color teal_700
 color text_gray
 color text_white
+dimen popup_menu_height
+dimen popup_menu_radius
+dimen popup_menu_text_size
+dimen popup_menu_width
 drawable bg_app_item
 drawable bg_checkbox_unchecked
 drawable bg_keys_display
@@ -23,6 +27,7 @@ drawable bg_settings_section_30
 drawable bg_tab_item
 drawable button_yellow
 drawable checkbox_selector
+drawable dark_menu_item_selector
 drawable ic_apps
 drawable ic_check
 drawable ic_checkbox_checked
@@ -36,6 +41,10 @@ drawable ic_page_apps_new
 drawable ic_search
 drawable ic_settings
 drawable ic_settings_new
+drawable popup_menu_arrow
+drawable popup_menu_background
+drawable popup_menu_background_with_arrow
+drawable simple_menu_selector
 drawable swipe_indicator
 drawable tab_background
 font lampen
@@ -66,6 +75,9 @@ id homeScreenStatusIcon
 id homeScreenStatusText
 id keyCountText
 id launchButton
+id menu_app_info
+id menu_arrow
+id menu_uninstall
 id overlayPermissionButton
 id overlayStatusIcon
 id overlayStatusText
@@ -91,6 +103,7 @@ layout activity_settings
 layout dialog_record_keys
 layout item_app
 layout item_app_grid
+layout popup_app_menu
 mipmap ic_launcher
 mipmap ic_launcher_round
 string accessibility_service_description

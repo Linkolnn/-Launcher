@@ -16,10 +16,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import android.util.Log
+import android.widget.PopupWindow
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import android.content.Context
+import android.graphics.drawable.ColorDrawable
+import android.view.Gravity
+import android.graphics.Color
+import android.os.Build
 
 class AppGridAdapter(
-    private val onAppClick: (AppInfo) -> Unit
+    private val onAppClick: (AppInfo) -> Unit,
+    private val onAppLongClick: ((AppInfo, View) -> Unit)? = null
 ) : ListAdapter<AppInfo, AppGridAdapter.ViewHolder>(AppDiffCallback()) {
+    
+    // Single scope for all icon loading tasks with supervisor job
+    private val adapterScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -28,12 +44,22 @@ class AppGridAdapter(
     }
     
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        try {
+            holder.bind(getItem(position))
+        } catch (e: Exception) {
+            Log.e("AppGridAdapter", "Error binding item at position $position", e)
+        }
     }
     
     override fun onViewRecycled(holder: ViewHolder) {
         super.onViewRecycled(holder)
         holder.cancelIconLoad()
+    }
+    
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        // Cancel all coroutines when adapter is detached
+        adapterScope.cancel()
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -50,24 +76,34 @@ class AppGridAdapter(
             // Cancel previous icon load
             cancelIconLoad()
             
-            // Load real icon asynchronously
-            iconLoadJob = CoroutineScope(Dispatchers.Main).launch {
-                val icon = withContext(Dispatchers.IO) {
-                    try {
+            // Load real icon asynchronously using adapter scope
+            iconLoadJob = adapterScope.launch {
+                try {
+                    val icon = withContext(Dispatchers.IO) {
                         IconCache.loadIcon(
                             itemView.context,
                             app.packageName,
                             itemView.context.packageManager
                         )
-                    } catch (e: Exception) {
-                        app.icon // Use placeholder on error
                     }
+                    // Check if job is still active before updating UI
+                    if (iconLoadJob?.isActive == true) {
+                        appIcon.setImageDrawable(icon)
+                    }
+                } catch (e: Exception) {
+                    Log.d("AppGridAdapter", "Error loading icon for ${app.packageName}")
+                    // Use placeholder on error - already set
                 }
-                appIcon.setImageDrawable(icon)
             }
             
             itemView.setOnClickListener {
                 onAppClick(app)
+            }
+            
+            // Handle long click for context menu
+            itemView.setOnLongClickListener { view ->
+                onAppLongClick?.invoke(app, view)
+                true
             }
         }
         

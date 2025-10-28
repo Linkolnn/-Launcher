@@ -1,9 +1,16 @@
 package com.customlauncher.app.ui
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -19,6 +26,25 @@ class AppListActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAppListBinding
     private lateinit var viewModel: AppViewModel
     private lateinit var appAdapter: AppListAdapter
+    
+    // BroadcastReceiver for package changes (install/uninstall)
+    private val packageChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_PACKAGE_REMOVED,
+                Intent.ACTION_PACKAGE_ADDED,
+                Intent.ACTION_PACKAGE_REPLACED -> {
+                    val packageName = intent.dataString?.removePrefix("package:")
+                    Log.d("AppListActivity", "Package changed: ${intent.action} - $packageName")
+                    
+                    // Reload apps list after small delay to ensure package manager updated
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        viewModel.loadApps()
+                    }, 500)
+                }
+            }
+        }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -174,12 +200,54 @@ class AppListActivity : AppCompatActivity() {
         return accessibilityEnabled && overlayGranted && dndGranted && writeSettingsGranted && isDefaultHome
     }
     
+    override fun onResume() {
+        super.onResume()
+        
+        // Register package change receiver
+        val packageFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")
+        }
+        
+        // Android 12+ requires explicit export flag
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            registerReceiver(packageChangeReceiver, packageFilter, 2) // RECEIVER_NOT_EXPORTED = 2
+        } else {
+            registerReceiver(packageChangeReceiver, packageFilter)
+        }
+        
+        // Reload apps in case something changed while activity was paused
+        viewModel.loadApps()
+    }
+    
     override fun onPause() {
         super.onPause()
+        
+        // Unregister receiver
+        try {
+            unregisterReceiver(packageChangeReceiver)
+        } catch (e: Exception) {
+            Log.d("AppListActivity", "packageChangeReceiver already unregistered")
+        }
+        
         // Save current selection to SelectionManager when leaving activity
         val selectedApps = viewModel.getSelectedApps()
         val packageNames = selectedApps.map { it.packageName }.toSet()
         SelectionManager.setSelection(packageNames)
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // Make sure receiver is unregistered
+        try {
+            unregisterReceiver(packageChangeReceiver)
+        } catch (e: Exception) {
+            Log.d("AppListActivity", "packageChangeReceiver already unregistered in onDestroy")
+        }
     }
     
     override fun onBackPressed() {

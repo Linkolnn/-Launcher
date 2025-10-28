@@ -2963,6 +2963,10 @@ dimen notification_small_icon_size_as_large
 dimen notification_subtext_size
 dimen notification_top_pad
 dimen notification_top_pad_large_text
+dimen popup_menu_height
+dimen popup_menu_radius
+dimen popup_menu_text_size
+dimen popup_menu_width
 dimen preference_dropdown_padding_start
 dimen preference_icon_minWidth
 dimen preference_seekbar_padding_horizontal
@@ -3078,6 +3082,7 @@ drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
 drawable button_yellow
 drawable checkbox_selector
+drawable dark_menu_item_selector
 drawable design_fab_background
 drawable design_ic_visibility
 drawable design_ic_visibility_off
@@ -3187,7 +3192,11 @@ drawable notification_template_icon_bg
 drawable notification_template_icon_low_bg
 drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
+drawable popup_menu_arrow
+drawable popup_menu_background
+drawable popup_menu_background_with_arrow
 drawable preference_list_divider_material
+drawable simple_menu_selector
 drawable swipe_indicator
 drawable tab_background
 drawable test_level_drawable
@@ -3493,6 +3502,9 @@ id material_timepicker_ok_button
 id material_timepicker_view
 id material_value_index
 id matrix
+id menu_app_info
+id menu_arrow
+id menu_uninstall
 id message
 id middle
 id mini
@@ -3954,6 +3966,7 @@ layout notification_template_custom_big
 layout notification_template_icon_group
 layout notification_template_part_chronometer
 layout notification_template_part_time
+layout popup_app_menu
 layout preference
 layout preference_category
 layout preference_category_material

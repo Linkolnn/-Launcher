@@ -1,12 +1,17 @@
 package com.customlauncher.app.ui.adapter;
 
-@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000.\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0010\u0002\n\u0002\b\u0004\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0005\u0018\u00002\u0012\u0012\u0004\u0012\u00020\u0002\u0012\b\u0012\u00060\u0003R\u00020\u00000\u0001:\u0002\u0011\u0012B\u0019\u0012\u0012\u0010\u0004\u001a\u000e\u0012\u0004\u0012\u00020\u0002\u0012\u0004\u0012\u00020\u00060\u0005\u00a2\u0006\u0002\u0010\u0007J\u001c\u0010\b\u001a\u00020\u00062\n\u0010\t\u001a\u00060\u0003R\u00020\u00002\u0006\u0010\n\u001a\u00020\u000bH\u0016J\u001c\u0010\f\u001a\u00060\u0003R\u00020\u00002\u0006\u0010\r\u001a\u00020\u000e2\u0006\u0010\u000f\u001a\u00020\u000bH\u0016J\u0014\u0010\u0010\u001a\u00020\u00062\n\u0010\t\u001a\u00060\u0003R\u00020\u0000H\u0016R\u001a\u0010\u0004\u001a\u000e\u0012\u0004\u0012\u00020\u0002\u0012\u0004\u0012\u00020\u00060\u0005X\u0082\u0004\u00a2\u0006\u0002\n\u0000\u00a8\u0006\u0013"}, d2 = {"Lcom/customlauncher/app/ui/adapter/AppGridAdapter;", "Landroidx/recyclerview/widget/ListAdapter;", "Lcom/customlauncher/app/data/model/AppInfo;", "Lcom/customlauncher/app/ui/adapter/AppGridAdapter$ViewHolder;", "onAppClick", "Lkotlin/Function1;", "", "(Lkotlin/jvm/functions/Function1;)V", "onBindViewHolder", "holder", "position", "", "onCreateViewHolder", "parent", "Landroid/view/ViewGroup;", "viewType", "onViewRecycled", "AppDiffCallback", "ViewHolder", "app_debug"})
+@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000H\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0004\u0018\u00002\u0012\u0012\u0004\u0012\u00020\u0002\u0012\b\u0012\u00060\u0003R\u00020\u00000\u0001:\u0002\u0019\u001aB7\u0012\u0012\u0010\u0004\u001a\u000e\u0012\u0004\u0012\u00020\u0002\u0012\u0004\u0012\u00020\u00060\u0005\u0012\u001c\b\u0002\u0010\u0007\u001a\u0016\u0012\u0004\u0012\u00020\u0002\u0012\u0004\u0012\u00020\t\u0012\u0004\u0012\u00020\u0006\u0018\u00010\b\u00a2\u0006\u0002\u0010\nJ\u001c\u0010\r\u001a\u00020\u00062\n\u0010\u000e\u001a\u00060\u0003R\u00020\u00002\u0006\u0010\u000f\u001a\u00020\u0010H\u0016J\u001c\u0010\u0011\u001a\u00060\u0003R\u00020\u00002\u0006\u0010\u0012\u001a\u00020\u00132\u0006\u0010\u0014\u001a\u00020\u0010H\u0016J\u0010\u0010\u0015\u001a\u00020\u00062\u0006\u0010\u0016\u001a\u00020\u0017H\u0016J\u0014\u0010\u0018\u001a\u00020\u00062\n\u0010\u000e\u001a\u00060\u0003R\u00020\u0000H\u0016R\u000e\u0010\u000b\u001a\u00020\fX\u0082\u0004\u00a2\u0006\u0002\n\u0000R\u001a\u0010\u0004\u001a\u000e\u0012\u0004\u0012\u00020\u0002\u0012\u0004\u0012\u00020\u00060\u0005X\u0082\u0004\u00a2\u0006\u0002\n\u0000R\"\u0010\u0007\u001a\u0016\u0012\u0004\u0012\u00020\u0002\u0012\u0004\u0012\u00020\t\u0012\u0004\u0012\u00020\u0006\u0018\u00010\bX\u0082\u0004\u00a2\u0006\u0002\n\u0000\u00a8\u0006\u001b"}, d2 = {"Lcom/customlauncher/app/ui/adapter/AppGridAdapter;", "Landroidx/recyclerview/widget/ListAdapter;", "Lcom/customlauncher/app/data/model/AppInfo;", "Lcom/customlauncher/app/ui/adapter/AppGridAdapter$ViewHolder;", "onAppClick", "Lkotlin/Function1;", "", "onAppLongClick", "Lkotlin/Function2;", "Landroid/view/View;", "(Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V", "adapterScope", "Lkotlinx/coroutines/CoroutineScope;", "onBindViewHolder", "holder", "position", "", "onCreateViewHolder", "parent", "Landroid/view/ViewGroup;", "viewType", "onDetachedFromRecyclerView", "recyclerView", "Landroidx/recyclerview/widget/RecyclerView;", "onViewRecycled", "AppDiffCallback", "ViewHolder", "app_debug"})
 public final class AppGridAdapter extends androidx.recyclerview.widget.ListAdapter<com.customlauncher.app.data.model.AppInfo, com.customlauncher.app.ui.adapter.AppGridAdapter.ViewHolder> {
     @org.jetbrains.annotations.NotNull
     private final kotlin.jvm.functions.Function1<com.customlauncher.app.data.model.AppInfo, kotlin.Unit> onAppClick = null;
+    @org.jetbrains.annotations.Nullable
+    private final kotlin.jvm.functions.Function2<com.customlauncher.app.data.model.AppInfo, android.view.View, kotlin.Unit> onAppLongClick = null;
+    @org.jetbrains.annotations.NotNull
+    private final kotlinx.coroutines.CoroutineScope adapterScope = null;
     
     public AppGridAdapter(@org.jetbrains.annotations.NotNull
-    kotlin.jvm.functions.Function1<? super com.customlauncher.app.data.model.AppInfo, kotlin.Unit> onAppClick) {
+    kotlin.jvm.functions.Function1<? super com.customlauncher.app.data.model.AppInfo, kotlin.Unit> onAppClick, @org.jetbrains.annotations.Nullable
+    kotlin.jvm.functions.Function2<? super com.customlauncher.app.data.model.AppInfo, ? super android.view.View, kotlin.Unit> onAppLongClick) {
         super(null);
     }
     
@@ -25,6 +30,11 @@ public final class AppGridAdapter extends androidx.recyclerview.widget.ListAdapt
     @java.lang.Override
     public void onViewRecycled(@org.jetbrains.annotations.NotNull
     com.customlauncher.app.ui.adapter.AppGridAdapter.ViewHolder holder) {
+    }
+    
+    @java.lang.Override
+    public void onDetachedFromRecyclerView(@org.jetbrains.annotations.NotNull
+    androidx.recyclerview.widget.RecyclerView recyclerView) {
     }
     
     @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\u0018\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u000b\n\u0002\b\u0004\b\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00020\u0001B\u0005\u00a2\u0006\u0002\u0010\u0003J\u0018\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u00022\u0006\u0010\u0007\u001a\u00020\u0002H\u0016J\u0018\u0010\b\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u00022\u0006\u0010\u0007\u001a\u00020\u0002H\u0016\u00a8\u0006\t"}, d2 = {"Lcom/customlauncher/app/ui/adapter/AppGridAdapter$AppDiffCallback;", "Landroidx/recyclerview/widget/DiffUtil$ItemCallback;", "Lcom/customlauncher/app/data/model/AppInfo;", "()V", "areContentsTheSame", "", "oldItem", "newItem", "areItemsTheSame", "app_debug"})
