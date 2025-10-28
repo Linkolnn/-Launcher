@@ -59,6 +59,11 @@
         <item name="cardCornerRadius">12dp</item>
         <item name="cardElevation">0dp</item>
     </style>
+    <style name="SwitchTheme" parent="Theme.AppCompat.Light">
+        <item name="colorControlActivated">@color/accent_yellow</item>
+        <item name="colorSwitchThumbNormal">@color/text_gray</item>
+        <item name="android:colorForeground">@color/text_gray</item>
+    </style>
     <style name="Theme.CustomLauncher" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/background_dark</item>
         <item name="colorPrimaryVariant">@color/background_dark</item>

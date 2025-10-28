@@ -37,4 +37,11 @@
         <item name="android:textColor">@color/text_gray</item>
         <item name="android:textSize">14sp</item>
     </style>
+    
+    <!-- Switch Theme -->
+    <style name="SwitchTheme" parent="Theme.AppCompat.Light">
+        <item name="colorControlActivated">@color/accent_yellow</item>
+        <item name="colorSwitchThumbNormal">@color/text_gray</item>
+        <item name="android:colorForeground">@color/text_gray</item>
+    </style>
 </resources>

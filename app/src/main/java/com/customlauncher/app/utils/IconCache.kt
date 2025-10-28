@@ -1,5 +1,6 @@
 package com.customlauncher.app.utils
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -7,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.LruCache
+import com.customlauncher.app.LauncherApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -28,22 +30,41 @@ object IconCache {
     suspend fun loadIcon(
         context: Context,
         packageName: String,
-        packageManager: PackageManager
+        packageManager: PackageManager,
+        componentName: ComponentName? = null
     ): Drawable = withContext(Dispatchers.IO) {
         try {
+            // Generate cache key including icon pack
+            val iconPackPackage = LauncherApplication.instance.preferences.iconPackPackageName
+            val cacheKey = if (iconPackPackage != null) {
+                "$packageName:$iconPackPackage"
+            } else {
+                packageName
+            }
+            
             // Check cache first
-            val cached = getCachedIcon(packageName)
+            val cached = getCachedIcon(cacheKey)
             if (cached != null) {
                 return@withContext BitmapDrawable(context.resources, cached)
             }
             
-            // Load icon
-            val appInfo = packageManager.getApplicationInfo(packageName, 0)
-            val drawable = packageManager.getApplicationIcon(appInfo)
+            var drawable: Drawable? = null
+            
+            // Try to load from icon pack first
+            if (iconPackPackage != null && componentName != null) {
+                val iconPackManager = IconPackManager(context)
+                drawable = iconPackManager.getIconFromPack(iconPackPackage, componentName)
+            }
+            
+            // Fall back to system icon
+            if (drawable == null) {
+                val appInfo = packageManager.getApplicationInfo(packageName, 0)
+                drawable = packageManager.getApplicationIcon(appInfo)
+            }
             
             // Convert to bitmap and cache
             val bitmap = drawableToBitmap(drawable)
-            putIcon(packageName, bitmap)
+            putIcon(cacheKey, bitmap)
             
             drawable
         } catch (e: Exception) {

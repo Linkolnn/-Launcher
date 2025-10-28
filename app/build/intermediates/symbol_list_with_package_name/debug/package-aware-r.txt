@@ -3064,8 +3064,12 @@ drawable abc_vector_test
 drawable avd_hide_password
 drawable avd_show_password
 drawable bg_app_item
+drawable bg_check_circle
 drawable bg_checkbox_unchecked
+drawable bg_circle_icon_pack
+drawable bg_circle_selection
 drawable bg_keys_display
+drawable bg_radio_selector
 drawable bg_search_bar
 drawable bg_search_input
 drawable bg_select_all_button
@@ -3098,6 +3102,7 @@ drawable ic_call_answer_video_low
 drawable ic_call_decline
 drawable ic_call_decline_low
 drawable ic_check
+drawable ic_check_small
 drawable ic_checkbox_checked
 drawable ic_checkbox_checked_new
 drawable ic_checkbox_unchecked
@@ -3196,6 +3201,7 @@ drawable popup_menu_arrow
 drawable popup_menu_background
 drawable popup_menu_background_with_arrow
 drawable preference_list_divider_material
+drawable radio_text_color
 drawable simple_menu_selector
 drawable swipe_indicator
 drawable tab_background
@@ -3306,6 +3312,7 @@ id baseline
 id beginOnFirstDraw
 id beginning
 id bestChoice
+id blockTouchSwitch
 id blocking
 id bottom
 id bounce
@@ -3328,15 +3335,18 @@ id chain2
 id chains
 id checkBox
 id checkIcon
+id checkMarkContainer
 id checkbox
 id checked
 id chronometer
+id circleBackground
 id circle_center
 id clearButton
 id clear_text
 id clip_horizontal
 id clip_vertical
 id clockwise
+id closeAppsSwitch
 id closest
 id collapseActionView
 id compress
@@ -3381,6 +3391,7 @@ id disjoint
 id dndPermissionButton
 id dndStatusIcon
 id dndStatusText
+id dndSwitch
 id dragAnticlockwise
 id dragClockwise
 id dragDown
@@ -3436,6 +3447,7 @@ id group_divider
 id grouping
 id groups
 id header_title
+id hideAppsSwitch
 id hide_ime_id
 id hideable
 id home
@@ -3445,6 +3457,10 @@ id homeScreenStatusText
 id honorRequest
 id horizontal_only
 id icon
+id iconPackContainer
+id iconPackIcon
+id iconPackName
+id iconPacksRecyclerView
 id icon_frame
 id icon_group
 id ifRoom
@@ -3594,6 +3610,7 @@ id path
 id pathRelative
 id peekHeight
 id percent
+id permissionsSection
 id pin
 id pooling_container_listener_holder_tag
 id position
@@ -3649,7 +3666,9 @@ id selectAllButton
 id selectHomeScreenButton
 id select_dialog_listview
 id selected
+id selectionRing
 id selection_type
+id settingsScrollView
 id sharedValueSet
 id sharedValueUnset
 id shortcut
@@ -3684,7 +3703,6 @@ id startToEnd
 id startVertical
 id staticLayout
 id staticPostLayout
-id statusText
 id stop
 id stretch
 id submenuarrow
@@ -3909,6 +3927,7 @@ layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
 layout item_app
 layout item_app_grid
+layout item_icon_pack
 layout m3_alert_dialog
 layout m3_alert_dialog_actions
 layout m3_alert_dialog_title
@@ -4627,6 +4646,7 @@ style ShapeAppearanceOverlay_MaterialComponents_MaterialCalendar_Day
 style ShapeAppearanceOverlay_MaterialComponents_MaterialCalendar_Window_Fullscreen
 style ShapeAppearanceOverlay_MaterialComponents_MaterialCalendar_Year
 style ShapeAppearanceOverlay_MaterialComponents_TextInputLayout_FilledBox
+style SwitchTheme
 style TextAppearance_AppCompat
 style TextAppearance_AppCompat_Body1
 style TextAppearance_AppCompat_Body2

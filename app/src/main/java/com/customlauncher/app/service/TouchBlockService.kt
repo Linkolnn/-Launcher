@@ -29,13 +29,9 @@ class TouchBlockService : Service() {
     
     override fun onCreate() {
         super.onCreate()
-        // Check if we should run at all
-        val preferences = getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
-        val isHidden = preferences.getBoolean("apps_hidden", false)
-        if (!isHidden) {
-            android.util.Log.d(TAG, "Service created but not in hidden mode, stopping immediately")
-            stopSelf()
-        }
+        // Service should always be created when requested
+        // The decision to block or not should be made in HiddenModeStateManager
+        android.util.Log.d(TAG, "TouchBlockService created")
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -44,16 +40,9 @@ class TouchBlockService : Service() {
         try {
             when (intent?.action) {
                 ACTION_BLOCK_TOUCH -> {
-                    // Check if we should actually block (only in hidden mode)
-                    val preferences = getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
-                    val isHidden = preferences.getBoolean("apps_hidden", false)
-                    if (!isHidden) {
-                        if (DEBUG) android.util.Log.d(TAG, "Not in hidden mode, stopping service")
-                        stopSelf()
-                        return START_NOT_STICKY
-                    }
-                    // Don't use foreground service - just block touches directly
-                    // This avoids showing any notification
+                    // Always start touch blocking when requested
+                    // HiddenModeStateManager handles the logic of when to call this
+                    if (DEBUG) android.util.Log.d(TAG, "Starting touch blocking")
                     blockTouch()
                 }
                 ACTION_UNBLOCK_TOUCH -> {
@@ -78,14 +67,7 @@ class TouchBlockService : Service() {
     
     private fun blockTouch() {
         try {
-            // Check if we should actually block (only in hidden mode)
-            val preferences = getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
-            val isHidden = preferences.getBoolean("apps_hidden", false)
-            if (!isHidden) {
-                if (DEBUG) android.util.Log.d(TAG, "Not in hidden mode, skipping touch blocking")
-                return
-            }
-            
+            // Service is only called when needed by HiddenModeStateManager
             if (blockView != null) {
                 if (DEBUG) android.util.Log.d(TAG, "Block view already exists")
                 return

@@ -46,25 +46,46 @@ object HiddenModeStateManager {
         // Update the state
         _isHiddenMode.value = enabled
         
+        // Check user preferences for features
+        val preferences = LauncherApplication.instance.preferences
+        val shouldCloseApps = preferences.closeAppsOnHiddenMode
+        val shouldBlockTouch = preferences.blockTouchInHiddenMode
+        val shouldEnableDnd = preferences.enableDndInHiddenMode
+        val shouldHideApps = preferences.hideAppsInHiddenMode
+        
         // Update preferences - force commit for immediate persistence
         val prefs = context.getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("apps_hidden", enabled).apply()
+        if (shouldHideApps) {
+            // Only hide apps if the setting is enabled and we're entering hidden mode
+            prefs.edit().putBoolean("apps_hidden", enabled).apply()
+        } else {
+            // If hideApps setting is off, always keep apps visible regardless of hidden mode state
+            prefs.edit().putBoolean("apps_hidden", false).apply()
+        }
+        
+        Log.d(TAG, "Feature settings - Close apps: $shouldCloseApps, Block touch: $shouldBlockTouch, DND: $shouldEnableDnd, Hide apps: $shouldHideApps")
         
         // Handle touch blocking - prioritize overlay method as it works without root
         if (enabled) {
-            // Close all apps and go to home screen first
-            closeAllAppsAndGoHome(context)
+            // Close all apps and go to home screen first (if enabled)
+            if (shouldCloseApps) {
+                closeAllAppsAndGoHome(context)
+            }
             
-            // Start overlay blocking immediately (works without root)
-            startTouchBlockService(context)
+            // Start overlay blocking immediately (if enabled)
+            if (shouldBlockTouch) {
+                startTouchBlockService(context)
+                
+                // Also try system methods if available (requires root or special permissions)
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    disableTouchSensor(context)
+                }, 100)
+            }
             
-            // Enable Do Not Disturb mode
-            enableDoNotDisturb(context)
-            
-            // Also try system methods if available (requires root or special permissions)
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                disableTouchSensor(context)
-            }, 100)
+            // Enable Do Not Disturb mode (if enabled)
+            if (shouldEnableDnd) {
+                enableDoNotDisturb(context)
+            }
         } else {
             // Optimize exit from hidden mode - do operations asynchronously
             // to prevent UI freezing
@@ -72,22 +93,27 @@ object HiddenModeStateManager {
             // First, update state immediately for responsiveness
             val handler = android.os.Handler(android.os.Looper.getMainLooper())
             
-            // Stop touch blocking service immediately
+            // Always stop touch blocking service when exiting hidden mode
+            // (it might have been enabled when entering hidden mode)
             stopTouchBlockService(context)
             
-            // Enable touch sensor and DND with small delays to prevent UI freeze
+            // Enable touch sensor with small delay to prevent UI freeze
             handler.postDelayed({
                 enableTouchSensor(context)
             }, 50)
             
-            handler.postDelayed({
-                disableDoNotDisturb(context)
-            }, 100)
+            // Disable DND (if it was enabled when entering hidden mode)
+            // We check the preference to see if DND should have been enabled
+            if (shouldEnableDnd) {
+                handler.postDelayed({
+                    disableDoNotDisturb(context)
+                }, 100)
+            }
         }
         
         // Send broadcast about state change
         val intent = Intent("com.customlauncher.HIDDEN_MODE_CHANGED")
-        intent.putExtra("hidden", enabled)
+        intent.putExtra("is_hidden", enabled)
         context.sendBroadcast(intent)
         
         Log.d(TAG, "Hidden mode set to: $enabled, broadcast sent")
@@ -98,9 +124,17 @@ object HiddenModeStateManager {
      */
     fun initializeState() {
         val preferences = LauncherApplication.instance.preferences
-        val savedState = preferences.appsHidden
+        
+        // Only use appsHidden if hideAppsInHiddenMode is enabled
+        // Otherwise start with hidden mode off
+        val savedState = if (preferences.hideAppsInHiddenMode) {
+            preferences.appsHidden
+        } else {
+            false // Start with hidden mode off if app hiding is disabled
+        }
+        
         _isHiddenMode.value = savedState
-        Log.d(TAG, "Initialized state from preferences: $savedState")
+        Log.d(TAG, "Initialized state: $savedState (hideApps: ${preferences.hideAppsInHiddenMode})")
     }
     
     /**
@@ -108,6 +142,14 @@ object HiddenModeStateManager {
      */
     fun refreshState(context: Context) {
         val preferences = LauncherApplication.instance.preferences
+        
+        // If hideAppsInHiddenMode is disabled, we should not rely on appsHidden preference
+        // as it will always be false. Instead, trust the current manager state.
+        if (!preferences.hideAppsInHiddenMode) {
+            Log.d(TAG, "refreshState: hideAppsInHiddenMode is disabled, keeping current state: $currentState")
+            return
+        }
+        
         val currentPrefState = preferences.appsHidden
         
         if (currentPrefState != currentState) {

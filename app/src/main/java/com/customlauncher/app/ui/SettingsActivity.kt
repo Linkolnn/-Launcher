@@ -20,11 +20,18 @@ import com.customlauncher.app.service.SystemBlockAccessibilityService
 import android.text.TextUtils
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.customlauncher.app.ui.adapter.IconPackAdapter
+import com.customlauncher.app.utils.IconPackManager
+import com.customlauncher.app.data.model.IconPack
 
 class SettingsActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivitySettingsBinding
     private val preferences by lazy { LauncherApplication.instance.preferences }
+    private lateinit var iconPackAdapter: IconPackAdapter
+    private lateinit var iconPackManager: IconPackManager
     
     companion object {
         private const val REQUEST_CODE_WRITE_SETTINGS = 1002
@@ -40,10 +47,23 @@ class SettingsActivity : AppCompatActivity() {
         setupTabs()
         setupCustomKeyCombination()
         setupGridSelection()
+        setupFeatureSwitches()  // New method for feature toggles
+        setupIconPacks()  // Setup icon pack selector
         setupHomeScreenSelector()
         setupPermissionsSection()
-        checkAllPermissions()
         setupAppVersion()
+        
+        // Check all permissions and auto-scroll if needed
+        val allPermissionsGranted = checkAllPermissions()
+        
+        // Auto-scroll to permissions section if:
+        // 1. Explicitly requested via intent
+        // 2. Or if not all permissions are granted
+        if (intent.getBooleanExtra("scroll_to_permissions", false) || !allPermissionsGranted) {
+            binding.root.post {
+                scrollToPermissions()
+            }
+        }
     }
     
     
@@ -210,30 +230,110 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
     
+    private fun setupFeatureSwitches() {
+        // Load saved states
+        binding.closeAppsSwitch.isChecked = preferences.closeAppsOnHiddenMode
+        binding.blockTouchSwitch.isChecked = preferences.blockTouchInHiddenMode
+        binding.dndSwitch.isChecked = preferences.enableDndInHiddenMode
+        binding.hideAppsSwitch.isChecked = preferences.hideAppsInHiddenMode
+        
+        // Setup close apps switch
+        binding.closeAppsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.closeAppsOnHiddenMode = isChecked
+            val message = if (isChecked) {
+                "Закрытие приложений в скрытом режиме включено"
+            } else {
+                "Закрытие приложений в скрытом режиме выключено"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Close apps on hidden mode: $isChecked")
+        }
+        
+        // Setup block touch switch
+        binding.blockTouchSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.blockTouchInHiddenMode = isChecked
+            val message = if (isChecked) {
+                "Блокировка сенсора в скрытом режиме включена"
+            } else {
+                "Блокировка сенсора в скрытом режиме выключена"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Block touch in hidden mode: $isChecked")
+        }
+        
+        // Setup DND switch
+        binding.dndSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.enableDndInHiddenMode = isChecked
+            val message = if (isChecked) {
+                "Режим «Не беспокоить» в скрытом режиме включен"
+            } else {
+                "Режим «Не беспокоить» в скрытом режиме выключен"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "DND in hidden mode: $isChecked")
+        }
+        
+        // Setup hide apps switch
+        binding.hideAppsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.hideAppsInHiddenMode = isChecked
+            val message = if (isChecked) {
+                "Скрытие приложений в скрытом режиме включено"
+            } else {
+                "Скрытие приложений в скрытом режиме выключено"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Hide apps in hidden mode: $isChecked")
+        }
+    }
+    
+    private fun setupIconPacks() {
+        iconPackManager = IconPackManager(this)
+        
+        // Setup RecyclerView
+        binding.iconPacksRecyclerView.layoutManager = LinearLayoutManager(
+            this,
+            LinearLayoutManager.HORIZONTAL,
+            false
+        )
+        
+        // Setup adapter
+        iconPackAdapter = IconPackAdapter { iconPack ->
+            val packageName = if (iconPack.isSystemDefault) null else iconPack.packageName
+            preferences.iconPackPackageName = packageName
+            
+            val message = if (iconPack.isSystemDefault) {
+                "Выбраны системные иконки"
+            } else {
+                "Выбран пак иконок: ${iconPack.name}"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Icon pack selected: $packageName")
+            
+            // Notify MainActivity to refresh icons
+            sendBroadcast(Intent("com.customlauncher.ICON_PACK_CHANGED"))
+        }
+        
+        binding.iconPacksRecyclerView.adapter = iconPackAdapter
+        
+        // Load available icon packs
+        loadIconPacks()
+    }
+    
+    private fun loadIconPacks() {
+        Thread {
+            val iconPacks = iconPackManager.getAvailableIconPacks()
+            runOnUiThread {
+                iconPackAdapter.setIconPacks(iconPacks)
+                iconPackAdapter.setSelectedPack(preferences.iconPackPackageName)
+            }
+        }.start()
+    }
+    
     private fun setupHomeScreenSelector() {
         // Home screen selector
         binding.selectHomeScreenButton.setOnClickListener {
             showHomeScreenDialog()
         }
-    }
-    
-    
-    private fun updateUI() {
-        updateStatusText()
-    }
-    
-    private fun updateStatusText() {
-        val isHidden = preferences.areAppsHidden()
-        val isSensorActive = preferences.isSensorActive()
-        
-        val status = when {
-            isHidden && isSensorActive -> "Приложения скрыты, сенсор активен"
-            isHidden && !isSensorActive -> "Приложения скрыты, сенсор не активен"
-            !isHidden && isSensorActive -> "Приложения видимы, сенсор активен"
-            else -> "Приложения видимы, сенсор не активен"
-        }
-        
-        binding.statusText.text = status
     }
     
     private fun showHomeScreenDialog() {
@@ -282,6 +382,8 @@ class SettingsActivity : AppCompatActivity() {
         binding.accessibilitySettingsButton.setOnClickListener {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             startActivity(intent)
+            // Schedule scroll to permissions section when we return
+            scheduleScrollToPermissions()
         }
         
         // Overlay Permission - always open settings
@@ -292,6 +394,7 @@ class SettingsActivity : AppCompatActivity() {
                     Uri.parse("package:$packageName")
                 )
                 startActivity(intent)
+                scheduleScrollToPermissions()
             } else {
                 Toast.makeText(this, "Разрешение уже предоставлено", Toast.LENGTH_SHORT).show()
             }
@@ -302,6 +405,7 @@ class SettingsActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
                 startActivity(intent)
+                scheduleScrollToPermissions()
             }
         }
         
@@ -311,6 +415,7 @@ class SettingsActivity : AppCompatActivity() {
                 val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
                 intent.data = Uri.parse("package:$packageName")
                 startActivity(intent)
+                scheduleScrollToPermissions()
             }
         }
         
@@ -319,6 +424,7 @@ class SettingsActivity : AppCompatActivity() {
             try {
                 val intent = Intent(Settings.ACTION_HOME_SETTINGS)
                 startActivity(intent)
+                scheduleScrollToPermissions()
             } catch (e: Exception) {
                 // Fallback to app info if home settings not available
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -328,7 +434,9 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
     
-    private fun checkAllPermissions() {
+    private fun checkAllPermissions(): Boolean {
+        var allPermissionsGranted = true
+        
         // Check Accessibility Service
         val accessibilityEnabled = isAccessibilityServiceEnabled()
         if (accessibilityEnabled) {
@@ -339,6 +447,7 @@ class SettingsActivity : AppCompatActivity() {
             binding.accessibilityStatusIcon.setImageResource(R.drawable.ic_close)
             binding.accessibilityStatusText.text = "Не включено"
             binding.accessibilityStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+            allPermissionsGranted = false
         }
         
         // Check Overlay Permission
@@ -351,6 +460,7 @@ class SettingsActivity : AppCompatActivity() {
                 binding.overlayStatusIcon.setImageResource(R.drawable.ic_close)
                 binding.overlayStatusText.text = "Не разрешено"
                 binding.overlayStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+                allPermissionsGranted = false
             }
         }
         
@@ -365,6 +475,7 @@ class SettingsActivity : AppCompatActivity() {
                 binding.dndStatusIcon.setImageResource(R.drawable.ic_close)
                 binding.dndStatusText.text = "Не разрешено"
                 binding.dndStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+                allPermissionsGranted = false
             }
         }
         
@@ -378,6 +489,7 @@ class SettingsActivity : AppCompatActivity() {
                 binding.writeSettingsStatusIcon.setImageResource(R.drawable.ic_close)
                 binding.writeSettingsStatusText.text = "Не разрешено"
                 binding.writeSettingsStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+                allPermissionsGranted = false
             }
         }
         
@@ -390,7 +502,10 @@ class SettingsActivity : AppCompatActivity() {
             binding.homeScreenStatusIcon.setImageResource(R.drawable.ic_close)
             binding.homeScreenStatusText.text = "Не установлен"
             binding.homeScreenStatusText.setTextColor(ContextCompat.getColor(this, R.color.text_gray))
+            allPermissionsGranted = false
         }
+        
+        return allPermissionsGranted
     }
     
     private fun isAccessibilityServiceEnabled(): Boolean {
@@ -442,7 +557,35 @@ class SettingsActivity : AppCompatActivity() {
     
     override fun onResume() {
         super.onResume()
-        updateUI()
-        checkAllPermissions()
+        val allPermissionsGranted = checkAllPermissions()
+        // Reload icon packs in case new ones were installed
+        loadIconPacks()
+        
+        // Check if we need to scroll to permissions section
+        // This happens after returning from system settings
+        if (shouldScrollToPermissions) {
+            scrollToPermissions()
+            shouldScrollToPermissions = false
+        } else if (!allPermissionsGranted) {
+            // If permissions are still missing after returning, keep focus on permissions section
+            binding.settingsScrollView.post {
+                scrollToPermissions()
+            }
+        }
+    }
+    
+    private var shouldScrollToPermissions = false
+    
+    private fun scheduleScrollToPermissions() {
+        shouldScrollToPermissions = true
+    }
+    
+    private fun scrollToPermissions() {
+        binding.settingsScrollView.post {
+            // Get the position of the permissions section
+            val permissionsTop = binding.permissionsSection.top
+            // Smooth scroll to the permissions section
+            binding.settingsScrollView.smoothScrollTo(0, permissionsTop)
+        }
     }
 }

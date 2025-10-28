@@ -107,6 +107,23 @@ class LauncherPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_USE_CUSTOM_KEYS, false)
         set(value) = prefs.edit().putBoolean(KEY_USE_CUSTOM_KEYS, value).apply()
     
+    // New feature toggles
+    var closeAppsOnHiddenMode: Boolean
+        get() = prefs.getBoolean(KEY_CLOSE_APPS_ON_HIDDEN, true)  // Default: enabled
+        set(value) = prefs.edit().putBoolean(KEY_CLOSE_APPS_ON_HIDDEN, value).apply()
+    
+    var blockTouchInHiddenMode: Boolean
+        get() = prefs.getBoolean(KEY_BLOCK_TOUCH_IN_HIDDEN, true)  // Default: enabled
+        set(value) = prefs.edit().putBoolean(KEY_BLOCK_TOUCH_IN_HIDDEN, value).apply()
+    
+    var enableDndInHiddenMode: Boolean
+        get() = prefs.getBoolean(KEY_ENABLE_DND_IN_HIDDEN, true)  // Default: enabled
+        set(value) = prefs.edit().putBoolean(KEY_ENABLE_DND_IN_HIDDEN, value).apply()
+    
+    var hideAppsInHiddenMode: Boolean
+        get() = prefs.getBoolean(KEY_HIDE_APPS_IN_HIDDEN, true)  // Default: enabled
+        set(value) = prefs.edit().putBoolean(KEY_HIDE_APPS_IN_HIDDEN, value).apply()
+    
     companion object {
         private const val PREFS_NAME = "launcher_preferences"
         private const val KEY_APPS_HIDDEN = "apps_hidden"
@@ -117,5 +134,9 @@ class LauncherPreferences(context: Context) {
         private const val KEY_GRID_COLUMNS = "grid_columns"
         private const val KEY_CUSTOM_KEY_COMBINATION = "custom_key_combination"
         private const val KEY_USE_CUSTOM_KEYS = "use_custom_keys"
+        private const val KEY_CLOSE_APPS_ON_HIDDEN = "close_apps_on_hidden"
+        private const val KEY_BLOCK_TOUCH_IN_HIDDEN = "block_touch_in_hidden"
+        private const val KEY_ENABLE_DND_IN_HIDDEN = "enable_dnd_in_hidden"
+        private const val KEY_HIDE_APPS_IN_HIDDEN = "hide_apps_in_hidden"
     }
 }

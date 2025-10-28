@@ -29,16 +29,17 @@
     
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="160dp"
         android:orientation="vertical"
         android:background="@drawable/bg_keys_display"
-        android:padding="12dp"
+        android:padding="16dp"
         android:gravity="center">
         
         <TextView
             android:id="@+id/recordedKeysText"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:text=""
             android:textColor="@color/accent_yellow"
             android:textSize="24sp"
@@ -74,28 +75,37 @@
             android:enabled="false"
             android:layout_marginBottom="12dp" />
         
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/clearButton"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="ОЧИСТИТЬ"
-            android:textColor="@color/text_white"
-            android:fontFamily="@font/mal6lampen"
-            android:textSize="14sp"
-            app:backgroundTint="@color/text_gray"
-            app:cornerRadius="24dp"
-            android:layout_marginBottom="12dp" />
-        
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/cancelButton"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="ОТМЕНА"
-            android:textColor="@color/text_white"
-            android:fontFamily="@font/mal6lampen"
-            android:textSize="14sp"
-            app:backgroundTint="@color/text_gray"
-            app:cornerRadius="24dp" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/clearButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="ОЧИСТИТЬ"
+                android:textColor="@color/text_white"
+                android:fontFamily="@font/mal6lampen"
+                android:textSize="14sp"
+                app:backgroundTint="@color/text_gray"
+                app:cornerRadius="24dp"
+                android:layout_marginEnd="6dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cancelButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="ОТМЕНА"
+                android:textColor="@color/text_white"
+                android:fontFamily="@font/mal6lampen"
+                android:textSize="14sp"
+                app:backgroundTint="@color/item_background"
+                app:cornerRadius="24dp"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
     </LinearLayout>
     
 </LinearLayout>

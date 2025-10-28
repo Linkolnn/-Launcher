@@ -80,10 +80,15 @@ class AppGridAdapter(
             iconLoadJob = adapterScope.launch {
                 try {
                     val icon = withContext(Dispatchers.IO) {
+                        // Create ComponentName for icon pack support
+                        val componentName = itemView.context.packageManager
+                            .getLaunchIntentForPackage(app.packageName)?.component
+                        
                         IconCache.loadIcon(
                             itemView.context,
                             app.packageName,
-                            itemView.context.packageManager
+                            itemView.context.packageManager,
+                            componentName
                         )
                     }
                     // Check if job is still active before updating UI

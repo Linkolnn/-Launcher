@@ -26,6 +26,7 @@ import com.customlauncher.app.receiver.CustomKeyListener
 import com.customlauncher.app.data.model.CustomKeyCombination
 import com.customlauncher.app.ui.adapter.AppGridAdapter
 import com.customlauncher.app.ui.viewmodel.AppViewModel
+import com.customlauncher.app.utils.IconCache
 import android.util.Log
 import android.widget.Toast
 import android.content.BroadcastReceiver
@@ -97,6 +98,18 @@ class MainActivity : AppCompatActivity() {
     // Add handler for debouncing reloads
     private val reloadHandler = Handler(Looper.getMainLooper())
     private var reloadRunnable: Runnable? = null
+    
+    // BroadcastReceiver for icon pack changes
+    private val iconPackChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.customlauncher.ICON_PACK_CHANGED") {
+                Log.d("MainActivity", "Icon pack changed, refreshing app list")
+                // Clear icon cache and reload apps
+                IconCache.clear()
+                viewModel.loadApps()
+            }
+        }
+    }
     
     // BroadcastReceiver for package changes (install/uninstall)
     private val packageChangeReceiver = object : BroadcastReceiver() {
@@ -205,22 +218,28 @@ class MainActivity : AppCompatActivity() {
             addDataScheme("package")
         }
         
+        // Register icon pack change receiver
+        val iconPackFilter = IntentFilter("com.customlauncher.ICON_PACK_CHANGED")
+        
         // Android 12+ requires explicit export flag
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Android 13+ has the constant
             registerReceiver(keyCombinationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(hiddenModeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(iconPackChangeReceiver, iconPackFilter, Context.RECEIVER_NOT_EXPORTED)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12 needs the flag value directly (2)
             registerReceiver(keyCombinationReceiver, filter, 2) // RECEIVER_NOT_EXPORTED = 2
             registerReceiver(hiddenModeReceiver, filter, 2)
             registerReceiver(packageChangeReceiver, packageFilter, 2)
+            registerReceiver(iconPackChangeReceiver, iconPackFilter, 2)
         } else {
             // Android 11 and below
             registerReceiver(keyCombinationReceiver, filter)
             registerReceiver(hiddenModeReceiver, filter)
             registerReceiver(packageChangeReceiver, packageFilter)
+            registerReceiver(iconPackChangeReceiver, iconPackFilter)
         }
         
         // Check initial state
@@ -403,7 +422,9 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Требуются разрешения")
             .setMessage(message)
             .setPositiveButton("Настройки") { _, _ ->
-                startActivity(Intent(this, SettingsActivity::class.java))
+                val intent = Intent(this, SettingsActivity::class.java)
+                intent.putExtra("scroll_to_permissions", true)
+                startActivity(intent)
             }
             .setNegativeButton("Отмена", null)
             .show()
@@ -761,6 +782,12 @@ class MainActivity : AppCompatActivity() {
             unregisterReceiver(packageChangeReceiver)
         } catch (e: Exception) {
             Log.d("MainActivity", "packageChangeReceiver already unregistered")
+        }
+        
+        try {
+            unregisterReceiver(iconPackChangeReceiver)
+        } catch (e: Exception) {
+            Log.d("MainActivity", "iconPackChangeReceiver already unregistered")
         }
         
         // Clear adapter to free memory
