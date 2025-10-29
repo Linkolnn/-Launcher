@@ -1,4 +1,4 @@
-# <img src="app/src/icons/app_icon.png" width="60" align="left" alt="ИLauncher Icon"> ИLauncher
+# <img src="app/src/icons/app_icon.png" width="40" align="left" alt="ИLauncher Icon"> ИLauncher
 
 <br clear="left"/>
 
