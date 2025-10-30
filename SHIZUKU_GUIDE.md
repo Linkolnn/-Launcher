@@ -4,7 +4,15 @@
 
 <div align="center">
   
-  **[▶️ Смотреть видео-инструкцию](video/video_2025-10-30_18-28-13.mp4)**
+  **[▶️ Смотреть видео-инструкцию на Youtube](https://youtu.be/kiXxUOfkF-Q?si=4S-IRHMKrQxluhio)**
+  
+  [![Видео-инструкция по настройке Shizuku](https://img.shields.io/badge/Видео-Инструкция-red?style=for-the-badge&logo=youtube)](https://youtu.be/kiXxUOfkF-Q?si=4S-IRHMKrQxluhio)
+  
+</div>
+
+<div align="center">
+  
+  **[▶️ Смотреть видео-инструкцию на Гитхабе](video/video_2025-10-30_18-28-13.mp4)**
   
   [![Видео-инструкция по настройке Shizuku](https://img.shields.io/badge/Видео-Инструкция-red?style=for-the-badge&logo=youtube)](video/video_2025-10-30_18-28-13.mp4)
   
