@@ -124,6 +124,10 @@ class LauncherPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_HIDE_APPS_IN_HIDDEN, true)  // Default: enabled
         set(value) = prefs.edit().putBoolean(KEY_HIDE_APPS_IN_HIDDEN, value).apply()
     
+    var blockScreenshotsInHiddenMode: Boolean
+        get() = prefs.getBoolean(KEY_BLOCK_SCREENSHOTS_IN_HIDDEN, true)  // Default: enabled
+        set(value) = prefs.edit().putBoolean(KEY_BLOCK_SCREENSHOTS_IN_HIDDEN, value).apply()
+    
     companion object {
         private const val PREFS_NAME = "launcher_preferences"
         private const val KEY_APPS_HIDDEN = "apps_hidden"
@@ -138,5 +142,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_BLOCK_TOUCH_IN_HIDDEN = "block_touch_in_hidden"
         private const val KEY_ENABLE_DND_IN_HIDDEN = "enable_dnd_in_hidden"
         private const val KEY_HIDE_APPS_IN_HIDDEN = "hide_apps_in_hidden"
+        private const val KEY_BLOCK_SCREENSHOTS_IN_HIDDEN = "block_screenshots_in_hidden"
     }
 }

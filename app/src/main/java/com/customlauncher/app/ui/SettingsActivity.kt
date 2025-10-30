@@ -236,6 +236,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.blockTouchSwitch.isChecked = preferences.blockTouchInHiddenMode
         binding.dndSwitch.isChecked = preferences.enableDndInHiddenMode
         binding.hideAppsSwitch.isChecked = preferences.hideAppsInHiddenMode
+        binding.blockScreenshotsSwitch.isChecked = preferences.blockScreenshotsInHiddenMode
         
         // Setup close apps switch
         binding.closeAppsSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -283,6 +284,18 @@ class SettingsActivity : AppCompatActivity() {
             }
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             Log.d(TAG, "Hide apps in hidden mode: $isChecked")
+        }
+        
+        // Setup block screenshots switch
+        binding.blockScreenshotsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.blockScreenshotsInHiddenMode = isChecked
+            val message = if (isChecked) {
+                "Блокировка скриншотов в скрытом режиме включена"
+            } else {
+                "Блокировка скриншотов в скрытом режиме выключена"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Block screenshots in hidden mode: $isChecked")
         }
     }
     

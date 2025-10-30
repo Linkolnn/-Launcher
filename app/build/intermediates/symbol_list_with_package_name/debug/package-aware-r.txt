@@ -3312,6 +3312,7 @@ id baseline
 id beginOnFirstDraw
 id beginning
 id bestChoice
+id blockScreenshotsSwitch
 id blockTouchSwitch
 id blocking
 id bottom

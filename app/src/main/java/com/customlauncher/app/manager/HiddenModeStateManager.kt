@@ -52,6 +52,7 @@ object HiddenModeStateManager {
         val shouldBlockTouch = preferences.blockTouchInHiddenMode
         val shouldEnableDnd = preferences.enableDndInHiddenMode
         val shouldHideApps = preferences.hideAppsInHiddenMode
+        val shouldBlockScreenshots = preferences.blockScreenshotsInHiddenMode
         
         // Update preferences - force commit for immediate persistence
         val prefs = context.getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
@@ -63,7 +64,7 @@ object HiddenModeStateManager {
             prefs.edit().putBoolean("apps_hidden", false).apply()
         }
         
-        Log.d(TAG, "Feature settings - Close apps: $shouldCloseApps, Block touch: $shouldBlockTouch, DND: $shouldEnableDnd, Hide apps: $shouldHideApps")
+        Log.d(TAG, "Feature settings - Close apps: $shouldCloseApps, Block touch: $shouldBlockTouch, DND: $shouldEnableDnd, Hide apps: $shouldHideApps, Block screenshots: $shouldBlockScreenshots")
         
         // Handle touch blocking - prioritize overlay method as it works without root
         if (enabled) {
@@ -85,6 +86,11 @@ object HiddenModeStateManager {
             // Enable Do Not Disturb mode (if enabled)
             if (shouldEnableDnd) {
                 enableDoNotDisturb(context)
+            }
+            
+            // Block screenshots (if enabled)
+            if (shouldBlockScreenshots) {
+                enableScreenshotBlocking(context)
             }
         } else {
             // Optimize exit from hidden mode - do operations asynchronously
@@ -108,6 +114,13 @@ object HiddenModeStateManager {
                 handler.postDelayed({
                     disableDoNotDisturb(context)
                 }, 100)
+            }
+            
+            // Re-enable screenshots (if they were blocked)
+            if (shouldBlockScreenshots) {
+                handler.postDelayed({
+                    disableScreenshotBlocking(context)
+                }, 150)
             }
         }
         
@@ -292,6 +305,30 @@ object HiddenModeStateManager {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to disable DND", e)
+        }
+    }
+    
+    private fun enableScreenshotBlocking(context: Context) {
+        try {
+            // Send broadcast to MainActivity to add FLAG_SECURE
+            val intent = Intent("com.customlauncher.SCREENSHOT_BLOCKING")
+            intent.putExtra("block_screenshots", true)
+            context.sendBroadcast(intent)
+            Log.d(TAG, "Screenshot blocking enabled")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to enable screenshot blocking", e)
+        }
+    }
+    
+    private fun disableScreenshotBlocking(context: Context) {
+        try {
+            // Send broadcast to MainActivity to remove FLAG_SECURE
+            val intent = Intent("com.customlauncher.SCREENSHOT_BLOCKING")
+            intent.putExtra("block_screenshots", false)
+            context.sendBroadcast(intent)
+            Log.d(TAG, "Screenshot blocking disabled")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to disable screenshot blocking", e)
         }
     }
 }

@@ -111,6 +111,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    // BroadcastReceiver for screenshot blocking
+    private val screenshotBlockingReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.customlauncher.SCREENSHOT_BLOCKING") {
+                val shouldBlock = intent.getBooleanExtra("block_screenshots", false)
+                Log.d("MainActivity", "Screenshot blocking: $shouldBlock")
+                
+                if (shouldBlock) {
+                    // Add FLAG_SECURE to prevent screenshots
+                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                } else {
+                    // Remove FLAG_SECURE to allow screenshots
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                }
+            }
+        }
+    }
+    
     // BroadcastReceiver for package changes (install/uninstall)
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -221,6 +239,9 @@ class MainActivity : AppCompatActivity() {
         // Register icon pack change receiver
         val iconPackFilter = IntentFilter("com.customlauncher.ICON_PACK_CHANGED")
         
+        // Register screenshot blocking receiver
+        val screenshotFilter = IntentFilter("com.customlauncher.SCREENSHOT_BLOCKING")
+        
         // Android 12+ requires explicit export flag
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Android 13+ has the constant
@@ -228,18 +249,21 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(hiddenModeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(iconPackChangeReceiver, iconPackFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(screenshotBlockingReceiver, screenshotFilter, Context.RECEIVER_NOT_EXPORTED)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12 needs the flag value directly (2)
             registerReceiver(keyCombinationReceiver, filter, 2) // RECEIVER_NOT_EXPORTED = 2
             registerReceiver(hiddenModeReceiver, filter, 2)
             registerReceiver(packageChangeReceiver, packageFilter, 2)
             registerReceiver(iconPackChangeReceiver, iconPackFilter, 2)
+            registerReceiver(screenshotBlockingReceiver, screenshotFilter, 2)
         } else {
             // Android 11 and below
             registerReceiver(keyCombinationReceiver, filter)
             registerReceiver(hiddenModeReceiver, filter)
             registerReceiver(packageChangeReceiver, packageFilter)
             registerReceiver(iconPackChangeReceiver, iconPackFilter)
+            registerReceiver(screenshotBlockingReceiver, screenshotFilter)
         }
         
         // Check initial state
@@ -788,6 +812,12 @@ class MainActivity : AppCompatActivity() {
             unregisterReceiver(iconPackChangeReceiver)
         } catch (e: Exception) {
             Log.d("MainActivity", "iconPackChangeReceiver already unregistered")
+        }
+        
+        try {
+            unregisterReceiver(screenshotBlockingReceiver)
+        } catch (e: Exception) {
+            Log.d("MainActivity", "screenshotBlockingReceiver already unregistered")
         }
         
         // Clear adapter to free memory

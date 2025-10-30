@@ -25,7 +25,9 @@ import com.customlauncher.app.LauncherApplication
 class TouchBlockService : Service() {
     
     private var blockView: View? = null
+    private var screenshotBlockView: View? = null
     private var windowManager: WindowManager? = null
+    private var isBlockingScreenshots: Boolean = false
     
     override fun onCreate() {
         super.onCreate()
@@ -42,8 +44,9 @@ class TouchBlockService : Service() {
                 ACTION_BLOCK_TOUCH -> {
                     // Always start touch blocking when requested
                     // HiddenModeStateManager handles the logic of when to call this
-                    if (DEBUG) android.util.Log.d(TAG, "Starting touch blocking")
-                    blockTouch()
+                    val blockScreenshots = intent.getBooleanExtra("block_screenshots", false)
+                    if (DEBUG) android.util.Log.d(TAG, "Starting touch blocking, block screenshots: $blockScreenshots")
+                    blockTouch(blockScreenshots)
                 }
                 ACTION_UNBLOCK_TOUCH -> {
                     unblockTouch()
@@ -65,10 +68,12 @@ class TouchBlockService : Service() {
     // Removed startForegroundService() method - we're not using foreground service
     // to avoid showing any notification in the status bar
     
-    private fun blockTouch() {
+    private fun blockTouch(blockScreenshots: Boolean = false) {
         try {
+            isBlockingScreenshots = blockScreenshots
+            
             // Service is only called when needed by HiddenModeStateManager
-            if (blockView != null) {
+            if (blockView != null || screenshotBlockView != null) {
                 if (DEBUG) android.util.Log.d(TAG, "Block view already exists")
                 return
             }
@@ -81,11 +86,11 @@ class TouchBlockService : Service() {
                 }
             }
             
-            if (DEBUG) android.util.Log.d(TAG, "Starting touch blocking in hidden mode...")
-            
-            // Get preferences to check if screenshot blocking is enabled
+            // Check if we need only screenshot blocking (touch blocking disabled)
             val preferences = LauncherApplication.instance.preferences
-            val shouldBlockScreenshots = preferences.blockScreenshotsInHiddenMode
+            val onlyScreenshotBlock = blockScreenshots && !preferences.blockTouchInHiddenMode
+            
+            if (DEBUG) android.util.Log.d(TAG, "Starting blocking - Screenshots: $blockScreenshots, Touch: ${!onlyScreenshotBlock}")
             
             // Get window manager safely
             windowManager = try {
@@ -111,17 +116,11 @@ class TouchBlockService : Service() {
         }
         
         // Flags to block all touch events completely on all screens
-        var flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+        val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                     WindowManager.LayoutParams.FLAG_FULLSCREEN or
                     WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or
                     WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
-        
-        // Add FLAG_SECURE if screenshot blocking is enabled
-        if (shouldBlockScreenshots) {
-            flags = flags or WindowManager.LayoutParams.FLAG_SECURE
-            android.util.Log.d(TAG, "Screenshot blocking enabled - adding FLAG_SECURE to overlay")
-        }
         
         // Add flags to show on lock screen and dismiss keyguard
         val finalFlags = when {
@@ -135,6 +134,12 @@ class TouchBlockService : Service() {
                         WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
                         WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
             }
+        }
+        
+        // If only screenshot blocking is needed, create a minimal overlay
+        if (onlyScreenshotBlock) {
+            createScreenshotBlockingOverlay(layoutFlag)
+            return
         }
         
         try {
@@ -219,6 +224,13 @@ class TouchBlockService : Service() {
             }
             
             // Create params for full screen overlay
+            // Add FLAG_SECURE if screenshot blocking is enabled
+            val secureFlag = if (blockScreenshots) {
+                WindowManager.LayoutParams.FLAG_SECURE
+            } else {
+                0
+            }
+            
             val params = WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -231,7 +243,8 @@ class TouchBlockService : Service() {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_FULLSCREEN or
                 WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or
-                finalFlags,
+                finalFlags or
+                secureFlag, // Add FLAG_SECURE if needed
                 PixelFormat.TRANSLUCENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
@@ -282,24 +295,117 @@ class TouchBlockService : Service() {
                 blockView = null
                 
                 // Remove view if it exists
-                viewToRemove?.let { view ->
-                    try {
-                        // Use removeViewImmediate for faster removal
-                        wm.removeViewImmediate(view)
-                    } catch (e: Exception) {
-                        // Ignore - view might already be removed
-                    }
-                }
             }
-            
-            if (DEBUG) android.util.Log.d(TAG, "Touch blocking overlay removed")
-        } catch (e: Exception) {
-            if (DEBUG) android.util.Log.e(TAG, "Error in unblockTouch", e)
+            // Touch blocked
+            true
+        }
+
+        // Don't make focusable since window has FLAG_NOT_FOCUSABLE
+        // This allows keyboard events to pass through
+        isFocusable = false
+        isFocusableInTouchMode = false
+        isClickable = true
+        isLongClickable = true
+    }
+
+    // Create params for full screen overlay
+    // Add FLAG_SECURE if screenshot blocking is enabled
+    val secureFlag = if (blockScreenshots) {
+        WindowManager.LayoutParams.FLAG_SECURE
+    } else {
+        0
+    }
+
+    val params = WindowManager.LayoutParams(
+        WindowManager.LayoutParams.MATCH_PARENT,
+        WindowManager.LayoutParams.MATCH_PARENT,
+        layoutFlag,
+        // Добавляем FLAG_NOT_FOCUSABLE чтобы не блокировать клавиатуру
+        // но оставляем FLAG_NOT_TOUCH_MODAL чтобы блокировать касания
+        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+        WindowManager.LayoutParams.FLAG_FULLSCREEN or
+        WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or
+        finalFlags or
+        secureFlag, // Add FLAG_SECURE if needed
+        PixelFormat.TRANSLUCENT
+    ).apply {
+        gravity = Gravity.TOP or Gravity.START
+        x = 0
+        y = 0
+
+        // Ensure we cover the entire screen including system bars
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+
+        // Покрываем весь экран включая статус бар и навигацию
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            fitInsetsTypes = 0 // Не учитываем insets, покрываем всё
         }
     }
-    
-    private fun getNavigationBarHeight(): Int {
-        var result = 0
+
+    windowManager?.addView(blockView, params)
+    if (DEBUG) android.util.Log.d(TAG, "Touch blocking overlay created and added - full screen coverage")
+
+    // Don't create additional overlays for status and navigation bars
+    // The main overlay should cover everything
+    // This reduces memory usage and improves performance on weak devices
+} catch (e: Exception) {
+    if (DEBUG) android.util.Log.e("TouchBlockService", "Failed to add overlay", e)
+} catch (e: OutOfMemoryError) {
+    if (DEBUG) android.util.Log.e(TAG, "Out of memory creating overlays", e)
+    System.gc() // Force garbage collection
+} catch (e: Exception) {
+    if (DEBUG) android.util.Log.e(TAG, "Unexpected error in blockTouch", e)
+}
+
+private fun createScreenshotBlockingOverlay(layoutFlag: Int) {
+    try {
+        if (DEBUG) android.util.Log.d(TAG, "Creating screenshot-only blocking overlay")
+
+        // Create a minimal 1x1 pixel view with FLAG_SECURE
+        screenshotBlockView = View(this).apply {
+            setBackgroundColor(0x00000000) // Fully transparent
+        }
+
+        // Create params for minimal overlay
+        val params = WindowManager.LayoutParams(
+            1, // 1 pixel width
+            1, // 1 pixel height
+            layoutFlag,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+            WindowManager.LayoutParams.FLAG_SECURE, // Add FLAG_SECURE for screenshot blocking
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = 0
+            y = 0
+        }
+
+        windowManager?.addView(screenshotBlockView, params)
+        if (DEBUG) android.util.Log.d(TAG, "Screenshot blocking overlay created (1x1 pixel with FLAG_SECURE)")
+
+    } catch (e: Exception) {
+        android.util.Log.e(TAG, "Failed to create screenshot blocking overlay", e)
+    }
+}
+
+private fun unblockTouch() {
+    try {
+        blockView?.let {
+            windowManager?.removeView(it)
+            blockView = null
+            if (DEBUG) android.util.Log.d(TAG, "Touch blocking overlay removed")
+        }
+
+        screenshotBlockView?.let {
+            windowManager?.removeView(it)
+            screenshotBlockView = null
+            if (DEBUG) android.util.Log.d(TAG, "Screenshot blocking overlay removed")
         val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
         if (resourceId > 0) {
             result = resources.getDimensionPixelSize(resourceId)
