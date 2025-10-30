@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+            
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back"
+                android:tint="@color/text_white"
+                android:contentDescription="Назад" />
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="ADB Активация"
+                android:textColor="@color/text_white"
+                android:textSize="24sp"
+                android:fontFamily="@font/lampen"
+                android:layout_marginStart="16dp" />
+        </LinearLayout>
+
+        <!-- Info Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_settings_section_30"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ℹ️ Что это?"
+                android:textColor="@color/accent_yellow"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Активация разрешений в обход системных ограничений. Доступно два способа:"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp"
+                android:layout_marginBottom="4dp" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• Shizuku - без компьютера (рекомендуется)\n• ADB - требуется компьютер и USB кабель"
+                android:textColor="@color/text_gray"
+                android:textSize="13sp" />
+        </LinearLayout>
+        
+        <!-- Shizuku Method Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_settings_section_30"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🚀 Метод 1: Через Shizuku (БЕЗ ПК)"
+                android:textColor="@color/accent_green"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+            
+            <TextView
+                android:id="@+id/shizukuStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Статус: Проверка..."
+                android:textColor="@color/text_gray"
+                android:textSize="14sp"
+                android:layout_marginBottom="12dp" />
+            
+            <!-- Install Shizuku Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/installShizukuButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1. УСТАНОВИТЬ SHIZUKU"
+                android:textColor="@color/background_dark"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="@color/accent_yellow"
+                app:cornerRadius="24dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone" />
+            
+            <!-- Start Shizuku Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/startShizukuButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="2. ЗАПУСТИТЬ SHIZUKU"
+                android:textColor="@color/background_dark"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="@color/accent_yellow"
+                app:cornerRadius="24dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone" />
+            
+            <!-- Request Permission Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/requestShizukuPermissionButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="3. РАЗРЕШИТЬ ДОСТУП"
+                android:textColor="@color/background_dark"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="@color/accent_yellow"
+                app:cornerRadius="24dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone" />
+            
+            <!-- Activate Permissions Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/activateWithShizukuButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✨ АКТИВИРОВАТЬ РАЗРЕШЕНИЯ"
+                android:textColor="@color/text_white"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="@color/accent_green"
+                app:cornerRadius="24dp"
+                android:visibility="gone" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shizuku позволяет выполнять ADB команды прямо на телефоне без компьютера. Требуется однократная настройка через ADB или Root."
+                android:textColor="@color/text_gray"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp" />
+            
+            <!-- Open Guide Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/openShizukuGuideButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📖 ИНСТРУКЦИЯ НА GITHUB"
+                android:textColor="@color/text_white"
+                android:textSize="14sp"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="#2196F3"
+                app:cornerRadius="24dp"
+                android:layout_marginTop="12dp"
+                app:icon="@drawable/ic_open_in_new"
+                app:iconTint="@color/text_white"
+                app:iconGravity="textStart" />
+        </LinearLayout>
+
+        <!-- Step 1: Enable Developer Options -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_settings_section_30"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💻 Метод 2: Через ADB (с компьютером)"
+                android:textColor="@color/accent_yellow"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1. Настройки → О телефоне\n2. Нажмите 7 раз на 'Номер сборки'\n3. Настройки → Для разработчиков\n4. Включите 'Отладка по USB'"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp"
+                android:lineSpacingExtra="4dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/openDeveloperSettingsButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ОТКРЫТЬ НАСТРОЙКИ РАЗРАБОТЧИКА"
+                android:textColor="@color/background_dark"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="@color/accent_yellow"
+                app:cornerRadius="24dp"
+                android:layout_marginTop="12dp" />
+        </LinearLayout>
+
+        <!-- Step 2: Install ADB -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_settings_section_30"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Шаг 2: Установить ADB на компьютер"
+                android:textColor="@color/text_white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Windows: platform-tools-latest-windows.zip\nMac: platform-tools-latest-darwin.zip\nLinux: platform-tools-latest-linux.zip"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp"
+                android:lineSpacingExtra="4dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/copyAdbLinkButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="СКОПИРОВАТЬ ССЫЛКУ"
+                android:textColor="@color/background_dark"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="@color/accent_yellow"
+                app:cornerRadius="24dp"
+                android:layout_marginTop="12dp" />
+        </LinearLayout>
+
+        <!-- Commands Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_settings_section_30"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Шаг 3: Выполнить команды"
+                android:textColor="@color/text_white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Подключите телефон по USB и выполните команды:"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp"
+                android:layout_marginBottom="12dp" />
+            
+            <!-- Accessibility Command -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Для Специальных возможностей:"
+                android:textColor="@color/accent_yellow"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_card_dark"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp">
+                
+                <TextView
+                    android:id="@+id/accessibilityCommand"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="adb shell settings put secure enabled_accessibility_services com.customlauncher.app/com.customlauncher.app.service.SystemBlockAccessibilityService\n\nadb shell settings put secure accessibility_enabled 1"
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="4dp" />
+                
+                <ImageButton
+                    android:id="@+id/copyAccessibilityButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_copy"
+                    android:tint="@color/accent_yellow"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="Копировать" />
+            </LinearLayout>
+            
+            <!-- Overlay Command -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Для разрешения Поверх окон:"
+                android:textColor="@color/accent_yellow"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_card_dark"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp">
+                
+                <TextView
+                    android:id="@+id/overlayCommand"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="adb shell appops set com.customlauncher.app SYSTEM_ALERT_WINDOW allow"
+                    android:textColor="@color/text_white"
+                    android:textSize="12sp"
+                    android:fontFamily="monospace"
+                    android:lineSpacingExtra="4dp" />
+                
+                <ImageButton
+                    android:id="@+id/copyOverlayButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_copy"
+                    android:tint="@color/accent_yellow"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="Копировать" />
+            </LinearLayout>
+            
+            <!-- All Commands Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/copyAllCommandsButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📋 СКОПИРОВАТЬ ВСЕ КОМАНДЫ"
+                android:textColor="@color/text_white"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="@color/accent_green"
+                app:cornerRadius="24dp"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+
+        <!-- Status Check -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_settings_section_30"
+            android:padding="16dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Статус разрешений"
+                android:textColor="@color/text_white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+                
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Специальные возможности:"
+                    android:textColor="@color/text_gray"
+                    android:textSize="14sp" />
+                
+                <TextView
+                    android:id="@+id/accessibilityStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="❌ Не активно"
+                    android:textColor="@color/text_error"
+                    android:textSize="14sp" />
+            </LinearLayout>
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Поверх других окон:"
+                    android:textColor="@color/text_gray"
+                    android:textSize="14sp" />
+                
+                <TextView
+                    android:id="@+id/overlayStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="❌ Не разрешено"
+                    android:textColor="@color/text_error"
+                    android:textSize="14sp" />
+            </LinearLayout>
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/checkStatusButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
+                android:text="🔎 ПРОВЕРИТЬ СТАТУС"
+                android:textColor="@color/background_dark"
+                android:textSize="14sp"
+                android:fontFamily="@font/mal6lampen"
+                android:backgroundTint="@color/accent_yellow"
+                app:cornerRadius="24dp"
+                android:padding="12dp"
+                android:layout_margin="16dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

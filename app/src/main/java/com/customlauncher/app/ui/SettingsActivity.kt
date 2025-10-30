@@ -445,6 +445,27 @@ class SettingsActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+        
+        // ADB Helper Button
+        binding.adbHelperButton.setOnClickListener {
+            val intent = Intent(this, AdbHelperActivity::class.java)
+            startActivity(intent)
+        }
+        
+        // Shizuku Guide Button
+        binding.shizukuGuideButton.setOnClickListener {
+            try {
+                // Можно заменить на реальную ссылку на ваш репозиторий с гайдом
+                val guideUrl = "https://github.com/RikkaApps/Shizuku/blob/master/README.md"
+                // Альтернатива на русском:
+                // val guideUrl = "https://telegra.ph/Shizuku-WiFi-Debug-Guide-RU"
+                
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(guideUrl))
+                startActivity(browserIntent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Не удалось открыть браузер", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
     
     private fun checkAllPermissions(): Boolean {

@@ -62,6 +62,13 @@
             android:theme="@style/Theme.CustomLauncher"
             android:screenOrientation="portrait" />
         
+        <!-- ADB Helper Activity -->
+        <activity
+            android:name=".ui.AdbHelperActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CustomLauncher"
+            android:screenOrientation="portrait" />
+        
         <!-- Touch Block Service -->
         <service
             android:name=".service.TouchBlockService"
@@ -111,6 +118,15 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        
+        <!-- Shizuku provider for ADB commands -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
         
     </application>
 

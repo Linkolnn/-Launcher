@@ -10,6 +10,7 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
+    <color name="text_error">#FF5252</color>
     <color name="text_gray">#808080</color>
     <color name="text_white">#FFFFFF</color>
     <dimen name="popup_menu_height">100dp</dimen>

@@ -1,20 +1,35 @@
 -- Merging decision tree log ---
 provider#androidx.core.content.FileProvider
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:105:9-113:20
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:112:9-120:20
 	android:grantUriPermissions
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:109:13-47
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:116:13-47
 	android:authorities
 		INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:107:13-64
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:114:13-64
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:108:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:115:13-37
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:106:13-62
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:113:13-62
+provider#rikka.shizuku.ShizukuProvider
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:123:9-129:82
+	android:enabled
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:127:13-35
+	android:authorities
+		INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:125:13-59
+	android:multiprocess
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:126:13-41
+	android:exported
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:128:13-36
+	android:permission
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:129:13-79
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:124:13-57
 manifest
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-117:12
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-117:12
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-117:12
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-117:12
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-133:12
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-133:12
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-133:12
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-133:12
 MERGED from [androidx.databinding:databinding-adapters:8.1.0] /home/linkoln/.gradle/caches/transforms-3/bb1d6016f0ec5f14136b6491caa7bd70/transformed/databinding-adapters-8.1.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.databinding:databinding-ktx:8.1.0] /home/linkoln/.gradle/caches/transforms-3/9e03edd8b3e578fee8fb6ac89aa70a26/transformed/jetified-databinding-ktx-8.1.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.databinding:databinding-runtime:8.1.0] /home/linkoln/.gradle/caches/transforms-3/ef9c957ace5662885f745cfe04907364/transformed/databinding-runtime-8.1.0/AndroidManifest.xml:2:1-7:12
@@ -25,6 +40,7 @@ MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /home/linkoln/.gradle
 MERGED from [androidx.preference:preference-ktx:1.2.1] /home/linkoln/.gradle/caches/transforms-3/9d99715d31de82865115f9760fc2104e/transformed/jetified-preference-ktx-1.2.1/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.preference:preference:1.2.1] /home/linkoln/.gradle/caches/transforms-3/71281ca1c2fafedd1b8e1beb57f74386/transformed/preference-1.2.1/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.appcompat:appcompat:1.6.1] /home/linkoln/.gradle/caches/transforms-3/9280386eeb9849e58ccfe273753cebc6/transformed/appcompat-1.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [com.github.bumptech.glide:glide:4.16.0] /home/linkoln/.gradle/caches/transforms-3/d60a53f5108771335de322f1afbcf41c/transformed/jetified-glide-4.16.0/AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.recyclerview:recyclerview:1.3.2] /home/linkoln/.gradle/caches/transforms-3/2b62e089ecc95ed924ea0258d91f2e6d/transformed/recyclerview-1.3.2/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.viewpager2:viewpager2:1.1.0-beta02] /home/linkoln/.gradle/caches/transforms-3/d343e91688881228c35bc2f30a7c6236/transformed/jetified-viewpager2-1.1.0-beta02/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.fragment:fragment-ktx:1.3.6] /home/linkoln/.gradle/caches/transforms-3/5fa5ba2bde52935d9e9e9e9be6b57579/transformed/jetified-fragment-ktx-1.3.6/AndroidManifest.xml:17:1-24:12
@@ -64,19 +80,25 @@ MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] /home/linkoln/.gr
 MERGED from [androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:17:1-31:12
 MERGED from [androidx.room:room-ktx:2.6.1] /home/linkoln/.gradle/caches/transforms-3/a6c84c425c92399ea2899cbe14bde1fe/transformed/jetified-room-ktx-2.6.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.cardview:cardview:1.0.0] /home/linkoln/.gradle/caches/transforms-3/41566863bf103aff624e14bb88402f61/transformed/cardview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:2:1-16:12
+MERGED from [dev.rikka.shizuku:api:13.1.5] /home/linkoln/.gradle/caches/transforms-3/350f6974f35c9af9b202fa933c7a41b8/transformed/jetified-api-13.1.5/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/linkoln/.gradle/caches/transforms-3/1438d35a92abd54851ccb50784af6231/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/linkoln/.gradle/caches/transforms-3/4f961319d4aed48586da84f3535dabf5/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.sqlite:sqlite-framework:2.4.0] /home/linkoln/.gradle/caches/transforms-3/28b8ef8b3d52b95908f54b1a1c98ba2a/transformed/sqlite-framework-2.4.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.sqlite:sqlite:2.4.0] /home/linkoln/.gradle/caches/transforms-3/5843007164ef4c8867fc2cb4c1b58f2b/transformed/sqlite-2.4.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/linkoln/.gradle/caches/transforms-3/0690ec13b66ed538be8345de6c0a1db4/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
+MERGED from [com.github.bumptech.glide:gifdecoder:4.16.0] /home/linkoln/.gradle/caches/transforms-3/a0e6a7276298b8e539b58e7261d440c2/transformed/jetified-gifdecoder-4.16.0/AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.exifinterface:exifinterface:1.3.6] /home/linkoln/.gradle/caches/transforms-3/d0b9bd54861ca45410f5c4266cf6c0c9/transformed/exifinterface-1.3.6/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:17:1-55:12
 MERGED from [androidx.startup:startup-runtime:1.1.1] /home/linkoln/.gradle/caches/transforms-3/47d1ac38417517385d7f60bda91e8c0a/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
 MERGED from [androidx.tracing:tracing:1.0.0] /home/linkoln/.gradle/caches/transforms-3/ccd6617a137f8ab70f94e9ec43807ade/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [dev.rikka.shizuku:shared:13.1.5] /home/linkoln/.gradle/caches/transforms-3/c65ea076ea09a0dd0cdbdc07afcddfa8/transformed/jetified-shared-13.1.5/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/linkoln/.gradle/caches/transforms-3/0690ec13b66ed538be8345de6c0a1db4/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
 MERGED from [androidx.documentfile:documentfile:1.0.0] /home/linkoln/.gradle/caches/transforms-3/9e6920d78fca14dc52da227f1dc26e64/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/linkoln/.gradle/caches/transforms-3/b7293eea89a818723e238a94e18ac54b/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.print:print:1.0.0] /home/linkoln/.gradle/caches/transforms-3/8c948520dbf2dec61bd6c9ed18f6093e/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.annotation:annotation-experimental:1.3.0] /home/linkoln/.gradle/caches/transforms-3/ec262d5dd80ed8803f01a8338c2fb539/transformed/jetified-annotation-experimental-1.3.0/AndroidManifest.xml:17:1-22:12
+MERGED from [dev.rikka.shizuku:aidl:13.1.5] /home/linkoln/.gradle/caches/transforms-3/535c8b22e639ad0a742870bacb163cf7/transformed/jetified-aidl-13.1.5/AndroidManifest.xml:2:1-7:12
 	package
 		INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
 	android:versionName
@@ -138,8 +160,8 @@ ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:17:5
 	android:name
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:17:22-79
 application
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-115:19
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-115:19
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-131:19
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-131:19
 MERGED from [com.google.android.material:material:1.11.0] /home/linkoln/.gradle/caches/transforms-3/76947f2dda4873f4ff357d73f51effc0/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.11.0] /home/linkoln/.gradle/caches/transforms-3/76947f2dda4873f4ff357d73f51effc0/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /home/linkoln/.gradle/caches/transforms-3/6de17af1fafef4018d975c87f851457b/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
@@ -154,12 +176,14 @@ MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/linkoln/.gradle/c
 MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] /home/linkoln/.gradle/caches/transforms-3/2562856de88312af16f6b6bfa181b318/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:23:5-29:19
 MERGED from [androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:23:5-29:19
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:10:5-14:19
+MERGED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:10:5-14:19
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:23:5-53:19
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:23:5-53:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] /home/linkoln/.gradle/caches/transforms-3/47d1ac38417517385d7f60bda91e8c0a/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] /home/linkoln/.gradle/caches/transforms-3/47d1ac38417517385d7f60bda91e8c0a/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 	android:extractNativeLibs
 		INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
 	android:appComponentFactory
@@ -168,6 +192,8 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /home/linkoln/.gradle/cache
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:25:9-35
 	android:label
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:23:9-41
+	tools:ignore
+		ADDED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:10:18-69
 	android:roundIcon
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:24:9-54
 	tools:targetApi
@@ -238,72 +264,82 @@ ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:59:9
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:62:13-56
 	android:name
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:60:13-48
+activity#com.customlauncher.app.ui.AdbHelperActivity
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:66:9-70:52
+	android:screenOrientation
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:70:13-49
+	android:exported
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:68:13-37
+	android:theme
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:69:13-56
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:67:13-49
 service#com.customlauncher.app.service.TouchBlockService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:66:9-73:19
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:73:9-80:19
 	android:enabled
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:68:13-35
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:75:13-35
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:69:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:76:13-37
 	android:foregroundServiceType
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:70:13-55
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:77:13-55
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:67:13-54
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:74:13-54
 property
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:71:13-72:76
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:78:13-79:76
 	android:value
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:72:17-73
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:79:17-73
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:71:23-82
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:78:23-82
 service#com.customlauncher.app.service.SystemBlockAccessibilityService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:75:9-86:19
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:82:9-93:19
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:78:13-36
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:85:13-36
 	android:permission
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:77:13-79
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:84:13-79
 	android:directBootAware
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:79:13-43
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:86:13-43
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:76:13-68
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:83:13-68
 intent-filter#action:name:android.accessibilityservice.AccessibilityService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:80:13-82:29
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:87:13-89:29
 action#android.accessibilityservice.AccessibilityService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:81:17-92
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:88:17-92
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:81:25-89
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:88:25-89
 meta-data#android.accessibilityservice
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:83:13-85:72
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:90:13-92:72
 	android:resource
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:85:17-69
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:92:17-69
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:84:17-60
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:91:17-60
 receiver#com.customlauncher.app.receiver.KeyCombinationReceiver
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:89:9-96:20
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:96:9-103:20
 	android:enabled
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:91:13-35
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:98:13-35
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:92:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:99:13-37
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:90:13-60
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:97:13-60
 intent-filter#action:name:com.customlauncher.app.KEY_COMBINATION_DETECTED
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:93:13-95:29
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:100:13-102:29
 action#com.customlauncher.app.KEY_COMBINATION_DETECTED
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:94:17-90
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:101:17-90
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:94:25-87
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:101:25-87
 service#com.customlauncher.app.service.SensorControlService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:99:9-102:40
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:106:9-109:40
 	android:enabled
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:101:13-35
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:108:13-35
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:102:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:109:13-37
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:100:13-57
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:107:13-57
 meta-data#android.support.FILE_PROVIDER_PATHS
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:110:13-112:54
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:117:13-119:54
 	android:resource
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:112:17-51
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:119:17-51
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:111:17-67
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:118:17-67
 uses-sdk
 INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
@@ -328,6 +364,8 @@ MERGED from [androidx.preference:preference:1.2.1] /home/linkoln/.gradle/caches/
 MERGED from [androidx.preference:preference:1.2.1] /home/linkoln/.gradle/caches/transforms-3/71281ca1c2fafedd1b8e1beb57f74386/transformed/preference-1.2.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.appcompat:appcompat:1.6.1] /home/linkoln/.gradle/caches/transforms-3/9280386eeb9849e58ccfe273753cebc6/transformed/appcompat-1.6.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.appcompat:appcompat:1.6.1] /home/linkoln/.gradle/caches/transforms-3/9280386eeb9849e58ccfe273753cebc6/transformed/appcompat-1.6.1/AndroidManifest.xml:20:5-44
+MERGED from [com.github.bumptech.glide:glide:4.16.0] /home/linkoln/.gradle/caches/transforms-3/d60a53f5108771335de322f1afbcf41c/transformed/jetified-glide-4.16.0/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.bumptech.glide:glide:4.16.0] /home/linkoln/.gradle/caches/transforms-3/d60a53f5108771335de322f1afbcf41c/transformed/jetified-glide-4.16.0/AndroidManifest.xml:5:5-7:41
 MERGED from [androidx.recyclerview:recyclerview:1.3.2] /home/linkoln/.gradle/caches/transforms-3/2b62e089ecc95ed924ea0258d91f2e6d/transformed/recyclerview-1.3.2/AndroidManifest.xml:20:5-44
 MERGED from [androidx.recyclerview:recyclerview:1.3.2] /home/linkoln/.gradle/caches/transforms-3/2b62e089ecc95ed924ea0258d91f2e6d/transformed/recyclerview-1.3.2/AndroidManifest.xml:20:5-44
 MERGED from [androidx.viewpager2:viewpager2:1.1.0-beta02] /home/linkoln/.gradle/caches/transforms-3/d343e91688881228c35bc2f30a7c6236/transformed/jetified-viewpager2-1.1.0-beta02/AndroidManifest.xml:5:5-44
@@ -406,6 +444,10 @@ MERGED from [androidx.room:room-ktx:2.6.1] /home/linkoln/.gradle/caches/transfor
 MERGED from [androidx.room:room-ktx:2.6.1] /home/linkoln/.gradle/caches/transforms-3/a6c84c425c92399ea2899cbe14bde1fe/transformed/jetified-room-ktx-2.6.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cardview:cardview:1.0.0] /home/linkoln/.gradle/caches/transforms-3/41566863bf103aff624e14bb88402f61/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cardview:cardview:1.0.0] /home/linkoln/.gradle/caches/transforms-3/41566863bf103aff624e14bb88402f61/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:6:5-44
+MERGED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:6:5-44
+MERGED from [dev.rikka.shizuku:api:13.1.5] /home/linkoln/.gradle/caches/transforms-3/350f6974f35c9af9b202fa933c7a41b8/transformed/jetified-api-13.1.5/AndroidManifest.xml:5:5-44
+MERGED from [dev.rikka.shizuku:api:13.1.5] /home/linkoln/.gradle/caches/transforms-3/350f6974f35c9af9b202fa933c7a41b8/transformed/jetified-api-13.1.5/AndroidManifest.xml:5:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/linkoln/.gradle/caches/transforms-3/1438d35a92abd54851ccb50784af6231/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/linkoln/.gradle/caches/transforms-3/1438d35a92abd54851ccb50784af6231/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/linkoln/.gradle/caches/transforms-3/4f961319d4aed48586da84f3535dabf5/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
@@ -414,16 +456,22 @@ MERGED from [androidx.sqlite:sqlite-framework:2.4.0] /home/linkoln/.gradle/cache
 MERGED from [androidx.sqlite:sqlite-framework:2.4.0] /home/linkoln/.gradle/caches/transforms-3/28b8ef8b3d52b95908f54b1a1c98ba2a/transformed/sqlite-framework-2.4.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.sqlite:sqlite:2.4.0] /home/linkoln/.gradle/caches/transforms-3/5843007164ef4c8867fc2cb4c1b58f2b/transformed/sqlite-2.4.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.sqlite:sqlite:2.4.0] /home/linkoln/.gradle/caches/transforms-3/5843007164ef4c8867fc2cb4c1b58f2b/transformed/sqlite-2.4.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/linkoln/.gradle/caches/transforms-3/0690ec13b66ed538be8345de6c0a1db4/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.interpolator:interpolator:1.0.0] /home/linkoln/.gradle/caches/transforms-3/0690ec13b66ed538be8345de6c0a1db4/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [com.github.bumptech.glide:gifdecoder:4.16.0] /home/linkoln/.gradle/caches/transforms-3/a0e6a7276298b8e539b58e7261d440c2/transformed/jetified-gifdecoder-4.16.0/AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.bumptech.glide:gifdecoder:4.16.0] /home/linkoln/.gradle/caches/transforms-3/a0e6a7276298b8e539b58e7261d440c2/transformed/jetified-gifdecoder-4.16.0/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.6] /home/linkoln/.gradle/caches/transforms-3/d0b9bd54861ca45410f5c4266cf6c0c9/transformed/exifinterface-1.3.6/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.6] /home/linkoln/.gradle/caches/transforms-3/d0b9bd54861ca45410f5c4266cf6c0c9/transformed/exifinterface-1.3.6/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.startup:startup-runtime:1.1.1] /home/linkoln/.gradle/caches/transforms-3/47d1ac38417517385d7f60bda91e8c0a/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
 MERGED from [androidx.startup:startup-runtime:1.1.1] /home/linkoln/.gradle/caches/transforms-3/47d1ac38417517385d7f60bda91e8c0a/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
 MERGED from [androidx.tracing:tracing:1.0.0] /home/linkoln/.gradle/caches/transforms-3/ccd6617a137f8ab70f94e9ec43807ade/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.tracing:tracing:1.0.0] /home/linkoln/.gradle/caches/transforms-3/ccd6617a137f8ab70f94e9ec43807ade/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [dev.rikka.shizuku:shared:13.1.5] /home/linkoln/.gradle/caches/transforms-3/c65ea076ea09a0dd0cdbdc07afcddfa8/transformed/jetified-shared-13.1.5/AndroidManifest.xml:5:5-44
+MERGED from [dev.rikka.shizuku:shared:13.1.5] /home/linkoln/.gradle/caches/transforms-3/c65ea076ea09a0dd0cdbdc07afcddfa8/transformed/jetified-shared-13.1.5/AndroidManifest.xml:5:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/linkoln/.gradle/caches/transforms-3/0690ec13b66ed538be8345de6c0a1db4/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/linkoln/.gradle/caches/transforms-3/0690ec13b66ed538be8345de6c0a1db4/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.documentfile:documentfile:1.0.0] /home/linkoln/.gradle/caches/transforms-3/9e6920d78fca14dc52da227f1dc26e64/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.documentfile:documentfile:1.0.0] /home/linkoln/.gradle/caches/transforms-3/9e6920d78fca14dc52da227f1dc26e64/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/linkoln/.gradle/caches/transforms-3/b7293eea89a818723e238a94e18ac54b/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
@@ -432,6 +480,8 @@ MERGED from [androidx.print:print:1.0.0] /home/linkoln/.gradle/caches/transforms
 MERGED from [androidx.print:print:1.0.0] /home/linkoln/.gradle/caches/transforms-3/8c948520dbf2dec61bd6c9ed18f6093e/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.3.0] /home/linkoln/.gradle/caches/transforms-3/ec262d5dd80ed8803f01a8338c2fb539/transformed/jetified-annotation-experimental-1.3.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.3.0] /home/linkoln/.gradle/caches/transforms-3/ec262d5dd80ed8803f01a8338c2fb539/transformed/jetified-annotation-experimental-1.3.0/AndroidManifest.xml:20:5-44
+MERGED from [dev.rikka.shizuku:aidl:13.1.5] /home/linkoln/.gradle/caches/transforms-3/535c8b22e639ad0a742870bacb163cf7/transformed/jetified-aidl-13.1.5/AndroidManifest.xml:5:5-44
+MERGED from [dev.rikka.shizuku:aidl:13.1.5] /home/linkoln/.gradle/caches/transforms-3/535c8b22e639ad0a742870bacb163cf7/transformed/jetified-aidl-13.1.5/AndroidManifest.xml:5:5-44
 	android:targetSdkVersion
 		INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
 	android:minSdkVersion
@@ -506,6 +556,16 @@ ADDED from [androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/trans
 		ADDED from [androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:26:13-43
 	android:name
 		ADDED from [androidx.room:room-runtime:2.6.1] /home/linkoln/.gradle/caches/transforms-3/c185ffcef3eb50e34dc6c707688edf76/transformed/room-runtime-2.6.1/AndroidManifest.xml:25:13-74
+uses-permission#moe.shizuku.manager.permission.API_V23
+ADDED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:8:5-78
+	android:name
+		ADDED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:8:22-75
+meta-data#moe.shizuku.client.V3_SUPPORT
+ADDED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:11:9-13:36
+	android:value
+		ADDED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:13:13-33
+	android:name
+		ADDED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:12:13-57
 meta-data#androidx.profileinstaller.ProfileInstallerInitializer
 ADDED from [androidx.profileinstaller:profileinstaller:1.3.0] /home/linkoln/.gradle/caches/transforms-3/409acb17ac08d5bfd510839c885b2c33/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
 	android:value
