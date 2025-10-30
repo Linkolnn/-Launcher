@@ -76,7 +76,7 @@ class AdbHelperActivity : AppCompatActivity() {
         binding.openShizukuGuideButton.setOnClickListener {
             try {
                 // Можно заменить на реальную ссылку на ваш репозиторий
-                val guideUrl = "https://github.com/RikkaApps/Shizuku/blob/master/README.md"
+                val guideUrl = "https://github.com/Linkolnn/-Launcher/blob/main/SHIZUKU_GUIDE.md"
                 // Альтернативная ссылка на русскоязычный гайд:
                 // val guideUrl = "https://telegra.ph/Shizuku-Guide-RU-12-15"
                 

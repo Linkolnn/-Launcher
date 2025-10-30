@@ -456,7 +456,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.shizukuGuideButton.setOnClickListener {
             try {
                 // Можно заменить на реальную ссылку на ваш репозиторий с гайдом
-                val guideUrl = "https://github.com/RikkaApps/Shizuku/blob/master/README.md"
+                val guideUrl = "https://github.com/Linkolnn/-Launcher/blob/main/SHIZUKU_GUIDE.md"
                 // Альтернатива на русском:
                 // val guideUrl = "https://telegra.ph/Shizuku-WiFi-Debug-Guide-RU"
                 
