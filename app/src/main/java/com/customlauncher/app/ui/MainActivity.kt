@@ -34,7 +34,6 @@ import android.content.IntentFilter
 import android.app.KeyguardManager
 import android.view.WindowManager
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import android.provider.Settings
 import android.text.TextUtils
@@ -47,6 +46,7 @@ import android.view.Gravity
 import com.customlauncher.app.databinding.ActivityMainBinding
 import android.content.ActivityNotFoundException
 import com.customlauncher.app.R
+import com.customlauncher.app.ui.layout.PaginatedGridLayoutManager
 
 class MainActivity : AppCompatActivity() {
     
@@ -60,6 +60,8 @@ class MainActivity : AppCompatActivity() {
     // Key combination tracking
     private var customKeyListener: CustomKeyListener? = null
     private val keyPressHandler = Handler(Looper.getMainLooper())
+    private var paginatedLayoutManager: PaginatedGridLayoutManager? = null
+    private var currentFocusedPosition = 0
     
     // Touch event throttling
     private var lastTouchEventTime = 0L
@@ -125,6 +127,28 @@ class MainActivity : AppCompatActivity() {
                     // Remove FLAG_SECURE to allow screenshots
                     window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 }
+            }
+        }
+    }
+    
+    // BroadcastReceiver for app labels changes
+    private val appLabelsChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.customlauncher.APP_LABELS_CHANGED") {
+                Log.d("MainActivity", "App labels setting changed, refreshing app list")
+                // Refresh the adapter to update labels visibility
+                appAdapter.notifyDataSetChanged()
+            }
+        }
+    }
+    
+    // BroadcastReceiver for button phone mode changes
+    private val buttonPhoneModeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.customlauncher.BUTTON_PHONE_MODE_CHANGED") {
+                Log.d("MainActivity", "Button phone mode changed, updating grid")
+                updateGridColumns()
+                viewModel.loadApps()
             }
         }
     }
@@ -242,6 +266,12 @@ class MainActivity : AppCompatActivity() {
         // Register screenshot blocking receiver
         val screenshotFilter = IntentFilter("com.customlauncher.SCREENSHOT_BLOCKING")
         
+        // Register button phone mode receiver
+        val buttonPhoneModeFilter = IntentFilter("com.customlauncher.BUTTON_PHONE_MODE_CHANGED")
+        
+        // Register app labels change receiver
+        val appLabelsFilter = IntentFilter("com.customlauncher.APP_LABELS_CHANGED")
+        
         // Android 12+ requires explicit export flag
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Android 13+ has the constant
@@ -250,6 +280,8 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(iconPackChangeReceiver, iconPackFilter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(screenshotBlockingReceiver, screenshotFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(buttonPhoneModeReceiver, buttonPhoneModeFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(appLabelsChangeReceiver, appLabelsFilter, Context.RECEIVER_NOT_EXPORTED)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12 needs the flag value directly (2)
             registerReceiver(keyCombinationReceiver, filter, 2) // RECEIVER_NOT_EXPORTED = 2
@@ -257,6 +289,8 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(packageChangeReceiver, packageFilter, 2)
             registerReceiver(iconPackChangeReceiver, iconPackFilter, 2)
             registerReceiver(screenshotBlockingReceiver, screenshotFilter, 2)
+            registerReceiver(buttonPhoneModeReceiver, buttonPhoneModeFilter, 2)
+            registerReceiver(appLabelsChangeReceiver, appLabelsFilter, 2)
         } else {
             // Android 11 and below
             registerReceiver(keyCombinationReceiver, filter)
@@ -264,6 +298,8 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(packageChangeReceiver, packageFilter)
             registerReceiver(iconPackChangeReceiver, iconPackFilter)
             registerReceiver(screenshotBlockingReceiver, screenshotFilter)
+            registerReceiver(buttonPhoneModeReceiver, buttonPhoneModeFilter)
+            registerReceiver(appLabelsChangeReceiver, appLabelsFilter)
         }
         
         // Check initial state
@@ -300,6 +336,12 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun checkOverlayPermission() {
+        // Skip permission checking if disabled
+        val preferences = LauncherApplication.instance.preferences
+        if (!preferences.checkPermissionsOnStartup) {
+            return
+        }
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!android.provider.Settings.canDrawOverlays(this)) {
                 Toast.makeText(this, "Требуется разрешение наложения для блокировки сенсора", Toast.LENGTH_LONG).show()
@@ -321,9 +363,25 @@ class MainActivity : AppCompatActivity() {
         )
         
         binding.appsGrid.apply {
-            // Get column count from preferences
-            val columnCount = LauncherApplication.instance.preferences.gridColumnCount
-            layoutManager = GridLayoutManager(this@MainActivity, columnCount)
+            val preferences = LauncherApplication.instance.preferences
+            
+            // Check if button phone mode is enabled
+            if (preferences.buttonPhoneMode) {
+                // Use paginated layout for button phones
+                val gridSize = preferences.buttonPhoneGridSize
+                val (cols, rows) = when (gridSize) {
+                    "3x4" -> 3 to 4
+                    else -> 3 to 3  // Default to 3x3
+                }
+                
+                paginatedLayoutManager = PaginatedGridLayoutManager(this@MainActivity, cols, rows)
+                layoutManager = paginatedLayoutManager
+            } else {
+                // Use standard grid layout for touch phones
+                val columnCount = if (preferences.gridColumnCount == 0) 4 else preferences.gridColumnCount
+                layoutManager = GridLayoutManager(this@MainActivity, columnCount)
+            }
+            
             adapter = appAdapter
             
             // Performance optimizations
@@ -366,10 +424,15 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         // Long press on home screen opens app list
         binding.appsGrid.setOnLongClickListener {
-            // Check if all permissions are granted
-            if (!checkAllPermissions()) {
-                showPermissionsDialog()
-                return@setOnLongClickListener false
+            val preferences = LauncherApplication.instance.preferences
+            
+            // Check if permission checking is enabled
+            if (preferences.checkPermissionsOnStartup) {
+                // Check if all permissions are granted
+                if (!checkAllPermissions()) {
+                    showPermissionsDialog()
+                    return@setOnLongClickListener false
+                }
             }
             
             startActivity(Intent(this, AppListActivity::class.java))
@@ -378,6 +441,12 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun checkAllPermissions(): Boolean {
+        // If permission checking is disabled, always return true
+        val preferences = LauncherApplication.instance.preferences
+        if (!preferences.checkPermissionsOnStartup) {
+            return true
+        }
+        
         var allGranted = true
         val missingPermissions = mutableListOf<String>()
         
@@ -494,6 +563,47 @@ class MainActivity : AppCompatActivity() {
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle button phone navigation
+        if (preferences.buttonPhoneMode && paginatedLayoutManager != null) {
+            val handled = when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_4 -> {
+                    if (paginatedLayoutManager?.navigateLeft() == true) {
+                        updateFocusedItem()
+                        true
+                    } else false
+                }
+                KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_6 -> {
+                    if (paginatedLayoutManager?.navigateRight() == true) {
+                        updateFocusedItem()
+                        true
+                    } else false
+                }
+                KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_2 -> {
+                    if (paginatedLayoutManager?.navigateUp() == true) {
+                        updateFocusedItem()
+                        true
+                    } else false
+                }
+                KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_8 -> {
+                    if (paginatedLayoutManager?.navigateDown() == true) {
+                        updateFocusedItem()
+                        true
+                    } else false
+                }
+                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_5, KeyEvent.KEYCODE_ENTER -> {
+                    val position = paginatedLayoutManager?.getSelectedPosition() ?: 0
+                    val app = appAdapter.currentList.getOrNull(position)
+                    app?.let {
+                        viewModel.launchApp(it.packageName)
+                    }
+                    true
+                }
+                else -> false
+            }
+            
+            if (handled) return true
+        }
+        
         // Handle custom key combinations
         if (preferences.useCustomKeys) {
             customKeyListener?.let { listener ->
@@ -504,6 +614,18 @@ class MainActivity : AppCompatActivity() {
         }
         
         return super.onKeyDown(keyCode, event)
+    }
+    
+    private fun updateFocusedItem() {
+        // Update visual focus on the selected item
+        val position = paginatedLayoutManager?.getSelectedPosition() ?: 0
+        binding.appsGrid.smoothScrollToPosition(position)
+        
+        // Find the view holder and update focus
+        binding.appsGrid.post {
+            val viewHolder = binding.appsGrid.findViewHolderForAdapterPosition(position)
+            viewHolder?.itemView?.requestFocus()
+        }
     }
     
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
@@ -741,6 +863,12 @@ class MainActivity : AppCompatActivity() {
         
         Log.d("MainActivity", "Updating visibility: hidden=$hidden")
         
+        // If entering hidden mode and using paginated layout, reset to first page
+        if (hidden && paginatedLayoutManager != null) {
+            Log.d("MainActivity", "Resetting to first page in button phone mode")
+            paginatedLayoutManager?.resetToFirstPage()
+        }
+        
         // Cancel previous app reload
         keyPressHandler.removeCallbacksAndMessages("load_apps")
         
@@ -772,9 +900,31 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updateGridColumns() {
-        val columnCount = LauncherApplication.instance.preferences.gridColumnCount
-        val layoutManager = binding.appsGrid.layoutManager as? GridLayoutManager
-        layoutManager?.spanCount = columnCount
+        val preferences = LauncherApplication.instance.preferences
+        
+        if (preferences.buttonPhoneMode) {
+            // Switch to paginated layout for button phones
+            val gridSize = preferences.buttonPhoneGridSize
+            val (cols, rows) = when (gridSize) {
+                "3x4" -> 3 to 4
+                else -> 3 to 3  // Default to 3x3
+            }
+            
+            if (paginatedLayoutManager == null || 
+                paginatedLayoutManager?.columns != cols || 
+                paginatedLayoutManager?.rows != rows) {
+                paginatedLayoutManager = PaginatedGridLayoutManager(this, cols, rows)
+                binding.appsGrid.layoutManager = paginatedLayoutManager
+            }
+        } else {
+            // Switch to standard grid layout
+            val columnCount = if (preferences.gridColumnCount == 0) 4 else preferences.gridColumnCount
+            if (binding.appsGrid.layoutManager !is GridLayoutManager ||
+                (binding.appsGrid.layoutManager as? GridLayoutManager)?.spanCount != columnCount) {
+                binding.appsGrid.layoutManager = GridLayoutManager(this, columnCount)
+                paginatedLayoutManager = null
+            }
+        }
     }
     
     override fun onDestroy() {
@@ -818,6 +968,18 @@ class MainActivity : AppCompatActivity() {
             unregisterReceiver(screenshotBlockingReceiver)
         } catch (e: Exception) {
             Log.d("MainActivity", "screenshotBlockingReceiver already unregistered")
+        }
+        
+        try {
+            unregisterReceiver(buttonPhoneModeReceiver)
+        } catch (e: Exception) {
+            Log.d("MainActivity", "buttonPhoneModeReceiver already unregistered")
+        }
+        
+        try {
+            unregisterReceiver(appLabelsChangeReceiver)
+        } catch (e: Exception) {
+            Log.d("MainActivity", "appLabelsChangeReceiver already unregistered")
         }
         
         // Clear adapter to free memory

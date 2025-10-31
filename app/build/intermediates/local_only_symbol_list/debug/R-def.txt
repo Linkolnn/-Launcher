@@ -32,6 +32,7 @@ drawable bg_select_all_button
 drawable bg_settings_section
 drawable bg_settings_section_30
 drawable bg_tab_item
+drawable bg_tab_item_selected
 drawable button_yellow
 drawable checkbox_selector
 drawable dark_menu_item_selector
@@ -78,10 +79,13 @@ id appsList
 id backButton
 id blockScreenshotsSwitch
 id blockTouchSwitch
+id buttonPhoneGridContent
+id buttonPhoneGridGroup
 id cancelButton
 id checkBox
 id checkIcon
 id checkMarkContainer
+id checkPermissionsSwitch
 id checkStatusButton
 id circleBackground
 id clearButton
@@ -99,6 +103,8 @@ id dndSwitch
 id grid3Columns
 id grid4Columns
 id grid5Columns
+id gridButton3x3
+id gridButton3x4
 id gridColumnsGroup
 id hideAppsSwitch
 id homeScreenStatusIcon
@@ -135,10 +141,14 @@ id selectionRing
 id settingsScrollView
 id shizukuGuideButton
 id shizukuStatusText
+id showAppLabelsSwitch
 id startShizukuButton
 id tabApplications
 id tabBar
+id tabButtonPhone
 id tabSettings
+id tabTouchPhone
+id touchPhoneGridContent
 id writeSettingsButton
 id writeSettingsStatusIcon
 id writeSettingsStatusText

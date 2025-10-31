@@ -19,6 +19,7 @@ import com.customlauncher.app.databinding.ActivitySettingsBinding
 import com.customlauncher.app.service.SystemBlockAccessibilityService
 import android.text.TextUtils
 import android.util.Log
+import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -47,6 +48,8 @@ class SettingsActivity : AppCompatActivity() {
         setupTabs()
         setupCustomKeyCombination()
         setupGridSelection()
+        setupGridTypeTabs()  // Setup grid type tabs
+        setupButtonPhoneMode()  // Setup button phone mode
         setupFeatureSwitches()  // New method for feature toggles
         setupIconPacks()  // Setup icon pack selector
         setupHomeScreenSelector()
@@ -207,26 +210,169 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupGridSelection() {
         val preferences = LauncherApplication.instance.preferences
         
-        // Set initial selection based on saved preference
-        val currentColumns = preferences.gridColumnCount
-        when (currentColumns) {
-            3 -> binding.grid3Columns.isChecked = true
-            4 -> binding.grid4Columns.isChecked = true
-            5 -> binding.grid5Columns.isChecked = true
-            else -> binding.grid4Columns.isChecked = true // Default to 4 columns
+        // Update radio button state
+        updateTouchGridState()
+        
+        // Handle grid selection changes - set listener only once
+        if (binding.gridColumnsGroup.tag != "listener_set") {
+            binding.gridColumnsGroup.tag = "listener_set"
+            binding.gridColumnsGroup.setOnCheckedChangeListener { _, checkedId ->
+                if (checkedId == -1) return@setOnCheckedChangeListener // No selection
+                
+                val columns = when (checkedId) {
+                    R.id.grid3Columns -> 3
+                    R.id.grid4Columns -> 4
+                    R.id.grid5Columns -> 5
+                    else -> return@setOnCheckedChangeListener
+                }
+                
+                preferences.gridColumnCount = columns
+                preferences.hasTouchGridSelection = true
+                preferences.hasButtonGridSelection = false  // Clear button selection flag
+                
+                // Clear button grid selection when selecting touch grid
+                // Use post to avoid conflicts with current event processing
+                binding.buttonPhoneGridGroup.post {
+                    binding.buttonPhoneGridGroup.setOnCheckedChangeListener(null)
+                    binding.buttonPhoneGridGroup.clearCheck()
+                    // Re-setup the button phone mode to restore listener
+                    setupButtonPhoneMode()
+                }
+                
+                // Automatically disable button phone mode when selecting touch grid
+                if (preferences.buttonPhoneMode) {
+                    preferences.buttonPhoneMode = false
+                    sendBroadcast(Intent("com.customlauncher.BUTTON_PHONE_MODE_CHANGED"))
+                    Toast.makeText(this, "Переключено на сенсорный режим: $columns столбца", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Сетка изменена на $columns столбца", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    private fun updateTouchGridState() {
+        val preferences = LauncherApplication.instance.preferences
+        // Only set initial selection if user has made a selection and is in touch mode
+        if (!preferences.buttonPhoneMode && preferences.hasTouchGridSelection) {
+            val currentColumns = preferences.gridColumnCount
+            when (currentColumns) {
+                3 -> binding.grid3Columns.isChecked = true
+                4 -> binding.grid4Columns.isChecked = true
+                5 -> binding.grid5Columns.isChecked = true
+                0 -> binding.gridColumnsGroup.clearCheck()  // Not set
+                else -> binding.gridColumnsGroup.clearCheck()
+            }
+        } else {
+            // Clear selection if no prior selection or in button mode
+            binding.gridColumnsGroup.clearCheck()
+        }
+    }
+    
+    private fun setupGridTypeTabs() {
+        val preferences = LauncherApplication.instance.preferences
+        
+        // Set initial tab selection based on button phone mode
+        if (preferences.buttonPhoneMode) {
+            selectButtonPhoneTab()
+        } else {
+            selectTouchPhoneTab()
         }
         
-        // Handle grid selection changes
-        binding.gridColumnsGroup.setOnCheckedChangeListener { _, checkedId ->
-            val columns = when (checkedId) {
-                R.id.grid3Columns -> 3
-                R.id.grid4Columns -> 4
-                R.id.grid5Columns -> 5
-                else -> 4 // Default to 4
+        // Handle touch phone tab click
+        binding.tabTouchPhone.setOnClickListener {
+            selectTouchPhoneTab()
+        }
+        
+        // Handle button phone tab click  
+        binding.tabButtonPhone.setOnClickListener {
+            selectButtonPhoneTab()
+        }
+    }
+    
+    private fun selectTouchPhoneTab() {
+        // Update tab backgrounds
+        binding.tabTouchPhone.setBackgroundResource(R.drawable.bg_tab_item_selected)
+        binding.tabButtonPhone.setBackgroundResource(R.drawable.bg_tab_item)
+        
+        // Update content visibility
+        binding.touchPhoneGridContent.visibility = View.VISIBLE
+        binding.buttonPhoneGridContent.visibility = View.GONE
+        
+        // Update radio button state without resetting listener
+        updateTouchGridState()
+    }
+    
+    private fun selectButtonPhoneTab() {
+        // Update tab backgrounds
+        binding.tabTouchPhone.setBackgroundResource(R.drawable.bg_tab_item)
+        binding.tabButtonPhone.setBackgroundResource(R.drawable.bg_tab_item_selected)
+        
+        // Update content visibility
+        binding.touchPhoneGridContent.visibility = View.GONE
+        binding.buttonPhoneGridContent.visibility = View.VISIBLE
+        
+        // Update radio button state without resetting listener
+        updateButtonGridState()
+    }
+    
+    private fun setupButtonPhoneMode() {
+        val preferences = LauncherApplication.instance.preferences
+        
+        // Update radio button state
+        updateButtonGridState()
+        
+        // Handle button phone grid size selection - set listener only once
+        if (binding.buttonPhoneGridGroup.tag != "listener_set") {
+            binding.buttonPhoneGridGroup.tag = "listener_set"
+            binding.buttonPhoneGridGroup.setOnCheckedChangeListener { _, checkedId ->
+                if (checkedId == -1) return@setOnCheckedChangeListener // No selection
+                
+                val gridSize = when (checkedId) {
+                    R.id.gridButton3x3 -> "3x3"
+                    R.id.gridButton3x4 -> "3x4"
+                    else -> return@setOnCheckedChangeListener
+                }
+                
+                preferences.buttonPhoneGridSize = gridSize
+                preferences.hasButtonGridSelection = true
+                preferences.hasTouchGridSelection = false  // Clear touch selection flag
+                
+                // Clear touch grid selection when selecting button grid
+                // Use post to avoid conflicts with current event processing
+                binding.gridColumnsGroup.post {
+                    binding.gridColumnsGroup.setOnCheckedChangeListener(null)
+                    binding.gridColumnsGroup.clearCheck()
+                    // Re-setup the grid selection to restore listener
+                    setupGridSelection()
+                }
+                
+                // Automatically enable button phone mode when selecting button grid
+                if (!preferences.buttonPhoneMode) {
+                    preferences.buttonPhoneMode = true
+                    Toast.makeText(this, "Переключено на кнопочный режим: $gridSize", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Сетка для кнопочного режима: $gridSize", Toast.LENGTH_SHORT).show()
+                }
+                
+                // Send broadcast to MainActivity to update the grid
+                sendBroadcast(Intent("com.customlauncher.BUTTON_PHONE_MODE_CHANGED"))
             }
-            
-            preferences.gridColumnCount = columns
-            Toast.makeText(this, "Сетка изменена на $columns столбца", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun updateButtonGridState() {
+        val preferences = LauncherApplication.instance.preferences
+        // Only set initial selection if user has made a selection and is in button mode
+        if (preferences.buttonPhoneMode && preferences.hasButtonGridSelection) {
+            when (preferences.buttonPhoneGridSize) {
+                "3x3" -> binding.gridButton3x3.isChecked = true
+                "3x4" -> binding.gridButton3x4.isChecked = true
+                else -> binding.buttonPhoneGridGroup.clearCheck()
+            }
+        } else {
+            // Clear selection if no prior selection or not in button mode
+            binding.buttonPhoneGridGroup.clearCheck()
         }
     }
     
@@ -237,6 +383,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.dndSwitch.isChecked = preferences.enableDndInHiddenMode
         binding.hideAppsSwitch.isChecked = preferences.hideAppsInHiddenMode
         binding.blockScreenshotsSwitch.isChecked = preferences.blockScreenshotsInHiddenMode
+        binding.showAppLabelsSwitch.isChecked = preferences.showAppLabels
         
         // Setup close apps switch
         binding.closeAppsSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -296,6 +443,50 @@ class SettingsActivity : AppCompatActivity() {
             }
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             Log.d(TAG, "Block screenshots in hidden mode: $isChecked")
+        }
+        
+        // Setup show app labels switch
+        binding.showAppLabelsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.showAppLabels = isChecked
+            val message = if (isChecked) {
+                "Подписи иконок включены"
+            } else {
+                "Подписи иконок выключены"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Show app labels: $isChecked")
+            
+            // Send broadcast to MainActivity to update the grid
+            sendBroadcast(Intent("com.customlauncher.APP_LABELS_CHANGED"))
+        }
+        
+        // Setup check permissions switch
+        binding.checkPermissionsSwitch.isChecked = preferences.checkPermissionsOnStartup
+        binding.checkPermissionsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.checkPermissionsOnStartup = isChecked
+            val message = if (isChecked) {
+                "Проверка разрешений включена"
+            } else {
+                "Проверка разрешений отключена. Приложение будет работать с ограниченным функционалом"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Check permissions on startup: $isChecked")
+            
+            if (!isChecked) {
+                // Show warning dialog when disabling permissions check
+                android.app.AlertDialog.Builder(this)
+                    .setTitle("Внимание")
+                    .setMessage("Отключение проверки разрешений может привести к неполной работе функций:\n\n• Блокировка экрана может не работать\n• Скриншоты могут не блокироваться\n• Специальные возможности будут недоступны\n\nПродолжить?")
+                    .setPositiveButton("Да") { _, _ ->
+                        // User confirmed
+                    }
+                    .setNegativeButton("Отмена") { _, _ ->
+                        // Revert the change
+                        binding.checkPermissionsSwitch.isChecked = true
+                        preferences.checkPermissionsOnStartup = true
+                    }
+                    .show()
+            }
         }
     }
     

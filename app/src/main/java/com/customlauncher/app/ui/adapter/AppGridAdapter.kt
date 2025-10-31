@@ -28,6 +28,7 @@ import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.graphics.Color
 import android.os.Build
+import com.customlauncher.app.LauncherApplication
 
 class AppGridAdapter(
     private val onAppClick: (AppInfo) -> Unit,
@@ -68,7 +69,14 @@ class AppGridAdapter(
         private var iconLoadJob: Job? = null
         
         fun bind(app: AppInfo) {
-            appName.text = app.appName
+            // Check if app labels should be shown
+            val preferences = LauncherApplication.instance.preferences
+            if (preferences.showAppLabels) {
+                appName.text = app.appName
+                appName.visibility = View.VISIBLE
+            } else {
+                appName.visibility = View.GONE
+            }
             
             // Set placeholder immediately
             appIcon.setImageDrawable(app.icon)

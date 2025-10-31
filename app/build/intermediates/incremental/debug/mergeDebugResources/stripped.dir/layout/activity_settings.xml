@@ -178,14 +178,92 @@
                     android:fontFamily="@font/lampen"
                     android:layout_marginBottom="12dp" />
                 
+                <!-- Grid Type Selector Tabs -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+                    
+                    <LinearLayout
+                        android:id="@+id/tabTouchPhone"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="8dp"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/bg_tab_item"
+                        android:elevation="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Для сенсорных"
+                            android:textColor="@color/text_white"
+                            android:textSize="11sp"
+                            android:fontFamily="@font/lampen" />
+                            
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="смартфонов"
+                            android:textColor="@color/text_white"
+                            android:textSize="11sp"
+                            android:fontFamily="@font/lampen" />
+                    </LinearLayout>
+                    
+                    <LinearLayout
+                        android:id="@+id/tabButtonPhone"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="8dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/bg_tab_item"
+                        android:elevation="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Для кнопочных"
+                            android:textColor="@color/text_white"
+                            android:textSize="11sp"
+                            android:fontFamily="@font/lampen" />
+                            
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="смартфонов"
+                            android:textColor="@color/text_white"
+                            android:textSize="11sp"
+                            android:fontFamily="@font/lampen" />
+                    </LinearLayout>
+                </LinearLayout>
+                
+                <!-- Touch Phone Grid Content -->
+                <LinearLayout
+                    android:id="@+id/touchPhoneGridContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+                
                 <RadioGroup
                     android:id="@+id/gridColumnsGroup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginHorizontal="-8dp"
-                    android:paddingHorizontal="4dp">
+                    android:layout_marginTop="8dp">
                     
                     <RadioButton
                         android:id="@+id/grid3Columns"
@@ -199,7 +277,7 @@
                         android:gravity="center"
                         android:button="@null"
                         android:background="@drawable/bg_radio_selector"
-                        android:layout_marginHorizontal="4dp" />
+                        android:layout_marginEnd="4dp" />
                     
                     <RadioButton
                         android:id="@+id/grid4Columns"
@@ -227,7 +305,7 @@
                         android:gravity="center"
                         android:button="@null"
                         android:background="@drawable/bg_radio_selector"
-                        android:layout_marginHorizontal="4dp" />
+                        android:layout_marginStart="4dp" />
                 </RadioGroup>
                 
                 <TextView
@@ -237,6 +315,60 @@
                     android:textColor="@color/text_gray"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
+                </LinearLayout>
+                
+                <!-- Button Phone Grid Content -->
+                <LinearLayout
+                    android:id="@+id/buttonPhoneGridContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+                
+                <RadioGroup
+                    android:id="@+id/buttonPhoneGridGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+                    
+                    <RadioButton
+                        android:id="@+id/gridButton3x3"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="3x3"
+                        android:textColor="@drawable/radio_text_color"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/mal6lampen"
+                        android:gravity="center"
+                        android:button="@null"
+                        android:background="@drawable/bg_radio_selector"
+                        android:layout_marginEnd="4dp" />
+                    
+                    <RadioButton
+                        android:id="@+id/gridButton3x4"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="3x4"
+                        android:textColor="@drawable/radio_text_color"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/mal6lampen"
+                        android:gravity="center"
+                        android:button="@null"
+                        android:background="@drawable/bg_radio_selector"
+                        android:layout_marginStart="4dp" />
+                </RadioGroup>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Размер сетки для навигации кнопками (с постраничным пролистыванием)"
+                    android:textColor="@color/text_gray"
+                    android:textSize="12sp"
+                    android:layout_marginTop="8dp" />
+                </LinearLayout>
             </LinearLayout>
             
             <!-- Features Section -->
@@ -470,6 +602,96 @@
                     
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/blockScreenshotsSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:theme="@style/SwitchTheme" />
+                </LinearLayout>
+                
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/text_gray"
+                    android:alpha="0.3"
+                    android:layout_marginVertical="12dp" />
+                
+                <!-- App Labels -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="8dp">
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Подписи иконок"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Показывать названия приложений на рабочем столе"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                    
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/showAppLabelsSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:theme="@style/SwitchTheme" />
+                </LinearLayout>
+                
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/text_gray"
+                    android:alpha="0.3"
+                    android:layout_marginVertical="12dp" />
+                
+                <!-- Check Permissions -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="8dp">
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Проверка необходимых разрешений"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Отключите для работы на устройствах с системными ограничениями"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                    
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/checkPermissionsSwitch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
@@ -817,14 +1039,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="АКТИВАЦИЯ ЧЕРЕЗ ADB"
-                        android:textColor="@color/text_white"
+                        android:textColor="@color/background_dark"
                         android:textSize="14sp"
                         android:fontFamily="@font/mal6lampen"
-                        android:backgroundTint="#FF5252"
+                        android:backgroundTint="@color/accent_yellow"
                         app:cornerRadius="24dp"
                         android:layout_marginTop="16dp"
                         android:drawableStart="@drawable/ic_warning"
-                        android:drawableTint="@color/text_white"
+                        android:drawableTint="@color/background_dark"
                         android:paddingStart="16dp"
                         android:paddingEnd="16dp" />
                         
@@ -832,15 +1054,15 @@
                         android:id="@+id/shizukuGuideButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="📖 ИНСТРУКЦИЯ SHIZUKU"
-                        android:textColor="@color/text_white"
+                        android:text="ИНСТРУКЦИЯ SHIZUKU"
+                        android:textColor="@color/background_dark"
                         android:textSize="13sp"
                         android:fontFamily="@font/mal6lampen"
-                        android:backgroundTint="#2196F3"
+                        android:backgroundTint="@color/text_white"
                         app:cornerRadius="24dp"
                         android:layout_marginTop="8dp"
                         app:icon="@drawable/ic_open_in_new"
-                        app:iconTint="@color/text_white"
+                        app:iconTint="@color/background_dark"
                         app:iconGravity="textStart"
                         app:iconPadding="8dp" />
                 </LinearLayout>

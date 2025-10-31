@@ -3079,6 +3079,7 @@ drawable bg_select_all_button
 drawable bg_settings_section
 drawable bg_settings_section_30
 drawable bg_tab_item
+drawable bg_tab_item_selected
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
@@ -3333,6 +3334,8 @@ id bounceBoth
 id bounceEnd
 id bounceStart
 id buttonPanel
+id buttonPhoneGridContent
+id buttonPhoneGridGroup
 id cache_measures
 id callMeasure
 id cancelButton
@@ -3349,6 +3352,7 @@ id chains
 id checkBox
 id checkIcon
 id checkMarkContainer
+id checkPermissionsSwitch
 id checkStatusButton
 id checkbox
 id checked
@@ -3461,6 +3465,8 @@ id graph_wrap
 id grid3Columns
 id grid4Columns
 id grid5Columns
+id gridButton3x3
+id gridButton3x4
 id gridColumnsGroup
 id group_divider
 id grouping
@@ -3699,6 +3705,7 @@ id sharedValueUnset
 id shizukuGuideButton
 id shizukuStatusText
 id shortcut
+id showAppLabelsSwitch
 id showCustom
 id showHome
 id showTitle
@@ -3739,8 +3746,10 @@ id supportScrollUp
 id switchWidget
 id tabApplications
 id tabBar
+id tabButtonPhone
 id tabMode
 id tabSettings
+id tabTouchPhone
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans
 id tag_accessibility_heading
@@ -3778,6 +3787,7 @@ id title_template
 id toggle
 id top
 id topPanel
+id touchPhoneGridContent
 id touch_outside
 id transitionToEnd
 id transitionToStart

@@ -125,15 +125,19 @@ class AppListActivity : AppCompatActivity() {
         
         // Launch button - saves selected apps as hidden and goes to home screen
         binding.launchButton.setOnClickListener {
-            // Check if all permissions are granted
-            val settingsActivity = SettingsActivity()
-            val allPermissionsGranted = checkAllPermissionsGranted()
+            val preferences = LauncherApplication.instance.preferences
             
-            if (!allPermissionsGranted) {
-                // Open settings page if permissions not granted
-                Toast.makeText(this, "Необходимо активировать все разрешения", Toast.LENGTH_LONG).show()
-                startActivity(Intent(this, SettingsActivity::class.java))
-                return@setOnClickListener
+            // Only check permissions if the setting is enabled
+            if (preferences.checkPermissionsOnStartup) {
+                // Check if all permissions are granted
+                val allPermissionsGranted = checkAllPermissionsGranted()
+                
+                if (!allPermissionsGranted) {
+                    // Open settings page if permissions not granted
+                    Toast.makeText(this, "Необходимо активировать все разрешения", Toast.LENGTH_LONG).show()
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                    return@setOnClickListener
+                }
             }
             
             // Save current selection to both SelectionManager and preferences
@@ -178,6 +182,12 @@ class AppListActivity : AppCompatActivity() {
     }
     
     private fun checkAllPermissionsGranted(): Boolean {
+        // If permission checking is disabled, always return true
+        val preferences = LauncherApplication.instance.preferences
+        if (!preferences.checkPermissionsOnStartup) {
+            return true
+        }
+        
         val serviceName = "${packageName}/${com.customlauncher.app.service.SystemBlockAccessibilityService::class.java.canonicalName}"
         val enabledServices = android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
         val accessibilityEnabled = enabledServices?.contains(serviceName) == true

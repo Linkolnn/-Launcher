@@ -92,11 +92,23 @@ class LauncherPreferences(context: Context) {
         set(value) = prefs.edit().putString(KEY_DEFAULT_HOME, value).apply()
     
     var gridColumnCount: Int
-        get() = prefs.getInt(KEY_GRID_COLUMNS, 4)
-        set(value) {
-            if (value in 3..5) {
-                prefs.edit().putInt(KEY_GRID_COLUMNS, value).apply()
+        get() {
+            val count = prefs.getInt(KEY_GRID_COLUMNS, 0) // 0 means not set
+            // Return 0 if not set, otherwise validate range
+            return when {
+                count == 0 -> 0  // Not set yet
+                count < 3 -> 3
+                count > 5 -> 5
+                else -> count
             }
+        }
+        set(value) {
+            val validValue = when {
+                value < 3 -> 3
+                value > 5 -> 5
+                else -> value
+            }
+            prefs.edit().putInt(KEY_GRID_COLUMNS, validValue).apply()
         }
     
     var customKeyCombination: String?
@@ -128,6 +140,30 @@ class LauncherPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_BLOCK_SCREENSHOTS_IN_HIDDEN, true)  // Default: enabled
         set(value) = prefs.edit().putBoolean(KEY_BLOCK_SCREENSHOTS_IN_HIDDEN, value).apply()
     
+    var checkPermissionsOnStartup: Boolean
+        get() = prefs.getBoolean(KEY_CHECK_PERMISSIONS, true)  // Default: enabled
+        set(value) = prefs.edit().putBoolean(KEY_CHECK_PERMISSIONS, value).apply()
+    
+    var buttonPhoneMode: Boolean
+        get() = prefs.getBoolean(KEY_BUTTON_PHONE_MODE, false)  // Default: disabled
+        set(value) = prefs.edit().putBoolean(KEY_BUTTON_PHONE_MODE, value).apply()
+    
+    var buttonPhoneGridSize: String
+        get() = prefs.getString(KEY_BUTTON_PHONE_GRID_SIZE, "") ?: ""  // Empty by default
+        set(value) = prefs.edit().putString(KEY_BUTTON_PHONE_GRID_SIZE, value).apply()
+    
+    var hasTouchGridSelection: Boolean
+        get() = prefs.getBoolean(KEY_HAS_TOUCH_GRID_SELECTION, false)
+        set(value) = prefs.edit().putBoolean(KEY_HAS_TOUCH_GRID_SELECTION, value).apply()
+    
+    var hasButtonGridSelection: Boolean
+        get() = prefs.getBoolean(KEY_HAS_BUTTON_GRID_SELECTION, false)
+        set(value) = prefs.edit().putBoolean(KEY_HAS_BUTTON_GRID_SELECTION, value).apply()
+    
+    var showAppLabels: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_APP_LABELS, true)
+        set(value) = prefs.edit().putBoolean(KEY_SHOW_APP_LABELS, value).apply()
+    
     companion object {
         private const val PREFS_NAME = "launcher_preferences"
         private const val KEY_APPS_HIDDEN = "apps_hidden"
@@ -143,5 +179,11 @@ class LauncherPreferences(context: Context) {
         private const val KEY_ENABLE_DND_IN_HIDDEN = "enable_dnd_in_hidden"
         private const val KEY_HIDE_APPS_IN_HIDDEN = "hide_apps_in_hidden"
         private const val KEY_BLOCK_SCREENSHOTS_IN_HIDDEN = "block_screenshots_in_hidden"
+        private const val KEY_CHECK_PERMISSIONS = "check_permissions_on_startup"
+        private const val KEY_BUTTON_PHONE_MODE = "button_phone_mode"
+        private const val KEY_BUTTON_PHONE_GRID_SIZE = "button_phone_grid_size"
+        private const val KEY_HAS_TOUCH_GRID_SELECTION = "has_touch_grid_selection"
+        private const val KEY_HAS_BUTTON_GRID_SELECTION = "has_button_grid_selection"
+        private const val KEY_SHOW_APP_LABELS = "show_app_labels"
     }
 }

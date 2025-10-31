@@ -165,15 +165,15 @@
                 android:id="@+id/openShizukuGuideButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📖 ИНСТРУКЦИЯ НА GITHUB"
-                android:textColor="@color/text_white"
+                android:text="ИНСТРУКЦИЯ SHIZUKU"
+                android:textColor="@color/background_dark"
                 android:textSize="14sp"
                 android:fontFamily="@font/mal6lampen"
-                android:backgroundTint="#2196F3"
+                android:backgroundTint="@color/text_white"
                 app:cornerRadius="24dp"
                 android:layout_marginTop="12dp"
                 app:icon="@drawable/ic_open_in_new"
-                app:iconTint="@color/text_white"
+                app:iconTint="@color/background_dark"
                 app:iconGravity="textStart" />
         </LinearLayout>
 
