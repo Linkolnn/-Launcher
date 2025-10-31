@@ -431,6 +431,9 @@ class SettingsActivity : AppCompatActivity() {
             }
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             Log.d(TAG, "Hide apps in hidden mode: $isChecked")
+            
+            // Send broadcast to MainActivity to update the app list
+            sendBroadcast(Intent("com.customlauncher.HIDE_APPS_SETTING_CHANGED"))
         }
         
         // Setup block screenshots switch

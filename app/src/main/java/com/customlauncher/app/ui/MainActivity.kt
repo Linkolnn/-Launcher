@@ -142,6 +142,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    // BroadcastReceiver for hide apps setting changes
+    private val hideAppsSettingReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.customlauncher.HIDE_APPS_SETTING_CHANGED") {
+                Log.d("MainActivity", "Hide apps setting changed, refreshing app list")
+                // Reload apps to apply the new visibility setting
+                viewModel.loadApps()
+            }
+        }
+    }
+    
     // BroadcastReceiver for button phone mode changes
     private val buttonPhoneModeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -272,6 +283,9 @@ class MainActivity : AppCompatActivity() {
         // Register app labels change receiver
         val appLabelsFilter = IntentFilter("com.customlauncher.APP_LABELS_CHANGED")
         
+        // Register hide apps setting change receiver
+        val hideAppsFilter = IntentFilter("com.customlauncher.HIDE_APPS_SETTING_CHANGED")
+        
         // Android 12+ requires explicit export flag
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // Android 13+ has the constant
@@ -282,6 +296,7 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(screenshotBlockingReceiver, screenshotFilter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(buttonPhoneModeReceiver, buttonPhoneModeFilter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(appLabelsChangeReceiver, appLabelsFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(hideAppsSettingReceiver, hideAppsFilter, Context.RECEIVER_NOT_EXPORTED)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12 needs the flag value directly (2)
             registerReceiver(keyCombinationReceiver, filter, 2) // RECEIVER_NOT_EXPORTED = 2
@@ -291,6 +306,7 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(screenshotBlockingReceiver, screenshotFilter, 2)
             registerReceiver(buttonPhoneModeReceiver, buttonPhoneModeFilter, 2)
             registerReceiver(appLabelsChangeReceiver, appLabelsFilter, 2)
+            registerReceiver(hideAppsSettingReceiver, hideAppsFilter, 2)
         } else {
             // Android 11 and below
             registerReceiver(keyCombinationReceiver, filter)
@@ -300,6 +316,7 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(screenshotBlockingReceiver, screenshotFilter)
             registerReceiver(buttonPhoneModeReceiver, buttonPhoneModeFilter)
             registerReceiver(appLabelsChangeReceiver, appLabelsFilter)
+            registerReceiver(hideAppsSettingReceiver, hideAppsFilter)
         }
         
         // Check initial state
@@ -531,10 +548,14 @@ class MainActivity : AppCompatActivity() {
                 // Process in background thread to avoid UI blocking
                 lifecycleScope.launch(Dispatchers.Default) {
                     try {
-                        // Show all apps or only visible based on hidden state
-                        val hidden = preferences.appsHidden
-                        val appsToShow = if (hidden) {
-                            // Filter out hidden apps
+                        // Show all apps or only visible based on hidden state AND user preference
+                        // Hidden mode is active if appsHidden is true (represents the hidden mode state)
+                        // But we only hide apps visually if hideAppsInHiddenMode is also enabled
+                        val hiddenModeActive = preferences.appsHidden
+                        val shouldHideApps = hiddenModeActive && preferences.hideAppsInHiddenMode
+                        
+                        val appsToShow = if (shouldHideApps) {
+                            // Filter out hidden apps only if both conditions are met
                             apps.filter { !it.isHidden }
                         } else {
                             // Show all apps
@@ -980,6 +1001,12 @@ class MainActivity : AppCompatActivity() {
             unregisterReceiver(appLabelsChangeReceiver)
         } catch (e: Exception) {
             Log.d("MainActivity", "appLabelsChangeReceiver already unregistered")
+        }
+        
+        try {
+            unregisterReceiver(hideAppsSettingReceiver)
+        } catch (e: Exception) {
+            Log.d("MainActivity", "hideAppsSettingReceiver already unregistered")
         }
         
         // Clear adapter to free memory

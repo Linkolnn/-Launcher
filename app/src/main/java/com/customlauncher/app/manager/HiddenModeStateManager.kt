@@ -54,15 +54,13 @@ object HiddenModeStateManager {
         val shouldHideApps = preferences.hideAppsInHiddenMode
         val shouldBlockScreenshots = preferences.blockScreenshotsInHiddenMode
         
-        // Update preferences - force commit for immediate persistence
+        // Update preferences - Always save the hidden mode state
+        // The apps_hidden preference represents the hidden mode state itself
         val prefs = context.getSharedPreferences("launcher_preferences", Context.MODE_PRIVATE)
-        if (shouldHideApps) {
-            // Only hide apps if the setting is enabled and we're entering hidden mode
-            prefs.edit().putBoolean("apps_hidden", enabled).apply()
-        } else {
-            // If hideApps setting is off, always keep apps visible regardless of hidden mode state
-            prefs.edit().putBoolean("apps_hidden", false).apply()
-        }
+        prefs.edit().putBoolean("apps_hidden", enabled).apply()
+        
+        // Note: shouldHideApps setting will be checked by MainActivity/AppViewModel 
+        // to determine whether to actually hide apps visually
         
         Log.d(TAG, "Feature settings - Close apps: $shouldCloseApps, Block touch: $shouldBlockTouch, DND: $shouldEnableDnd, Hide apps: $shouldHideApps, Block screenshots: $shouldBlockScreenshots")
         
@@ -138,16 +136,12 @@ object HiddenModeStateManager {
     fun initializeState() {
         val preferences = LauncherApplication.instance.preferences
         
-        // Only use appsHidden if hideAppsInHiddenMode is enabled
-        // Otherwise start with hidden mode off
-        val savedState = if (preferences.hideAppsInHiddenMode) {
-            preferences.appsHidden
-        } else {
-            false // Start with hidden mode off if app hiding is disabled
-        }
+        // Hidden mode state is independent of hideAppsInHiddenMode setting
+        // We always check appsHidden as it represents the actual hidden mode state
+        val savedState = preferences.appsHidden
         
         _isHiddenMode.value = savedState
-        Log.d(TAG, "Initialized state: $savedState (hideApps: ${preferences.hideAppsInHiddenMode})")
+        Log.d(TAG, "Initialized hidden mode state: $savedState")
     }
     
     /**
@@ -156,13 +150,8 @@ object HiddenModeStateManager {
     fun refreshState(context: Context) {
         val preferences = LauncherApplication.instance.preferences
         
-        // If hideAppsInHiddenMode is disabled, we should not rely on appsHidden preference
-        // as it will always be false. Instead, trust the current manager state.
-        if (!preferences.hideAppsInHiddenMode) {
-            Log.d(TAG, "refreshState: hideAppsInHiddenMode is disabled, keeping current state: $currentState")
-            return
-        }
-        
+        // Hidden mode state should always be synced with the appsHidden preference
+        // regardless of other settings
         val currentPrefState = preferences.appsHidden
         
         if (currentPrefState != currentState) {
