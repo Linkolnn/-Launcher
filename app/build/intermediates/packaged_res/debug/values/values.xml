@@ -2,8 +2,13 @@
 <resources>
     <color name="accent_green">#4CAF50</color>
     <color name="accent_yellow">#FFD700</color>
+    <color name="accent_yellow_30">#4CFFD700</color>
+    <color name="accent_yellow_bright">#FFF200</color>
     <color name="background_dark">#212121</color>
     <color name="black">#000000</color>
+    <color name="divider_color">#404040</color>
+    <color name="drag_handle_color">#757575</color>
+    <color name="drag_handle_white">#E0E0E0</color>
     <color name="item_background">#2A2A2A</color>
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
@@ -13,11 +18,16 @@
     <color name="text_error">#FF5252</color>
     <color name="text_gray">#808080</color>
     <color name="text_white">#FFFFFF</color>
+    <color name="text_white_secondary">#B0B0B0</color>
+    <dimen name="bottom_bar_icon_margin">4dp</dimen>
+    <dimen name="bottom_bar_icon_size">48dp</dimen>
     <dimen name="popup_menu_height">100dp</dimen>
     <dimen name="popup_menu_radius">21dp</dimen>
     <dimen name="popup_menu_text_size">16sp</dimen>
     <dimen name="popup_menu_width">200dp</dimen>
-    <string name="accessibility_service_description">Этот сервис необходим для расширенной блокировки:\n• Блокировка панели уведомлений (свайп сверху)\n• Блокировка панели навигации\n• Блокировка свайпа назад (свайп слева-направо)\n• Блокировка кнопок громкости\n• Полная блокировка сенсора экрана\n\nПриложение НЕ собирает и НЕ передает личные данные.</string>
+    <string name="accessibility_service_description">ИLauncher использует службу специальных возможностей для:\n\n• Расширенной блокировки системных элементов\n• Блокировки сенсора экрана в скрытом режиме\n• Перехвата комбинаций клавиш\n• Блокировки кнопок громкости\n• Управления навигацией\n\nВНИМАНИЕ: Служба может получать доступ к содержимому экрана, но ИLauncher НЕ собирает и НЕ передает личные данные.</string>
+    <string name="accessibility_service_label">ИLauncher</string>
+    <string name="accessibility_service_summary">Расширенные функции блокировки</string>
     <string name="app_name">ИLauncher</string>
     <string name="app_name_label">НАЗВАНИЕ ПРИЛОЖЕНИЯ</string>
     <string name="applications">ПРИЛОЖЕНИЯ</string>
@@ -51,6 +61,17 @@
         <item name="android:textColor">@color/text_white</item>
         <item name="android:textSize">16sp</item>
     </style>
+    <style name="BottomSheetDialogTheme" parent="Theme.MaterialComponents.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.5</item>
+        <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
+    </style>
+    <style name="BottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet">
+        <item name="backgroundTint">@android:color/transparent</item>
+    </style>
     <style name="SecondaryText">
         <item name="android:textColor">@color/text_gray</item>
         <item name="android:textSize">14sp</item>
@@ -77,6 +98,19 @@
         <item name="android:windowBackground">@color/background_dark</item>
         <item name="android:textColorPrimary">@color/text_white</item>
         <item name="android:textColorSecondary">@color/text_gray</item>
+    </style>
+    <style name="Theme.CustomLauncher.HomeScreen" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:fitsSystemWindows">false</item>
     </style>
     <style name="Theme.CustomLauncher.Transparent" parent="Theme.CustomLauncher">
         <item name="android:windowBackground">@android:color/transparent</item>

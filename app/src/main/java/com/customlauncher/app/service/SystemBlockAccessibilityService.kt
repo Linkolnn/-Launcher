@@ -67,24 +67,43 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         // Check initial lock state
         checkScreenLockState()
         
-        // Initialize state manager
+        // Задержка для стабилизации после обновления приложения
+        Handler(Looper.getMainLooper()).postDelayed({
+            reinitializeAfterUpdate()
+        }, 1000)
+    }
+    
+    private fun reinitializeAfterUpdate() {
+        Log.d(TAG, "Reinitializing after potential update...")
+        
+        // Сбрасываем состояние
+        isTouchExplorationEnabled = false
+        
+        // Переинициализируем state manager
         HiddenModeStateManager.initializeState()
         Log.d(TAG, "Initial state - Hidden mode: ${HiddenModeStateManager.currentState}")
         
-        // Only enable touch blocking if already in hidden mode
-        if (HiddenModeStateManager.currentState) {
-            enableTouchBlocking()
+        // Проверяем сохраненное состояние из preferences
+        val preferences = LauncherApplication.instance.preferences
+        val savedHiddenMode = preferences.appsHidden
+        
+        if (savedHiddenMode) {
+            Log.d(TAG, "Restoring hidden mode after update")
+            // Включаем блокировку с небольшой задержкой
+            Handler(Looper.getMainLooper()).postDelayed({
+                enableTouchBlocking()
+            }, 500)
         }
         
-        // Setup custom key listener
+        // Настраиваем слушатель клавиш
         setupCustomKeyListener()
     }
     
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         try {
             // Block ALL events when in hidden mode
-            if (HiddenModeStateManager.currentState) {
-                // Block all touch and gesture events
+            if (HiddenModeStateManager.currentState && isTouchExplorationEnabled) {
+                // Block all touch and interaction events
                 when (event?.eventType) {
                     AccessibilityEvent.TYPE_TOUCH_INTERACTION_START,
                     AccessibilityEvent.TYPE_TOUCH_INTERACTION_END,
@@ -97,7 +116,7 @@ class SystemBlockAccessibilityService : AccessibilityService() {
                     AccessibilityEvent.TYPE_VIEW_SCROLLED,
                     AccessibilityEvent.TYPE_VIEW_HOVER_ENTER,
                     AccessibilityEvent.TYPE_VIEW_HOVER_EXIT -> {
-                        Log.d(TAG, "Event blocked in hidden mode: ${event.eventType}")
+                        Log.d(TAG, "Touch event intercepted in hidden mode: ${event.eventType}")
                         try {
                             event.recycle()
                         } catch (e: Exception) {
@@ -361,31 +380,10 @@ class SystemBlockAccessibilityService : AccessibilityService() {
     }
     
     override fun onGesture(gestureId: Int): Boolean {
-        // Block all gestures in hidden mode
-        if (HiddenModeStateManager.currentState) {
+        // Block all gestures in hidden mode when touch blocking is enabled
+        if (HiddenModeStateManager.currentState && isTouchExplorationEnabled) {
             Log.d(TAG, "GESTURE BLOCKED in hidden mode: $gestureId")
-            
-            // Block multitouch gestures specifically
-            when (gestureId) {
-                AccessibilityService.GESTURE_2_FINGER_SINGLE_TAP,
-                AccessibilityService.GESTURE_2_FINGER_DOUBLE_TAP,
-                AccessibilityService.GESTURE_2_FINGER_TRIPLE_TAP,
-                AccessibilityService.GESTURE_3_FINGER_SINGLE_TAP,
-                AccessibilityService.GESTURE_3_FINGER_DOUBLE_TAP,
-                AccessibilityService.GESTURE_3_FINGER_TRIPLE_TAP,
-                AccessibilityService.GESTURE_2_FINGER_SWIPE_UP,
-                AccessibilityService.GESTURE_2_FINGER_SWIPE_DOWN,
-                AccessibilityService.GESTURE_2_FINGER_SWIPE_LEFT,
-                AccessibilityService.GESTURE_2_FINGER_SWIPE_RIGHT,
-                AccessibilityService.GESTURE_3_FINGER_SWIPE_UP,
-                AccessibilityService.GESTURE_3_FINGER_SWIPE_DOWN,
-                AccessibilityService.GESTURE_3_FINGER_SWIPE_LEFT,
-                AccessibilityService.GESTURE_3_FINGER_SWIPE_RIGHT -> {
-                    Log.d(TAG, "MULTITOUCH GESTURE BLOCKED: $gestureId")
-                    return true // Consume the gesture
-                }
-            }
-            return true // Block all gestures
+            return true // Consume ALL gestures
         }
         return super.onGesture(gestureId)
     }
@@ -395,9 +393,12 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         
         when (intent?.action) {
             ACTION_BLOCK_TOUCHES -> {
-                enableTouchBlocking()
-                // Refresh key listener when entering hidden mode
-                setupCustomKeyListener()
+                // Добавляем задержку для стабилизации после обновления
+                Handler(Looper.getMainLooper()).postDelayed({
+                    enableTouchBlocking()
+                    // Refresh key listener when entering hidden mode
+                    setupCustomKeyListener()
+                }, 200)
             }
             ACTION_UNBLOCK_TOUCHES -> {
                 disableTouchBlocking()
@@ -432,16 +433,28 @@ class SystemBlockAccessibilityService : AccessibilityService() {
                 controller?.showMode = AccessibilityService.SHOW_MODE_HIDDEN
             }
             
-            // Add touch exploration flag to enable touch blocking with multitouch control
-            val info = serviceInfo
-            info.flags = info.flags or 
-                AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE or
-                AccessibilityServiceInfo.FLAG_REQUEST_MULTI_FINGER_GESTURES or
-                AccessibilityServiceInfo.FLAG_SEND_MOTION_EVENTS
+            // Configure service for maximum touch interception
+            val info = AccessibilityServiceInfo().apply {
+                // Listen to ALL events
+                eventTypes = AccessibilityEvent.TYPES_ALL_MASK
+                
+                // Set all necessary flags for touch blocking
+                flags = AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS or
+                        AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
+                        AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS or
+                        AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                        AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE or
+                        AccessibilityServiceInfo.FLAG_REQUEST_MULTI_FINGER_GESTURES
+                        
+                feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
+                notificationTimeout = 0 // Immediate notification
+            }
+            
+            // Apply new configuration
             serviceInfo = info
             
             isTouchExplorationEnabled = true
-            Log.d(TAG, "Touch blocking ENABLED - exploration mode active")
+            Log.d(TAG, "Touch blocking ENABLED - full interception mode active")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to enable touch blocking", e)
         }
@@ -480,16 +493,24 @@ class SystemBlockAccessibilityService : AccessibilityService() {
                 Log.d(TAG, "Keyboard restored to auto mode")
             }
             
-            // Remove touch exploration and multitouch flags to disable touch blocking
-            val info = serviceInfo
-            info.flags = info.flags and 
-                (AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE or
-                AccessibilityServiceInfo.FLAG_REQUEST_MULTI_FINGER_GESTURES or
-                AccessibilityServiceInfo.FLAG_SEND_MOTION_EVENTS).inv()
+            // Restore original service configuration (key events only, no touch interception)
+            val info = AccessibilityServiceInfo().apply {
+                eventTypes = AccessibilityEvent.TYPES_ALL_MASK
+                
+                // Keep only key event filtering, remove touch exploration
+                flags = AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS or
+                        AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
+                        AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
+                        
+                feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
+                notificationTimeout = 100
+            }
+            
+            // Apply restored configuration
             serviceInfo = info
             
             isTouchExplorationEnabled = false
-            Log.d(TAG, "Touch blocking DISABLED - exploration mode inactive")
+            Log.d(TAG, "Touch blocking DISABLED - normal mode restored")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to disable touch blocking", e)
         }

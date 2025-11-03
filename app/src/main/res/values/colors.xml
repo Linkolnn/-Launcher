@@ -2,8 +2,12 @@
 <resources>
     <color name="background_dark">#212121</color>
     <color name="accent_yellow">#FFD700</color>
+    <color name="accent_yellow_30">#4CFFD700</color> <!-- 30% alpha yellow -->
+    <color name="accent_yellow_bright">#FFF200</color> <!-- Brighter yellow -->
     <color name="text_white">#FFFFFF</color>
     <color name="text_gray">#808080</color>
+    <color name="text_white_secondary">#B0B0B0</color>
+    <color name="divider_color">#404040</color>
     <color name="accent_green">#4CAF50</color>
     <color name="item_background">#2A2A2A</color>
     <color name="black">#000000</color>
@@ -15,4 +19,6 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
+    <color name="drag_handle_white">#E0E0E0</color>
+    <color name="drag_handle_color">#757575</color>
 </resources>

@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog"
+    android:padding="16dp">
+    
+    <!-- Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Выберите размер виджета часов"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+    
+    <!-- Size options grid -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+        
+        <!-- Row 1: Small sizes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="8dp">
+            
+            <!-- 1x2 - Vertical narrow -->
+            <FrameLayout
+                android:id="@+id/size_1x2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_widget_size_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp">
+                
+                <LinearLayout
+                    android:layout_width="30dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/bg_widget_preview"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="00"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp" />
+                </LinearLayout>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:text="1x2"
+                    android:textColor="@color/text_gray"
+                    android:textSize="10sp" />
+            </FrameLayout>
+            
+            <!-- 2x1 - Horizontal narrow -->
+            <FrameLayout
+                android:id="@+id/size_2x1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_widget_size_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp">
+                
+                <LinearLayout
+                    android:layout_width="60dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/bg_widget_preview"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12:00"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp" />
+                </LinearLayout>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:text="2x1"
+                    android:textColor="@color/text_gray"
+                    android:textSize="10sp" />
+            </FrameLayout>
+            
+            <!-- 2x2 - Square medium -->
+            <FrameLayout
+                android:id="@+id/size_2x2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_widget_size_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp">
+                
+                <LinearLayout
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/bg_widget_preview"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12:00"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Воскр"
+                        android:textColor="@android:color/white"
+                        android:textSize="8sp" />
+                </LinearLayout>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:text="2x2"
+                    android:textColor="@color/text_gray"
+                    android:textSize="10sp" />
+            </FrameLayout>
+        </LinearLayout>
+        
+        <!-- Row 2: Large sizes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="8dp">
+            
+            <!-- 3x1 - Horizontal wide -->
+            <FrameLayout
+                android:id="@+id/size_3x1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_widget_size_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp">
+                
+                <LinearLayout
+                    android:layout_width="90dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/bg_widget_preview"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12:00"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+                </LinearLayout>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:text="3x1"
+                    android:textColor="@color/text_gray"
+                    android:textSize="10sp" />
+            </FrameLayout>
+            
+            <!-- 3x2 - Rectangle large -->
+            <FrameLayout
+                android:id="@+id/size_3x2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_widget_size_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp">
+                
+                <LinearLayout
+                    android:layout_width="90dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/bg_widget_preview"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12:00"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Воскресенье"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp" />
+                </LinearLayout>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:text="3x2"
+                    android:textColor="@color/text_gray"
+                    android:textSize="10sp" />
+            </FrameLayout>
+        </LinearLayout>
+        
+        <!-- Row 3: Maximum sizes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+            
+            <!-- 4x1 - Maximum wide -->
+            <FrameLayout
+                android:id="@+id/size_4x1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_widget_size_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp">
+                
+                <LinearLayout
+                    android:layout_width="120dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/bg_widget_preview"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12:00"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp" />
+                </LinearLayout>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:text="4x1"
+                    android:textColor="@color/text_gray"
+                    android:textSize="10sp" />
+            </FrameLayout>
+            
+            <!-- 4x2 - Maximum -->
+            <FrameLayout
+                android:id="@+id/size_4x2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_widget_size_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp">
+                
+                <LinearLayout
+                    android:layout_width="120dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/bg_widget_preview"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="12:00"
+                        android:textColor="@android:color/white"
+                        android:textSize="20sp" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Воскресенье, 3 ноября"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp" />
+                </LinearLayout>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:text="4x2"
+                    android:textColor="@color/text_gray"
+                    android:textSize="10sp" />
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

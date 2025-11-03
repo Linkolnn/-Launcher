@@ -64,21 +64,20 @@ object HiddenModeStateManager {
         
         Log.d(TAG, "Feature settings - Close apps: $shouldCloseApps, Block touch: $shouldBlockTouch, DND: $shouldEnableDnd, Hide apps: $shouldHideApps, Block screenshots: $shouldBlockScreenshots")
         
-        // Handle touch blocking - prioritize overlay method as it works without root
+        // Handle touch blocking - use both methods for better coverage
         if (enabled) {
             // Close all apps and go to home screen first (if enabled)
             if (shouldCloseApps) {
                 closeAllAppsAndGoHome(context)
             }
             
-            // Start overlay blocking immediately (if enabled)
+            // Start blocking immediately (if enabled)
             if (shouldBlockTouch) {
-                startTouchBlockService(context)
+                // Primary method: AccessibilityService (works system-wide)
+                disableTouchSensor(context)
                 
-                // Also try system methods if available (requires root or special permissions)
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                    disableTouchSensor(context)
-                }, 100)
+                // Secondary method: Overlay service (fallback for home screen)
+                startTouchBlockService(context)
             }
             
             // Enable Do Not Disturb mode (if enabled)
@@ -97,14 +96,16 @@ object HiddenModeStateManager {
             // First, update state immediately for responsiveness
             val handler = android.os.Handler(android.os.Looper.getMainLooper())
             
-            // Always stop touch blocking service when exiting hidden mode
-            // (it might have been enabled when entering hidden mode)
-            stopTouchBlockService(context)
-            
-            // Enable touch sensor with small delay to prevent UI freeze
-            handler.postDelayed({
+            // Always stop touch blocking when exiting hidden mode
+            if (preferences.blockTouchInHiddenMode) {
+                // Stop AccessibilityService blocking first (immediate)
                 enableTouchSensor(context)
-            }, 50)
+                
+                // Then stop overlay service
+                handler.post {
+                    stopTouchBlockService(context)
+                }
+            }
             
             // Disable DND (if it was enabled when entering hidden mode)
             // We check the preference to see if DND should have been enabled
@@ -145,6 +146,30 @@ object HiddenModeStateManager {
     }
     
     /**
+     * Сброс и переинициализация после обновления приложения
+     */
+    fun resetAndReinitialize(context: Context) {
+        Log.d(TAG, "Resetting and reinitializing state after update...")
+        val preferences = LauncherApplication.instance.preferences
+        val savedState = preferences.appsHidden
+        
+        // Сначала сбрасываем состояние
+        _isHiddenMode.value = false
+        
+        // Ждем немного для стабилизации
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            // Восстанавливаем состояние из preferences
+            if (savedState) {
+                Log.d(TAG, "Restoring hidden mode after update")
+                setHiddenMode(context, true)
+            } else {
+                Log.d(TAG, "Hidden mode was off, keeping it off")
+                _isHiddenMode.value = false
+            }
+        }, 500)
+    }
+    
+    /**
      * Force refresh the current state
      */
     fun refreshState(context: Context) {
@@ -163,6 +188,15 @@ object HiddenModeStateManager {
     private fun closeAllAppsAndGoHome(context: Context) {
         try {
             Log.d(TAG, "Closing all apps and going to home screen")
+            
+            val preferences = LauncherApplication.instance.preferences
+            val showHomeScreen = preferences.showHomeScreen
+            
+            // If home screen is disabled, don't close anything
+            if (!showHomeScreen) {
+                Log.d(TAG, "Home screen is disabled, not closing apps or dialogs")
+                return
+            }
             
             // Method 1: Use accessibility service first for immediate action
             val accessibilityIntent = Intent(context, SystemBlockAccessibilityService::class.java).apply {

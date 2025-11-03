@@ -47,6 +47,10 @@ class AppViewModel : ViewModel() {
         loadApps()
     }
     
+    fun invalidateCache() {
+        repository.invalidateCache()
+    }
+    
     fun loadApps() {
         val loadId = loadCounter.incrementAndGet()
         Log.d("AppViewModel", "loadApps() called, loadId=$loadId")

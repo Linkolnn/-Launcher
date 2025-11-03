@@ -51,6 +51,14 @@ class AppListActivity : AppCompatActivity() {
         binding = ActivityAppListBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        // Check if we should open settings directly
+        if (intent.getBooleanExtra("open_settings", false)) {
+            val settingsIntent = Intent(this, SettingsActivity::class.java)
+            startActivity(settingsIntent)
+            finish()
+            return
+        }
+        
         viewModel = ViewModelProvider(this)[AppViewModel::class.java]
         
         // Initialize SelectionManager with saved hidden apps if not already set
@@ -150,11 +158,11 @@ class AppListActivity : AppCompatActivity() {
             // Save selected apps as hidden in database
             viewModel.saveSelectedAppsAsHidden()
             
-            // Go to home screen (press home button programmatically)
-            val intent = Intent(Intent.ACTION_MAIN)
-            intent.addCategory(Intent.CATEGORY_HOME)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            // Go to our home screen activity directly
+            val intent = Intent(this, HomeScreenActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
+            finish()
         }
     }
     

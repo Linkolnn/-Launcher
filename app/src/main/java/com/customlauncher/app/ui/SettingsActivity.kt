@@ -17,6 +17,8 @@ import com.customlauncher.app.LauncherApplication
 import com.customlauncher.app.R
 import com.customlauncher.app.databinding.ActivitySettingsBinding
 import com.customlauncher.app.service.SystemBlockAccessibilityService
+import com.customlauncher.app.data.model.GridConfiguration
+import com.customlauncher.app.ui.dialog.GridConfigDialog
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
@@ -26,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.customlauncher.app.ui.adapter.IconPackAdapter
 import com.customlauncher.app.utils.IconPackManager
 import com.customlauncher.app.data.model.IconPack
+import com.customlauncher.app.manager.HomeScreenModeManager
 
 class SettingsActivity : AppCompatActivity() {
     
@@ -33,6 +36,7 @@ class SettingsActivity : AppCompatActivity() {
     private val preferences by lazy { LauncherApplication.instance.preferences }
     private lateinit var iconPackAdapter: IconPackAdapter
     private lateinit var iconPackManager: IconPackManager
+    private lateinit var homeScreenModeManager: HomeScreenModeManager
     
     companion object {
         private const val REQUEST_CODE_WRITE_SETTINGS = 1002
@@ -45,8 +49,12 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        // Initialize mode manager
+        homeScreenModeManager = HomeScreenModeManager(this)
+        
         setupTabs()
         setupCustomKeyCombination()
+        setupHomeScreenSettings()
         setupGridSelection()
         setupGridTypeTabs()  // Setup grid type tabs
         setupButtonPhoneMode()  // Setup button phone mode
@@ -253,40 +261,265 @@ class SettingsActivity : AppCompatActivity() {
     
     private fun updateTouchGridState() {
         val preferences = LauncherApplication.instance.preferences
-        // Only set initial selection if user has made a selection and is in touch mode
-        if (!preferences.buttonPhoneMode && preferences.hasTouchGridSelection) {
-            val currentColumns = preferences.gridColumnCount
-            when (currentColumns) {
-                3 -> binding.grid3Columns.isChecked = true
-                4 -> binding.grid4Columns.isChecked = true
-                5 -> binding.grid5Columns.isChecked = true
-                0 -> binding.gridColumnsGroup.clearCheck()  // Not set
-                else -> binding.gridColumnsGroup.clearCheck()
-            }
-        } else {
-            // Clear selection if no prior selection or in button mode
+        Log.d(TAG, "updateTouchGridState - hasTouchGridSelection: ${preferences.hasTouchGridSelection}")
+        Log.d(TAG, "updateTouchGridState - hasButtonGridSelection: ${preferences.hasButtonGridSelection}")
+        Log.d(TAG, "updateTouchGridState - gridColumnCount: ${preferences.gridColumnCount}")
+        
+        // Only show selection if touch grid is actually being used
+        if (preferences.hasButtonGridSelection && preferences.buttonPhoneGridSize.isNotEmpty()) {
+            // Button grid is being used, clear touch grid selection
             binding.gridColumnsGroup.clearCheck()
+            Log.d(TAG, "Clearing touch grid selection - button grid is active")
+            return
         }
+        
+        // Get the effective column count (with default fallback)
+        val effectiveColumns = if (preferences.hasTouchGridSelection) {
+            preferences.gridColumnCount
+        } else {
+            // Default is 4 columns if no selection was made
+            4
+        }
+        
+        // Set the appropriate radio button as checked
+        when (effectiveColumns) {
+            3 -> {
+                binding.grid3Columns.isChecked = true
+                Log.d(TAG, "Setting 3 columns as checked")
+            }
+            4 -> {
+                binding.grid4Columns.isChecked = true
+                Log.d(TAG, "Setting 4 columns as checked (default)")
+            }
+            5 -> {
+                binding.grid5Columns.isChecked = true
+                Log.d(TAG, "Setting 5 columns as checked")
+            }
+            0 -> {
+                // If value is 0, use default of 4 columns
+                binding.grid4Columns.isChecked = true
+                Log.d(TAG, "Setting 4 columns as checked (fallback from 0)")
+            }
+            else -> {
+                // Unknown value, use default of 4 columns
+                binding.grid4Columns.isChecked = true
+                Log.d(TAG, "Setting 4 columns as checked (fallback from unknown)")
+            }
+        }
+    }
+    
+    private fun setupHomeScreenSettings() {
+        // Setup home screen grid tabs
+        binding.homeTabTouchPhone.setOnClickListener {
+            selectHomeScreenTouchTab()
+        }
+        
+        binding.homeTabButtonPhone.setOnClickListener {
+            Log.d(TAG, "homeTabButtonPhone onClick triggered")
+            selectHomeScreenButtonTab()
+        }
+        
+        // Select appropriate tab based on current mode
+        when (homeScreenModeManager.getCurrentMode()) {
+            HomeScreenModeManager.MODE_TOUCH -> selectHomeScreenTouchTab()
+            HomeScreenModeManager.MODE_BUTTON -> {
+                Log.d(TAG, "Initial mode is Button, selecting button tab")
+                selectHomeScreenButtonTab()
+            }
+        }
+        
+        // Update grid size display
+        updateHomeScreenGridDisplay()
+        
+        // Setup grid size click handlers
+        binding.homeGridSizeRow.setOnClickListener {
+            showGridConfigDialog(false)
+        }
+        
+        binding.homeButtonGridSizeRow.setOnClickListener {
+            showGridConfigDialog(true)
+        }
+        
+        binding.menuAccessMethodRow.setOnClickListener {
+            showMenuAccessMethodDialog()
+        }
+        
+        // Update menu access method display
+        updateMenuAccessMethodDisplay()
+    }
+    
+    private fun selectHomeScreenTouchTab() {
+        // Update UI
+        binding.homeTabTouchPhone.setBackgroundResource(R.drawable.bg_tab_item_selected)
+        binding.homeTabButtonPhone.setBackgroundResource(R.drawable.bg_tab_item)
+        binding.homeTouchPhoneContent.visibility = View.VISIBLE
+        binding.homeButtonPhoneContent.visibility = View.GONE
+        
+        // Set mode to Touch
+        homeScreenModeManager.setMode(HomeScreenModeManager.MODE_TOUCH)
+        
+        // Also update buttonPhoneMode for compatibility
+        preferences.buttonPhoneMode = false
+        
+        // Send broadcast about mode change
+        sendBroadcast(Intent("com.customlauncher.BUTTON_PHONE_MODE_CHANGED"))
+        
+        Log.d(TAG, "Switched to Touch mode")
+    }
+    
+    private fun selectHomeScreenButtonTab() {
+        Log.d(TAG, "selectHomeScreenButtonTab clicked")
+        try {
+            // Update UI
+            binding.homeTabTouchPhone.setBackgroundResource(R.drawable.bg_tab_item)
+            binding.homeTabButtonPhone.setBackgroundResource(R.drawable.bg_tab_item_selected)
+            binding.homeTouchPhoneContent.visibility = View.GONE
+            binding.homeButtonPhoneContent.visibility = View.VISIBLE
+            
+            // Force layout update
+            binding.homeButtonPhoneContent.post {
+                binding.homeButtonPhoneContent.requestLayout()
+                binding.homeButtonPhoneContent.invalidate()
+                Log.d(TAG, "Button content visibility: ${binding.homeButtonPhoneContent.visibility}")
+                Log.d(TAG, "Button content height: ${binding.homeButtonPhoneContent.height}")
+            }
+            
+            // Set mode to Button
+            homeScreenModeManager.setMode(HomeScreenModeManager.MODE_BUTTON)
+            
+            // Also update buttonPhoneMode for compatibility
+            preferences.buttonPhoneMode = true
+            
+            // Send broadcast about mode change
+            sendBroadcast(Intent("com.customlauncher.BUTTON_PHONE_MODE_CHANGED"))
+            
+            Log.d(TAG, "Switched to Button mode successfully")
+            
+            // Update grid display
+            updateHomeScreenGridDisplay()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error switching to Button mode", e)
+            Toast.makeText(this, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun updateHomeScreenGridDisplay() {
+        // Update touch screen grid display
+        val touchColumns = preferences.homeScreenGridColumns
+        val touchRows = preferences.homeScreenGridRows
+        binding.homeGridSizeValue.text = "${touchColumns}×${touchRows}"
+        
+        // Update button phone grid display
+        val buttonColumns = preferences.homeScreenGridColumnsButton
+        val buttonRows = preferences.homeScreenGridRowsButton
+        binding.homeButtonGridSizeValue.text = "${buttonColumns}×${buttonRows}"
+    }
+    
+    private fun updateMenuAccessMethodDisplay() {
+        val method = preferences.menuAccessMethod
+        val displayText = when (method) {
+            "dpad_down" -> "Навигация вниз"
+            "button" -> "Кнопка меню"
+            "gesture" -> "Жест смахивания"
+            else -> "Навигация вниз"
+        }
+        binding.menuAccessMethodValue.text = displayText
+    }
+    
+    private fun showMenuAccessMethodDialog() {
+        val methods = arrayOf(
+            "Навигация вниз",
+            "Кнопка меню",
+            "Жест смахивания"
+        )
+        val values = arrayOf("dpad_down", "button", "gesture")
+        val currentMethod = preferences.menuAccessMethod
+        var selectedIndex = values.indexOf(currentMethod).coerceAtLeast(0)
+        
+        AlertDialog.Builder(this)
+            .setTitle("Способ открытия меню")
+            .setSingleChoiceItems(methods, selectedIndex) { _, which ->
+                selectedIndex = which
+            }
+            .setPositiveButton("ОК") { _, _ ->
+                preferences.menuAccessMethod = values[selectedIndex]
+                updateMenuAccessMethodDisplay()
+                
+                // Send broadcast for menu method change
+                val intent = Intent("com.customlauncher.MENU_METHOD_CHANGED")
+                intent.putExtra("method", values[selectedIndex])
+                sendBroadcast(intent)
+                
+                Toast.makeText(this, "Способ доступа к меню изменен", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+    
+    private fun showGridConfigDialog(isButtonMode: Boolean) {
+        val currentConfig = if (isButtonMode) {
+            GridConfiguration(
+                columns = preferences.homeScreenGridColumnsButton,
+                rows = preferences.homeScreenGridRowsButton,
+                isButtonMode = true
+            )
+        } else {
+            GridConfiguration(
+                columns = preferences.homeScreenGridColumns,
+                rows = preferences.homeScreenGridRows,
+                isButtonMode = false
+            )
+        }
+        
+        val dialog = GridConfigDialog(
+            context = this,
+            currentConfig = currentConfig,
+            isButtonMode = isButtonMode,
+            onSave = { columns, rows ->
+                // Save new grid configuration
+                if (isButtonMode) {
+                    preferences.homeScreenGridColumnsButton = columns
+                    preferences.homeScreenGridRowsButton = rows
+                } else {
+                    preferences.homeScreenGridColumns = columns
+                    preferences.homeScreenGridRows = rows
+                }
+                
+                // Update display
+                updateHomeScreenGridDisplay()
+                
+                Toast.makeText(this, "Настройки сетки сохранены: ${columns}×${rows}", Toast.LENGTH_SHORT).show()
+                
+                // Notify home screen about the change
+                sendBroadcast(Intent("com.customlauncher.GRID_CONFIG_CHANGED"))
+            }
+        )
+        
+        dialog.show()
     }
     
     private fun setupGridTypeTabs() {
         val preferences = LauncherApplication.instance.preferences
         
-        // Set initial tab selection based on button phone mode
-        if (preferences.buttonPhoneMode) {
+        // Set initial tab selection based on which grid is actually being used
+        if (preferences.hasButtonGridSelection && preferences.buttonPhoneGridSize.isNotEmpty()) {
+            // Button grid is being used
             selectButtonPhoneTab()
         } else {
+            // Touch grid is being used (or nothing selected, default to touch)
             selectTouchPhoneTab()
         }
         
         // Handle touch phone tab click
         binding.tabTouchPhone.setOnClickListener {
             selectTouchPhoneTab()
+            preferences.appMenuSelectedTab = "touch"
         }
         
         // Handle button phone tab click  
         binding.tabButtonPhone.setOnClickListener {
             selectButtonPhoneTab()
+            preferences.appMenuSelectedTab = "button"
         }
     }
     
@@ -331,12 +564,19 @@ class SettingsActivity : AppCompatActivity() {
                 val gridSize = when (checkedId) {
                     R.id.gridButton3x3 -> "3x3"
                     R.id.gridButton3x4 -> "3x4"
+                    R.id.gridButton3x5 -> "3x5"
+                    R.id.gridButton4x5 -> "4x5"
                     else -> return@setOnCheckedChangeListener
                 }
+                
+                Log.d(TAG, "Button phone grid selected: $gridSize")
                 
                 preferences.buttonPhoneGridSize = gridSize
                 preferences.hasButtonGridSelection = true
                 preferences.hasTouchGridSelection = false  // Clear touch selection flag
+                
+                Log.d(TAG, "Saved button phone grid size: ${preferences.buttonPhoneGridSize}")
+                Log.d(TAG, "hasButtonGridSelection: ${preferences.hasButtonGridSelection}")
                 
                 // Clear touch grid selection when selecting button grid
                 // Use post to avoid conflicts with current event processing
@@ -347,43 +587,77 @@ class SettingsActivity : AppCompatActivity() {
                     setupGridSelection()
                 }
                 
-                // Automatically enable button phone mode when selecting button grid
-                if (!preferences.buttonPhoneMode) {
-                    preferences.buttonPhoneMode = true
-                    Toast.makeText(this, "Переключено на кнопочный режим: $gridSize", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Сетка для кнопочного режима: $gridSize", Toast.LENGTH_SHORT).show()
-                }
+                // DON'T automatically enable button phone mode for HOME SCREEN
+                // This is just for app menu grid configuration
+                Toast.makeText(this, "Сетка меню для кнопочного режима: $gridSize", Toast.LENGTH_SHORT).show()
                 
-                // Send broadcast to MainActivity to update the grid
-                sendBroadcast(Intent("com.customlauncher.BUTTON_PHONE_MODE_CHANGED"))
+                // Send broadcast to MainActivity to update only the app menu grid
+                Log.d(TAG, "Sending broadcast APP_MENU_BUTTON_GRID_CHANGED")
+                sendBroadcast(Intent("com.customlauncher.APP_MENU_BUTTON_GRID_CHANGED"))
             }
         }
     }
     
     private fun updateButtonGridState() {
         val preferences = LauncherApplication.instance.preferences
-        // Only set initial selection if user has made a selection and is in button mode
-        if (preferences.buttonPhoneMode && preferences.hasButtonGridSelection) {
+        Log.d(TAG, "updateButtonGridState - hasButtonGridSelection: ${preferences.hasButtonGridSelection}")
+        Log.d(TAG, "updateButtonGridState - buttonPhoneGridSize: ${preferences.buttonPhoneGridSize}")
+        
+        // Only set initial selection if user has made a selection
+        if (preferences.hasButtonGridSelection) {
             when (preferences.buttonPhoneGridSize) {
-                "3x3" -> binding.gridButton3x3.isChecked = true
-                "3x4" -> binding.gridButton3x4.isChecked = true
-                else -> binding.buttonPhoneGridGroup.clearCheck()
+                "3x3" -> {
+                    binding.gridButton3x3.isChecked = true
+                    Log.d(TAG, "Setting 3x3 as checked")
+                }
+                "3x4" -> {
+                    binding.gridButton3x4.isChecked = true
+                    Log.d(TAG, "Setting 3x4 as checked")
+                }
+                "3x5" -> {
+                    binding.gridButton3x5.isChecked = true
+                    Log.d(TAG, "Setting 3x5 as checked")
+                }
+                "4x5" -> {
+                    binding.gridButton4x5.isChecked = true
+                    Log.d(TAG, "Setting 4x5 as checked")
+                }
+                else -> {
+                    binding.buttonPhoneGridGroup.clearCheck()
+                    Log.d(TAG, "Clearing selection")
+                }
             }
         } else {
-            // Clear selection if no prior selection or not in button mode
+            // Clear selection if no prior selection
             binding.buttonPhoneGridGroup.clearCheck()
         }
     }
     
     private fun setupFeatureSwitches() {
         // Load saved states
+        binding.homeScreenSwitch.isChecked = preferences.showHomeScreen
         binding.closeAppsSwitch.isChecked = preferences.closeAppsOnHiddenMode
         binding.blockTouchSwitch.isChecked = preferences.blockTouchInHiddenMode
         binding.dndSwitch.isChecked = preferences.enableDndInHiddenMode
         binding.hideAppsSwitch.isChecked = preferences.hideAppsInHiddenMode
         binding.blockScreenshotsSwitch.isChecked = preferences.blockScreenshotsInHiddenMode
         binding.showAppLabelsSwitch.isChecked = preferences.showAppLabels
+        binding.showAppSearchSwitch.isChecked = preferences.showAppSearch
+        
+        // Setup home screen switch
+        binding.homeScreenSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.showHomeScreen = isChecked
+            val message = if (isChecked) {
+                "Главный экран включен"
+            } else {
+                "Главный экран выключен, будет показано только меню приложений"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Show home screen: $isChecked")
+            
+            // Send broadcast to notify about home screen visibility change
+            sendBroadcast(Intent("com.customlauncher.HOME_SCREEN_VISIBILITY_CHANGED"))
+        }
         
         // Setup close apps switch
         binding.closeAppsSwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -461,6 +735,20 @@ class SettingsActivity : AppCompatActivity() {
             
             // Send broadcast to MainActivity to update the grid
             sendBroadcast(Intent("com.customlauncher.APP_LABELS_CHANGED"))
+        }
+        
+        // Additional listener for home screen switch has been moved to above  
+        // to avoid duplicate handling
+        
+        // Setup show app search switch
+        binding.showAppSearchSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.showAppSearch = isChecked
+            val message = if (isChecked) {
+                "Поиск в меню приложений включен"
+            } else {
+                "Поиск в меню приложений выключен"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
         
         // Setup check permissions switch

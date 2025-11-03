@@ -13,18 +13,60 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object IconCache {
-    // Cache size - 10MB for icons
+    // Cache size - adaptive based on available memory
     private val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
-    private val cacheSize = maxMemory / 8 // Use 1/8th of available memory
+    private val cacheSize = maxMemory / 6 // Use 1/6th of available memory for better performance
     
-    private val memoryCache = LruCache<String, Bitmap>(cacheSize)
-    
-    fun getCachedIcon(packageName: String): Bitmap? {
-        return memoryCache.get(packageName)
+    // Two-level cache: memory cache for fast access
+    private val memoryCache = object : LruCache<String, Bitmap>(cacheSize) {
+        override fun sizeOf(key: String, bitmap: Bitmap): Int {
+            // Return the size of the bitmap in kilobytes
+            return bitmap.byteCount / 1024
+        }
+        
+        override fun entryRemoved(evicted: Boolean, key: String, oldValue: Bitmap, newValue: Bitmap?) {
+            if (evicted) {
+                android.util.Log.d("IconCache", "Evicted icon from cache: $key")
+            }
+        }
     }
     
-    fun putIcon(packageName: String, icon: Bitmap) {
-        memoryCache.put(packageName, icon)
+    // Track cache statistics
+    private var cacheHits = 0
+    private var cacheMisses = 0
+    
+    fun getCachedIcon(cacheKey: String): Bitmap? {
+        val bitmap = memoryCache.get(cacheKey)
+        if (bitmap != null) {
+            cacheHits++
+        } else {
+            cacheMisses++
+        }
+        return bitmap
+    }
+    
+    fun putIcon(cacheKey: String, icon: Bitmap) {
+        memoryCache.put(cacheKey, icon)
+    }
+    
+    /**
+     * Get cache statistics for debugging
+     */
+    fun getCacheStats(): String {
+        val hitRate = if (cacheHits + cacheMisses > 0) {
+            (cacheHits * 100.0 / (cacheHits + cacheMisses)).toInt()
+        } else 0
+        return "Cache: ${memoryCache.size()}/${memoryCache.maxSize()} KB, Hit rate: $hitRate% ($cacheHits/${cacheHits + cacheMisses})"
+    }
+    
+    /**
+     * Clear the entire cache
+     */
+    fun clearCache() {
+        memoryCache.evictAll()
+        cacheHits = 0
+        cacheMisses = 0
+        android.util.Log.d("IconCache", "Cache cleared")
     }
     
     suspend fun loadIcon(

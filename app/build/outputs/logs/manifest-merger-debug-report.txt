@@ -1,35 +1,35 @@
 -- Merging decision tree log ---
 provider#androidx.core.content.FileProvider
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:112:9-120:20
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:147:9-155:20
 	android:grantUriPermissions
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:116:13-47
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:151:13-47
 	android:authorities
 		INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:114:13-64
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:149:13-64
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:115:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:150:13-37
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:113:13-62
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:148:13-62
 provider#rikka.shizuku.ShizukuProvider
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:123:9-129:82
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:158:9-164:82
 	android:enabled
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:127:13-35
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:162:13-35
 	android:authorities
 		INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:125:13-59
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:160:13-59
 	android:multiprocess
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:126:13-41
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:161:13-41
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:128:13-36
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:163:13-36
 	android:permission
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:129:13-79
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:164:13-79
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:124:13-57
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:159:13-57
 manifest
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-133:12
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-133:12
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-133:12
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-133:12
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-168:12
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-168:12
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-168:12
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:2:1-168:12
 MERGED from [androidx.databinding:databinding-adapters:8.1.0] /home/linkoln/.gradle/caches/transforms-3/bb1d6016f0ec5f14136b6491caa7bd70/transformed/databinding-adapters-8.1.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.databinding:databinding-ktx:8.1.0] /home/linkoln/.gradle/caches/transforms-3/9e03edd8b3e578fee8fb6ac89aa70a26/transformed/jetified-databinding-ktx-8.1.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.databinding:databinding-runtime:8.1.0] /home/linkoln/.gradle/caches/transforms-3/ef9c957ace5662885f745cfe04907364/transformed/databinding-runtime-8.1.0/AndroidManifest.xml:2:1-7:12
@@ -159,9 +159,27 @@ uses-permission#android.permission.REQUEST_DELETE_PACKAGES
 ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:17:5-82
 	android:name
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:17:22-79
+uses-permission#android.permission.BIND_APPWIDGET
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:18:5-73
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:18:22-70
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-81
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:22-78
+uses-permission#android.permission.READ_PHONE_STATE
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:20:5-75
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:20:22-72
+uses-permission#android.permission.PACKAGE_USAGE_STATS
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:21:5-22:47
+	tools:ignore
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:22:9-44
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:21:22-75
 application
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-131:19
-INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:19:5-131:19
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:24:5-166:19
+INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:24:5-166:19
 MERGED from [com.google.android.material:material:1.11.0] /home/linkoln/.gradle/caches/transforms-3/76947f2dda4873f4ff357d73f51effc0/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.11.0] /home/linkoln/.gradle/caches/transforms-3/76947f2dda4873f4ff357d73f51effc0/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /home/linkoln/.gradle/caches/transforms-3/6de17af1fafef4018d975c87f851457b/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
@@ -186,160 +204,212 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linko
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/linkoln/.gradle/caches/transforms-3/fe25c58a9394905f4373e6219ad836de/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 	android:extractNativeLibs
 		INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml
-	android:appComponentFactory
-		ADDED from [androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
-	android:supportsRtl
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:25:9-35
-	android:label
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:23:9-41
 	tools:ignore
 		ADDED from [dev.rikka.shizuku:provider:13.1.5] /home/linkoln/.gradle/caches/transforms-3/8594f198356c62adec010936a03d57b2/transformed/jetified-provider-13.1.5/AndroidManifest.xml:10:18-69
 	android:roundIcon
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:24:9-54
-	tools:targetApi
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:27:9-29
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:31:9-54
+	android:restoreAnyVersion
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:34:9-41
 	android:icon
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:22:9-43
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:29:9-43
+	android:directBootAware
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:28:9-39
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.12.0] /home/linkoln/.gradle/caches/transforms-3/a02af45ee381eb3587200483e4a20c77/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+	android:supportsRtl
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:32:9-35
+	android:label
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:30:9-41
+	tools:targetApi
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:35:9-29
+	android:persistent
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:27:9-34
 	android:allowBackup
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:21:9-35
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:26:9-35
 	android:theme
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:26:9-52
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:33:9-52
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:20:9-44
-activity#com.customlauncher.app.ui.MainActivity
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:30:9-44:20
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:25:9-44
+activity#com.customlauncher.app.ui.HomeScreenActivity
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:38:9-53:20
 	android:screenOrientation
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:36:13-49
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:44:13-49
 	android:clearTaskOnLaunch
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:34:13-45
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:13-45
 	android:stateNotNeeded
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:35:13-42
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:43:13-42
 	android:launchMode
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:33:13-44
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:41:13-44
 	android:windowSoftInputMode
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:37:13-52
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:45:13-52
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:32:13-36
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:40:13-36
+	android:configChanges
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:47:13-87
 	android:theme
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:38:13-68
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:46:13-67
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:31:13-44
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:39:13-50
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.DEFAULT+category:name:android.intent.category.HOME
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:39:13-43:29
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:48:13-52:29
 action#android.intent.action.MAIN
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:40:17-69
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:49:17-69
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:40:25-66
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:49:25-66
 category#android.intent.category.HOME
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:41:17-73
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:50:17-73
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:41:27-70
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:50:27-70
 category#android.intent.category.DEFAULT
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:17-76
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:51:17-76
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:42:27-73
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:51:27-73
+activity#com.customlauncher.app.ui.MainActivity
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:56:9-62:71
+	android:screenOrientation
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:60:13-49
+	android:launchMode
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:59:13-43
+	android:windowSoftInputMode
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:61:13-52
+	android:exported
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:58:13-37
+	android:theme
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:62:13-68
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:57:13-44
 activity#com.customlauncher.app.ui.AppListActivity
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:47:9-56:20
-	android:screenOrientation
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:51:13-49
-	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:49:13-36
-	android:theme
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:50:13-56
-	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:48:13-47
-intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:52:13-55:29
-category#android.intent.category.LAUNCHER
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:54:17-77
-	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:54:27-74
-activity#com.customlauncher.app.ui.SettingsActivity
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:59:9-63:52
-	android:screenOrientation
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:63:13-49
-	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:61:13-37
-	android:theme
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:62:13-56
-	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:60:13-48
-activity#com.customlauncher.app.ui.AdbHelperActivity
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:66:9-70:52
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:65:9-75:20
 	android:screenOrientation
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:70:13-49
+	android:launchMode
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:68:13-43
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:68:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:67:13-36
 	android:theme
 		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:69:13-56
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:67:13-49
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:66:13-47
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:71:13-74:29
+category#android.intent.category.LAUNCHER
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:73:17-77
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:73:27-74
+activity#com.customlauncher.app.ui.SettingsActivity
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:78:9-83:52
+	android:screenOrientation
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:83:13-49
+	android:label
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:80:13-38
+	android:exported
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:82:13-37
+	android:theme
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:81:13-56
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:79:13-48
+activity#com.customlauncher.app.ui.AdbHelperActivity
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:86:9-90:52
+	android:screenOrientation
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:90:13-49
+	android:exported
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:88:13-37
+	android:theme
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:89:13-56
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:87:13-49
 service#com.customlauncher.app.service.TouchBlockService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:73:9-80:19
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:93:9-100:19
 	android:enabled
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:75:13-35
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:95:13-35
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:76:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:96:13-37
 	android:foregroundServiceType
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:77:13-55
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:97:13-55
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:74:13-54
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:94:13-54
 property
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:78:13-79:76
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:98:13-99:76
 	android:value
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:79:17-73
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:99:17-73
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:78:23-82
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:98:23-82
 service#com.customlauncher.app.service.SystemBlockAccessibilityService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:82:9-93:19
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:102:9-114:19
+	android:label
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:104:13-64
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:85:13-36
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:106:13-36
 	android:permission
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:84:13-79
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:105:13-79
 	android:directBootAware
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:86:13-43
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:107:13-43
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:83:13-68
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:103:13-68
 intent-filter#action:name:android.accessibilityservice.AccessibilityService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:87:13-89:29
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:108:13-110:29
 action#android.accessibilityservice.AccessibilityService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:88:17-92
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:109:17-92
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:88:25-89
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:109:25-89
 meta-data#android.accessibilityservice
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:90:13-92:72
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:111:13-113:72
 	android:resource
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:92:17-69
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:113:17-69
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:91:17-60
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:112:17-60
+receiver#com.customlauncher.app.receiver.BootReceiver
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:117:9-128:20
+	android:enabled
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:119:13-35
+	android:exported
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:120:13-36
+	android:directBootAware
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:121:13-43
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:118:13-50
+intent-filter#action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.LOCKED_BOOT_COMPLETED+action:name:android.intent.action.MY_PACKAGE_REPLACED+category:name:android.intent.category.DEFAULT
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:122:13-127:29
+action#android.intent.action.BOOT_COMPLETED
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:123:17-79
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:123:25-76
+action#android.intent.action.LOCKED_BOOT_COMPLETED
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:124:17-86
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:124:25-83
+action#android.intent.action.MY_PACKAGE_REPLACED
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:125:17-84
+	android:name
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:125:25-81
 receiver#com.customlauncher.app.receiver.KeyCombinationReceiver
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:96:9-103:20
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:131:9-138:20
 	android:enabled
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:98:13-35
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:133:13-35
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:99:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:134:13-37
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:97:13-60
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:132:13-60
 intent-filter#action:name:com.customlauncher.app.KEY_COMBINATION_DETECTED
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:100:13-102:29
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:135:13-137:29
 action#com.customlauncher.app.KEY_COMBINATION_DETECTED
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:101:17-90
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:136:17-90
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:101:25-87
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:136:25-87
 service#com.customlauncher.app.service.SensorControlService
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:106:9-109:40
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:141:9-144:40
 	android:enabled
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:108:13-35
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:143:13-35
 	android:exported
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:109:13-37
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:144:13-37
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:107:13-57
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:142:13-57
 meta-data#android.support.FILE_PROVIDER_PATHS
-ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:117:13-119:54
+ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:152:13-154:54
 	android:resource
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:119:17-51
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:154:17-51
 	android:name
-		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:118:17-67
+		ADDED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml:153:17-67
 uses-sdk
 INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/linkoln/Project/-Launcher/app/src/main/AndroidManifest.xml

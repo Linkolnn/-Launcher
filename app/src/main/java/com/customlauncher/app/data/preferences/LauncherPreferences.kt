@@ -20,6 +20,20 @@ class LauncherPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_APPS_HIDDEN, false)
         set(value) = prefs.edit().putBoolean(KEY_APPS_HIDDEN, value).apply()
     
+    // Icon pack preferences
+    var selectedIconPack: String?
+        get() = prefs.getString("selected_icon_pack", null)
+        set(value) = prefs.edit().putString("selected_icon_pack", value).apply()
+    
+    // Icon scaling preferences
+    var iconScaleMode: String
+        get() = prefs.getString("icon_scale_mode", "auto") ?: "auto"
+        set(value) = prefs.edit().putString("icon_scale_mode", value).apply()
+    
+    var customIconScale: Float
+        get() = prefs.getFloat("custom_icon_scale", 1.0f)
+        set(value) = prefs.edit().putFloat("custom_icon_scale", value).apply()
+    
     var iconPackPackageName: String?
         get() = prefs.getString(KEY_ICON_PACK, null)
         set(value) = prefs.edit().putString(KEY_ICON_PACK, value).apply()
@@ -164,6 +178,55 @@ class LauncherPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_SHOW_APP_LABELS, true)
         set(value) = prefs.edit().putBoolean(KEY_SHOW_APP_LABELS, value).apply()
     
+    var showAppSearch: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_APP_SEARCH, false)
+        set(value) = prefs.edit().putBoolean(KEY_SHOW_APP_SEARCH, value).apply()
+    
+    var appMenuSelectedTab: String
+        get() {
+            // Migration: handle old int values
+            return try {
+                prefs.getString(KEY_APP_MENU_SELECTED_TAB, "touch") ?: "touch"
+            } catch (e: ClassCastException) {
+                // If it was saved as int, migrate it
+                val intValue = prefs.getInt(KEY_APP_MENU_SELECTED_TAB, 0)
+                val stringValue = if (intValue == 1) "button" else "touch"
+                // Save as string
+                prefs.edit().putString(KEY_APP_MENU_SELECTED_TAB, stringValue).apply()
+                stringValue
+            }
+        }
+        set(value) = prefs.edit().putString(KEY_APP_MENU_SELECTED_TAB, value).apply()
+    
+    // Home screen settings
+    var showHomeScreen: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_HOME_SCREEN, true)
+        set(value) = prefs.edit().putBoolean(KEY_SHOW_HOME_SCREEN, value).apply()
+    
+    var menuAccessMethod: String
+        get() = prefs.getString(KEY_MENU_ACCESS_METHOD, "dpad_down") ?: "dpad_down"
+        set(value) = prefs.edit().putString(KEY_MENU_ACCESS_METHOD, value).apply()
+    
+    var homeScreenGridColumns: Int
+        get() = prefs.getInt(KEY_HOME_SCREEN_GRID_COLUMNS, 4)
+        set(value) = prefs.edit().putInt(KEY_HOME_SCREEN_GRID_COLUMNS, value).apply()
+    
+    var homeScreenGridRows: Int
+        get() = prefs.getInt(KEY_HOME_SCREEN_GRID_ROWS, 6)
+        set(value) = prefs.edit().putInt(KEY_HOME_SCREEN_GRID_ROWS, value).apply()
+    
+    var homeScreenGridColumnsButton: Int
+        get() = prefs.getInt(KEY_HOME_SCREEN_GRID_COLUMNS_BUTTON, 3)
+        set(value) = prefs.edit().putInt(KEY_HOME_SCREEN_GRID_COLUMNS_BUTTON, value).apply()
+    
+    var homeScreenGridRowsButton: Int
+        get() = prefs.getInt(KEY_HOME_SCREEN_GRID_ROWS_BUTTON, 3)
+        set(value) = prefs.edit().putInt(KEY_HOME_SCREEN_GRID_ROWS_BUTTON, value).apply()
+    
+    var homeScreenMode: Int
+        get() = prefs.getInt(KEY_HOME_SCREEN_MODE, 0) // Default to TOUCH mode
+        set(value) = prefs.edit().putInt(KEY_HOME_SCREEN_MODE, value).apply()
+    
     companion object {
         private const val PREFS_NAME = "launcher_preferences"
         private const val KEY_APPS_HIDDEN = "apps_hidden"
@@ -185,5 +248,14 @@ class LauncherPreferences(context: Context) {
         private const val KEY_HAS_TOUCH_GRID_SELECTION = "has_touch_grid_selection"
         private const val KEY_HAS_BUTTON_GRID_SELECTION = "has_button_grid_selection"
         private const val KEY_SHOW_APP_LABELS = "show_app_labels"
+        private const val KEY_SHOW_APP_SEARCH = "show_app_search"
+        private const val KEY_APP_MENU_SELECTED_TAB = "app_menu_selected_tab"
+        private const val KEY_SHOW_HOME_SCREEN = "show_home_screen"
+        private const val KEY_MENU_ACCESS_METHOD = "menu_access_method"
+        private const val KEY_HOME_SCREEN_GRID_COLUMNS = "home_screen_grid_columns"
+        private const val KEY_HOME_SCREEN_GRID_ROWS = "home_screen_grid_rows"
+        private const val KEY_HOME_SCREEN_GRID_COLUMNS_BUTTON = "home_screen_grid_columns_button"
+        private const val KEY_HOME_SCREEN_GRID_ROWS_BUTTON = "home_screen_grid_rows_button"
+        private const val KEY_HOME_SCREEN_MODE = "home_screen_mode"
     }
 }

@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">ИLauncher</string>
-    <string name="accessibility_service_description">Этот сервис необходим для расширенной блокировки:\n• Блокировка панели уведомлений (свайп сверху)\n• Блокировка панели навигации\n• Блокировка свайпа назад (свайп слева-направо)\n• Блокировка кнопок громкости\n• Полная блокировка сенсора экрана\n\nПриложение НЕ собирает и НЕ передает личные данные.</string>
+    <string name="accessibility_service_label">ИLauncher</string>
+    <string name="accessibility_service_summary">Расширенные функции блокировки</string>
+    <string name="accessibility_service_description">ИLauncher использует службу специальных возможностей для:\n\n• Расширенной блокировки системных элементов\n• Блокировки сенсора экрана в скрытом режиме\n• Перехвата комбинаций клавиш\n• Блокировки кнопок громкости\n• Управления навигацией\n\nВНИМАНИЕ: Служба может получать доступ к содержимому экрана, но ИLauncher НЕ собирает и НЕ передает личные данные.</string>
     <string name="applications">ПРИЛОЖЕНИЯ</string>
     <string name="settings">НАСТРОЙКИ</string>
     <string name="select_all">ВЫБРАТЬ ВСЕ</string>

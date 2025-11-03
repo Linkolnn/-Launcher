@@ -2,7 +2,12 @@ package com.customlauncher.app.data.repository
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
+import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.os.Process
+import android.os.UserManager
 import com.customlauncher.app.LauncherApplication
 import com.customlauncher.app.data.database.HiddenApp
 import com.customlauncher.app.data.database.HiddenAppDao
@@ -46,6 +51,8 @@ class AppRepository(
     @Synchronized
     fun invalidateCache() {
         lastCacheUpdate = 0
+        lastAppListUpdate = 0
+        appListCache.clear()
     }
 
     fun getHiddenAppsFlow(): Flow<List<HiddenApp>> {
@@ -140,10 +147,21 @@ class AppRepository(
     }
     
     fun launchApp(packageName: String) {
-        val intent = context.packageManager.getLaunchIntentForPackage(packageName)
-        intent?.let {
-            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(it)
+        // Special handling for our own launcher
+        if (packageName == "com.customlauncher.app") {
+            // Explicitly launch AppListActivity for our launcher
+            val intent = Intent(context, com.customlauncher.app.ui.AppListActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            android.util.Log.d("AppRepository", "Launching our launcher's AppListActivity")
+        } else {
+            // Launch other apps normally
+            val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+            intent?.let {
+                it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(it)
+                android.util.Log.d("AppRepository", "Launching app: $packageName")
+            }
         }
     }
 }

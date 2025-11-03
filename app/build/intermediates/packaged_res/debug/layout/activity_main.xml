@@ -1,19 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout 
+<LinearLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet">
     
-    <!-- Full screen app grid (like Nova Launcher) -->
+    <!-- Drag handle -->
+    <View
+        android:id="@+id/dragHandle"
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/drag_handle_color" />
+    
+    <!-- Search bar (optional, controlled by preferences) -->
+    <LinearLayout
+        android:id="@+id/searchContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:visibility="gone">
+        
+        <EditText
+            android:id="@+id/searchEditText"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:background="@drawable/search_background"
+            android:hint="Поиск приложений..."
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_white_secondary"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:paddingHorizontal="16dp"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="12dp" />
+            
+        <ImageButton
+            android:id="@+id/clearSearchButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_clear"
+            android:visibility="gone"
+            android:contentDescription="Очистить поиск" />
+    </LinearLayout>
+    
+    <!-- Full screen app grid -->
     <com.customlauncher.app.ui.widget.FadingEdgeRecyclerView
         android:id="@+id/appsGrid"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingLeft="2dp"
-        android:paddingRight="2dp"
-        android:paddingTop="50dp"
-        android:paddingBottom="30dp"
-        android:clipToPadding="false" />
+        android:paddingHorizontal="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="outsideOverlay" />
 
-</RelativeLayout>
+</LinearLayout>

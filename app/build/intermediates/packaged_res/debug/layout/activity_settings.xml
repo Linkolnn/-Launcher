@@ -159,7 +159,7 @@
                 </LinearLayout>
             </LinearLayout>
             
-            <!-- Grid Settings Section -->
+            <!-- Home Screen Settings Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -172,7 +172,208 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Сетка рабочего стола"
+                    android:text="Настройки главного экрана"
+                    android:textColor="@color/text_white"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/lampen"
+                    android:layout_marginBottom="12dp" />
+                
+                <!-- Home Screen Grid Type Selector Tabs -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+                    
+                    <LinearLayout
+                        android:id="@+id/homeTabTouchPhone"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="8dp"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/bg_tab_item_selected"
+                        android:elevation="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Для сенсорных"
+                            android:textColor="@color/text_white"
+                            android:textSize="11sp"
+                            android:fontFamily="@font/lampen" />
+                            
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="смартфонов"
+                            android:textColor="@color/text_white"
+                            android:textSize="11sp"
+                            android:fontFamily="@font/lampen" />
+                    </LinearLayout>
+                    
+                    <LinearLayout
+                        android:id="@+id/homeTabButtonPhone"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="8dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@drawable/bg_tab_item"
+                        android:elevation="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Для кнопочных"
+                            android:textColor="@color/text_white"
+                            android:textSize="11sp"
+                            android:fontFamily="@font/lampen" />
+                            
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="смартфонов"
+                            android:textColor="@color/text_white"
+                            android:textSize="11sp"
+                            android:fontFamily="@font/lampen" />
+                    </LinearLayout>
+                </LinearLayout>
+                
+                <!-- Home Touch Phone Grid Content -->
+                <LinearLayout
+                    android:id="@+id/homeTouchPhoneContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+                    
+                    <LinearLayout
+                        android:id="@+id/homeGridSizeRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="8dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Сетка главного экрана"
+                            android:textColor="@color/text_white"
+                            android:textSize="16sp"
+                            android:fontFamily="@font/lampen" />
+                        
+                        <TextView
+                            android:id="@+id/homeGridSizeValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="4×6"
+                            android:textColor="@color/text_gray"
+                            android:textSize="14sp"
+                            android:fontFamily="@font/lampen" />
+                    </LinearLayout>
+                </LinearLayout>
+                
+                <!-- Home Button Phone Grid Content -->
+                <LinearLayout
+                    android:id="@+id/homeButtonPhoneContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+                    
+                    <LinearLayout
+                        android:id="@+id/homeButtonGridSizeRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="8dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Сетка главного экрана"
+                            android:textColor="@color/text_white"
+                            android:textSize="16sp"
+                            android:fontFamily="@font/lampen" />
+                        
+                        <TextView
+                            android:id="@+id/homeButtonGridSizeValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="3×3"
+                            android:textColor="@color/text_gray"
+                            android:textSize="14sp"
+                            android:fontFamily="@font/lampen" />
+                    </LinearLayout>
+                    
+                    <LinearLayout
+                        android:id="@+id/menuAccessMethodRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="8dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Открытие меню приложений"
+                            android:textColor="@color/text_white"
+                            android:textSize="16sp"
+                            android:fontFamily="@font/lampen"
+                            android:lineSpacingExtra="10dp" />
+                        
+                        <TextView
+                            android:id="@+id/menuAccessMethodValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Навигация вниз"
+                            android:textColor="@color/text_gray"
+                            android:textSize="14sp"
+                            android:fontFamily="@font/lampen" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+            
+            <!-- App Drawer Settings Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_settings_section_30"
+                android:padding="16dp"
+                android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Настройки меню приложений"
                     android:textColor="@color/text_white"
                     android:textSize="18sp"
                     android:fontFamily="@font/lampen"
@@ -311,7 +512,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Количество столбцов на главном экране"
+                    android:text="Количество столбцов в меню приложений"
                     android:textColor="@color/text_gray"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
@@ -344,7 +545,7 @@
                         android:gravity="center"
                         android:button="@null"
                         android:background="@drawable/bg_radio_selector"
-                        android:layout_marginEnd="4dp" />
+                        android:layout_marginEnd="2dp" />
                     
                     <RadioButton
                         android:id="@+id/gridButton3x4"
@@ -358,7 +559,37 @@
                         android:gravity="center"
                         android:button="@null"
                         android:background="@drawable/bg_radio_selector"
-                        android:layout_marginStart="4dp" />
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="2dp" />
+                    
+                    <RadioButton
+                        android:id="@+id/gridButton3x5"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="3x5"
+                        android:textColor="@drawable/radio_text_color"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/mal6lampen"
+                        android:gravity="center"
+                        android:button="@null"
+                        android:background="@drawable/bg_radio_selector"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="2dp" />
+                    
+                    <RadioButton
+                        android:id="@+id/gridButton4x5"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="4x5"
+                        android:textColor="@drawable/radio_text_color"
+                        android:textSize="18sp"
+                        android:fontFamily="@font/mal6lampen"
+                        android:gravity="center"
+                        android:button="@null"
+                        android:background="@drawable/bg_radio_selector"
+                        android:layout_marginStart="2dp" />
                 </RadioGroup>
                 
                 <TextView
@@ -368,6 +599,51 @@
                     android:textColor="@color/text_gray"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
+                </LinearLayout>
+                
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/text_gray"
+                    android:alpha="0.3"
+                    android:layout_marginVertical="12dp" />
+                
+                <!-- Search Toggle -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="8dp">
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Поиск"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Показывать строку поиска в меню приложений"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                    
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/showAppSearchSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:theme="@style/SwitchTheme" />
                 </LinearLayout>
             </LinearLayout>
             
@@ -389,6 +665,51 @@
                     android:textSize="18sp"
                     android:fontFamily="@font/lampen"
                     android:layout_marginBottom="12dp" />
+                
+                <!-- Home Screen Toggle -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="8dp">
+                    
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Главный экран"
+                            android:textColor="@color/text_white"
+                            android:textSize="14sp" />
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Отключите для отображения только меню приложений"
+                            android:textColor="@color/text_gray"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+                    
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/homeScreenSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:theme="@style/SwitchTheme" />
+                </LinearLayout>
+                
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/text_gray"
+                    android:alpha="0.3"
+                    android:layout_marginVertical="12dp" />
                 
                 <!-- Close Apps on Hidden Mode -->
                 <LinearLayout

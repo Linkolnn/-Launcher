@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeAllMask"
-    android:accessibilityFeedbackType="feedbackGeneric|feedbackHaptic|feedbackVisual"
-    android:accessibilityFlags="flagDefault|flagIncludeNotImportantViews|flagRequestTouchExplorationMode|flagRequestEnhancedWebAccessibility|flagReportViewIds|flagRequestFilterKeyEvents|flagRetrieveInteractiveWindows|flagRequestAccessibilityButton|flagEnableAccessibilityVolume|flagRequestMultiFingerGestures|flagSendMotionEvents|flagRequestShortcutWarningDialogSpokenFeedback"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault|flagRequestFilterKeyEvents|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews|flagReportViewIds|flagRequestTouchExplorationMode|flagRequestEnhancedWebAccessibility"
     android:canPerformGestures="true"
     android:canRequestFilterKeyEvents="true"
     android:canRequestTouchExplorationMode="true"
     android:canRetrieveWindowContent="true"
-    android:canRequestFingerprintGestures="true"
-    android:canControlMagnification="true"
-    android:canTakeScreenshot="false"
     android:description="@string/accessibility_service_description"
-    android:notificationTimeout="10"
-    android:packageNames=""
-    android:settingsActivity="com.customlauncher.app.ui.SettingsActivity" />
+    android:summary="@string/accessibility_service_summary"
+    android:notificationTimeout="100" />

@@ -6,16 +6,17 @@ import androidx.recyclerview.widget.RecyclerView
 
 class PaginatedGridLayoutManager(
     context: Context,
-    var columns: Int,
-    var rows: Int
+    val columns: Int,
+    val rows: Int
 ) : RecyclerView.LayoutManager() {
     
-    private val pageSize: Int
+    val pageSize: Int
         get() = columns * rows
     
-    private var currentPage = 0
+    var currentPage = 0
+        private set
     private var totalPages = 0
-    private var selectedPosition = 0
+    var selectedPosition = 0
     
     override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams {
         return RecyclerView.LayoutParams(
@@ -66,9 +67,19 @@ class PaginatedGridLayoutManager(
         if (targetPage != currentPage) {
             currentPage = targetPage
             requestLayout()
+            // Force RecyclerView to update immediately
+            removeAllViews()
         }
         
         selectedPosition = position
+    }
+    
+    override fun scrollToPosition(position: Int) {
+        navigateToPosition(position)
+    }
+    
+    fun getCurrentPageInfo(): String {
+        return "Page $currentPage/$totalPages, Position $selectedPosition"
     }
     
     fun navigateLeft(): Boolean {
@@ -143,10 +154,6 @@ class PaginatedGridLayoutManager(
         
         return false
     }
-    
-    fun getSelectedPosition(): Int = selectedPosition
-    
-    fun getCurrentPage(): Int = currentPage
     
     fun getTotalPages(): Int = totalPages
     

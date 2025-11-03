@@ -56,9 +56,10 @@
     <ImageView
         android:id="@+id/menu_arrow"
         android:layout_width="20dp"
-        android:layout_height="8dp"
+        android:layout_height="10dp"
         android:src="@drawable/popup_menu_arrow"
-        android:layout_gravity="left"
-        android:layout_marginTop="-3dp" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="-5dp"
+        android:scaleType="fitCenter" />
     
 </LinearLayout>

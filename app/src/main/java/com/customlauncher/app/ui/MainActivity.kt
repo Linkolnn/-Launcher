@@ -47,6 +47,9 @@ import com.customlauncher.app.databinding.ActivityMainBinding
 import android.content.ActivityNotFoundException
 import com.customlauncher.app.R
 import com.customlauncher.app.ui.layout.PaginatedGridLayoutManager
+import android.view.GestureDetector
+import androidx.core.view.GestureDetectorCompat
+import androidx.recyclerview.widget.RecyclerView
 
 class MainActivity : AppCompatActivity() {
     
@@ -54,8 +57,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: AppViewModel
     private lateinit var appAdapter: AppGridAdapter
+    private lateinit var gestureDetector: GestureDetectorCompat
+    private lateinit var searchTextWatcher: android.text.TextWatcher
     private val preferences by lazy { LauncherApplication.instance.preferences }
     private var currentPopupWindow: PopupWindow? = null
+    
+    companion object {
+        private const val SWIPE_THRESHOLD = 100
+        private const val SWIPE_VELOCITY_THRESHOLD = 100
+    }
     
     // Key combination tracking
     private var customKeyListener: CustomKeyListener? = null
@@ -156,10 +166,17 @@ class MainActivity : AppCompatActivity() {
     // BroadcastReceiver for button phone mode changes
     private val buttonPhoneModeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "com.customlauncher.BUTTON_PHONE_MODE_CHANGED") {
-                Log.d("MainActivity", "Button phone mode changed, updating grid")
-                updateGridColumns()
-                viewModel.loadApps()
+            when (intent?.action) {
+                "com.customlauncher.BUTTON_PHONE_MODE_CHANGED" -> {
+                    Log.d("MainActivity", "Button phone mode changed, updating grid")
+                    updateGridColumns()
+                    viewModel.loadApps()
+                }
+                "com.customlauncher.APP_MENU_BUTTON_GRID_CHANGED" -> {
+                    Log.d("MainActivity", "App menu button grid changed, updating grid")
+                    updateGridColumns()
+                    viewModel.loadApps()
+                }
             }
         }
     }
@@ -223,6 +240,7 @@ class MainActivity : AppCompatActivity() {
             viewModel = ViewModelProvider(this)[AppViewModel::class.java]
             
             setupRecyclerView()
+            setupGestureDetector()
             setupListeners()
             observeViewModel()
             
@@ -278,7 +296,10 @@ class MainActivity : AppCompatActivity() {
         val screenshotFilter = IntentFilter("com.customlauncher.SCREENSHOT_BLOCKING")
         
         // Register button phone mode receiver
-        val buttonPhoneModeFilter = IntentFilter("com.customlauncher.BUTTON_PHONE_MODE_CHANGED")
+        val buttonPhoneModeFilter = IntentFilter().apply {
+            addAction("com.customlauncher.BUTTON_PHONE_MODE_CHANGED")
+            addAction("com.customlauncher.APP_MENU_BUTTON_GRID_CHANGED")
+        }
         
         // Register app labels change receiver
         val appLabelsFilter = IntentFilter("com.customlauncher.APP_LABELS_CHANGED")
@@ -376,6 +397,12 @@ class MainActivity : AppCompatActivity() {
             },
             onAppLongClick = { app, view ->
                 showAppContextMenu(app, view)
+                true
+            },
+            isDragEnabled = false, // Will be handled by drag detection
+            onDragStarted = {
+                // Close the app drawer when drag starts
+                finish()
             }
         )
         
@@ -438,11 +465,82 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun setupGestureDetector() {
+        gestureDetector = GestureDetectorCompat(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                if (e1 == null) return false
+                
+                val diffY = e2.y - e1.y
+                val diffX = e2.x - e1.x
+                
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    return false // Horizontal swipe, ignore
+                }
+                
+                if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffY > 0) {
+                        // Swipe down - close app drawer if at top
+                        val layoutManager = binding.appsGrid.layoutManager
+                        if (layoutManager is GridLayoutManager) {
+                            val firstVisiblePos = layoutManager.findFirstVisibleItemPosition()
+                            if (firstVisiblePos <= 0) {
+                                // At top of list, close app drawer
+                                closeAppDrawer()
+                                return true
+                            }
+                        } else if (layoutManager is PaginatedGridLayoutManager) {
+                            if (layoutManager.currentPage == 0) {
+                                // At first page, close app drawer
+                                closeAppDrawer()
+                                return true
+                            }
+                        }
+                    }
+                }
+                
+                return false
+            }
+        })
+        
+        // Set touch listener on the RecyclerView
+        binding.appsGrid.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            false // Don't consume the event, let RecyclerView handle it
+        }
+    }
+    
+    private fun closeAppDrawer() {
+        // Go back to home screen
+        finish()
+        overridePendingTransition(
+            R.anim.fade_in,
+            R.anim.slide_down_exit
+        )
+    }
+    
     private fun setupListeners() {
+        val preferences = LauncherApplication.instance.preferences
+        
+        // Setup search if enabled
+        if (preferences.showAppSearch) {
+            binding.searchContainer.visibility = View.VISIBLE
+            setupSearchView()
+        } else {
+            binding.searchContainer.visibility = View.GONE
+        }
+        
+        // Setup drag handle for dismissing
+        binding.dragHandle.setOnClickListener {
+            closeAppDrawer()
+        }
+        
         // Long press on home screen opens app list
         binding.appsGrid.setOnLongClickListener {
-            val preferences = LauncherApplication.instance.preferences
-            
             // Check if permission checking is enabled
             if (preferences.checkPermissionsOnStartup) {
                 // Check if all permissions are granted
@@ -455,6 +553,45 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, AppListActivity::class.java))
             true
         }
+    }
+    
+    private fun setupSearchView() {
+        searchTextWatcher = object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val query = s?.toString() ?: ""
+                if (query.isNotEmpty()) {
+                    binding.clearSearchButton.visibility = View.VISIBLE
+                    filterApps(query)
+                } else {
+                    binding.clearSearchButton.visibility = View.GONE
+                    filterApps("")
+                }
+            }
+            
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        }
+        binding.searchEditText.addTextChangedListener(searchTextWatcher)
+        
+        binding.clearSearchButton.setOnClickListener {
+            binding.searchEditText.text.clear()
+        }
+        
+        binding.searchEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                // Hide keyboard
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(binding.searchEditText.windowToken, 0)
+                true
+            } else {
+                false
+            }
+        }
+    }
+    
+    private fun filterApps(query: String) {
+        appAdapter.filter(query)
     }
     
     private fun checkAllPermissions(): Boolean {
@@ -612,7 +749,7 @@ class MainActivity : AppCompatActivity() {
                     } else false
                 }
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_5, KeyEvent.KEYCODE_ENTER -> {
-                    val position = paginatedLayoutManager?.getSelectedPosition() ?: 0
+                    val position = paginatedLayoutManager?.selectedPosition ?: 0
                     val app = appAdapter.currentList.getOrNull(position)
                     app?.let {
                         viewModel.launchApp(it.packageName)
@@ -639,7 +776,7 @@ class MainActivity : AppCompatActivity() {
     
     private fun updateFocusedItem() {
         // Update visual focus on the selected item
-        val position = paginatedLayoutManager?.getSelectedPosition() ?: 0
+        val position = paginatedLayoutManager?.selectedPosition ?: 0
         binding.appsGrid.smoothScrollToPosition(position)
         
         // Find the view holder and update focus
@@ -918,34 +1055,69 @@ class MainActivity : AppCompatActivity() {
         updateGridColumns()
         // Update custom key listener
         setupCustomKeyListener()
+        // Update search visibility
+        updateSearchVisibility()
+    }
+    
+    private fun updateSearchVisibility() {
+        val preferences = LauncherApplication.instance.preferences
+        if (preferences.showAppSearch) {
+            binding.searchContainer.visibility = View.VISIBLE
+            if (!this::searchTextWatcher.isInitialized) {
+                setupSearchView()
+            }
+        } else {
+            binding.searchContainer.visibility = View.GONE
+            binding.searchEditText.text.clear()
+        }
     }
     
     private fun updateGridColumns() {
         val preferences = LauncherApplication.instance.preferences
         
-        if (preferences.buttonPhoneMode) {
-            // Switch to paginated layout for button phones
+        Log.d("MainActivity", "updateGridColumns() called")
+        Log.d("MainActivity", "hasButtonGridSelection: ${preferences.hasButtonGridSelection}")
+        Log.d("MainActivity", "buttonPhoneGridSize: ${preferences.buttonPhoneGridSize}")
+        
+        // Use paginated layout if button grid is selected in app menu settings
+        if (preferences.hasButtonGridSelection && preferences.buttonPhoneGridSize.isNotEmpty()) {
+            // Switch to paginated layout for button phones menu
             val gridSize = preferences.buttonPhoneGridSize
+            Log.d("MainActivity", "Using paginated layout with grid size: $gridSize")
+            
             val (cols, rows) = when (gridSize) {
+                "3x3" -> 3 to 3
                 "3x4" -> 3 to 4
+                "3x5" -> 3 to 5
+                "4x5" -> 4 to 5
                 else -> 3 to 3  // Default to 3x3
             }
+            
+            Log.d("MainActivity", "Grid dimensions: ${cols}x${rows}")
             
             if (paginatedLayoutManager == null || 
                 paginatedLayoutManager?.columns != cols || 
                 paginatedLayoutManager?.rows != rows) {
+                Log.d("MainActivity", "Creating new PaginatedGridLayoutManager with ${cols}x${rows}")
                 paginatedLayoutManager = PaginatedGridLayoutManager(this, cols, rows)
                 binding.appsGrid.layoutManager = paginatedLayoutManager
             }
         } else {
             // Switch to standard grid layout
             val columnCount = if (preferences.gridColumnCount == 0) 4 else preferences.gridColumnCount
+            Log.d("MainActivity", "Using standard grid layout with $columnCount columns")
+            
             if (binding.appsGrid.layoutManager !is GridLayoutManager ||
                 (binding.appsGrid.layoutManager as? GridLayoutManager)?.spanCount != columnCount) {
+                Log.d("MainActivity", "Creating new GridLayoutManager with $columnCount columns")
                 binding.appsGrid.layoutManager = GridLayoutManager(this, columnCount)
                 paginatedLayoutManager = null
             }
         }
+        
+        // Force adapter to update all items with new adaptive sizes
+        Log.d("MainActivity", "Notifying adapter of data set change")
+        appAdapter.notifyDataSetChanged()
     }
     
     override fun onDestroy() {
@@ -1040,6 +1212,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     override fun onBackPressed() {
-        // Do nothing - launcher shouldn't close
+        // Close app drawer and go back to home screen
+        closeAppDrawer()
     }
 }
