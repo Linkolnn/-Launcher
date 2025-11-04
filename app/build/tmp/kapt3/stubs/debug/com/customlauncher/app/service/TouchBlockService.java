@@ -16,7 +16,7 @@ public final class TouchBlockService extends android.app.Service {
     private static final int NOTIFICATION_ID = 1001;
     @org.jetbrains.annotations.NotNull
     private static final java.lang.String TAG = "TouchBlockService";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     @org.jetbrains.annotations.NotNull
     public static final com.customlauncher.app.service.TouchBlockService.Companion Companion = null;
     

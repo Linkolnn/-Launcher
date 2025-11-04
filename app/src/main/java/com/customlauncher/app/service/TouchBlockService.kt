@@ -37,6 +37,10 @@ class TouchBlockService : Service() {
         // Service should always be created when requested
         // The decision to block or not should be made in HiddenModeStateManager
         android.util.Log.d(TAG, "TouchBlockService created")
+        
+        // Immediately check if screen is locked on creation
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+        android.util.Log.d(TAG, "Service created - Screen locked: ${keyguardManager?.isKeyguardLocked}")
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -48,6 +52,18 @@ class TouchBlockService : Service() {
                     // Always start touch blocking when requested
                     // HiddenModeStateManager handles the logic of when to call this
                     if (DEBUG) android.util.Log.d(TAG, "Starting touch blocking")
+                    
+                    // Check if screen is locked FIRST
+                    val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+                    if (keyguardManager?.isKeyguardLocked == true) {
+                        android.util.Log.d(TAG, "Screen is locked on service start - registering for unlock")
+                        // Don't create overlay, just register for unlock
+                        registerScreenUnlockReceiver()
+                        shouldBlockAfterUnlock = true
+                        // Keep service alive to wait for unlock
+                        return START_NOT_STICKY
+                    }
+                    
                     blockTouch()
                     // Register receiver to handle screen lock/unlock events
                     registerScreenUnlockReceiver()
@@ -82,15 +98,8 @@ class TouchBlockService : Service() {
                 return
             }
             
-            // Check if screen is locked - DO NOT block touch on lock screen
-            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-            if (keyguardManager?.isKeyguardLocked == true) {
-                android.util.Log.d(TAG, "Screen is locked - not blocking touch to allow unlock")
-                // Register receiver to block after unlock
-                registerScreenUnlockReceiver()
-                shouldBlockAfterUnlock = true
-                return  // Don't block touch when screen is locked
-            }
+            // Lock screen check is already done in onStartCommand
+            // If we reach here, it's safe to create the overlay
             
             // Check permission first
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -147,6 +156,13 @@ class TouchBlockService : Service() {
         val finalFlags = flags or WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         
         try {
+            // Final safety check - NEVER create overlay on lock screen
+            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+            if (keyguardManager?.isKeyguardLocked == true) {
+                android.util.Log.e(TAG, "CRITICAL: Attempted to create overlay on lock screen - aborting!")
+                return
+            }
+            
             // Create blocking view with proper touch interception and multitouch blocking
             blockView = object : FrameLayout(this@TouchBlockService) {
                 private var activeTouchId = -1
@@ -334,19 +350,26 @@ class TouchBlockService : Service() {
                     Intent.ACTION_USER_PRESENT -> {
                         // Screen unlocked - now we can block touch if we're in hidden mode
                         android.util.Log.d(TAG, "Screen unlocked - checking if should block touch")
-                        if (shouldBlockAfterUnlock && HiddenModeStateManager.currentState) {
+                        if (HiddenModeStateManager.currentState) {
                             android.util.Log.d(TAG, "Blocking touch after unlock in hidden mode")
                             blockTouch()
                         }
-                        // Unregister receiver after handling
-                        unregisterScreenUnlockReceiver()
                         shouldBlockAfterUnlock = false
                     }
                     Intent.ACTION_SCREEN_OFF -> {
-                        // Screen locked again - ensure we don't block
-                        android.util.Log.d(TAG, "Screen locked again")
-                        unblockTouch()
+                        // Screen locked - IMMEDIATELY remove overlay to allow unlock
+                        android.util.Log.d(TAG, "Screen locked - removing overlay immediately")
+                        unblockTouch()  // Remove overlay right away
                         shouldBlockAfterUnlock = true  // Will block again after next unlock
+                    }
+                    Intent.ACTION_SCREEN_ON -> {
+                        // Screen turned on but not unlocked yet - ensure no overlay
+                        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+                        if (keyguardManager?.isKeyguardLocked == true) {
+                            android.util.Log.d(TAG, "Screen on but locked - ensuring no overlay")
+                            unblockTouch()
+                            shouldBlockAfterUnlock = true
+                        }
                     }
                 }
             }
@@ -354,7 +377,8 @@ class TouchBlockService : Service() {
         
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_USER_PRESENT)  // Screen unlocked
-            addAction(Intent.ACTION_SCREEN_OFF)    // Screen locked
+            addAction(Intent.ACTION_SCREEN_OFF)    // Screen locked  
+            addAction(Intent.ACTION_SCREEN_ON)     // Screen on but maybe still locked
         }
         
         try {
@@ -393,6 +417,6 @@ class TouchBlockService : Service() {
         const val ACTION_UNBLOCK_TOUCH = "com.customlauncher.app.UNBLOCK_TOUCH"
         private const val NOTIFICATION_ID = 1001
         private const val TAG = "TouchBlockService"
-        private const val DEBUG = false // Set to false for production
+        private const val DEBUG = true // Temporarily enabled for debugging lock screen issue
     }
 }
