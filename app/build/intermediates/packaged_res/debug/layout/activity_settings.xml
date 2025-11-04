@@ -870,7 +870,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Скрывает приложения на главном экране при активации скрытого режима"
+                            android:text="Скрывает приложения в меню приложений при активации скрытого режима"
                             android:textColor="@color/text_gray"
                             android:textSize="12sp"
                             android:layout_marginTop="4dp" />

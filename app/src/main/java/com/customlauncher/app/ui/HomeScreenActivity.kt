@@ -50,6 +50,7 @@ import com.customlauncher.app.utils.IconCache
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 class HomeScreenActivity : AppCompatActivity() {
@@ -65,8 +66,11 @@ class HomeScreenActivity : AppCompatActivity() {
     private lateinit var focusManager: GridFocusManager
     private var customKeyListener: CustomKeyListener? = null
     private var isLoadingItems = false // Flag to prevent concurrent loading
-    private var lastShowHomeScreen: Boolean? = null // Track last known state
     private var currentPopupWindow: PopupWindow? = null
+    private var lastPackageChangeTime = 0L
+    private var lastShowHomeScreen = false
+    private var lastHiddenState: Boolean? = null
+    private var lastUpdateTime = 0L
     private var isAppDrawerOpen = false // Prevent multiple drawer instances
     private var lastDrawerOpenTime = 0L // For debouncing drawer opening
     private val preferences by lazy { LauncherApplication.instance.preferences }
@@ -168,26 +172,22 @@ class HomeScreenActivity : AppCompatActivity() {
                     binding.gridContainer.visibility = View.VISIBLE
                     gridLayout.visibility = View.VISIBLE
                     
+                    // Don't load items here - let normal initialization handle it
                     lifecycleScope.launch {
                         if (adapter.getItemCount() == 0) {
                             Log.d(TAG, "No items on home screen after transition from app drawer")
-                            gridLayout.visibility = View.VISIBLE
-                            
-                            // Just reload items, don't initialize defaults again
-                            loadHomeScreenItems()
-                        } else {
                             repository.initializeDefaultItems(GridConfiguration.fromPreferences(preferences))
-                            withContext(Dispatchers.Main) {
-                                // Clear existing views
-                                adapter.clearAllViews()
-                                
-                                // Reload items
-                                loadHomeScreenItems()
-                                
-                                // Force layout update
-                                gridLayout.requestLayout()
-                                gridLayout.invalidate()
-                            }
+                        }
+                        withContext(Dispatchers.Main) {
+                            // Clear existing views
+                            adapter.clearAllViews()
+                            
+                            // Force layout update
+                            gridLayout.requestLayout()
+                            gridLayout.invalidate()
+                            
+                            // Update visibility will handle loading items
+                            updateVisibility()
                         }
                     }
                 } else if (!showHomeScreen && lastShowHomeScreen == true) {
@@ -209,33 +209,51 @@ class HomeScreenActivity : AppCompatActivity() {
     // BroadcastReceiver for package changes (install/uninstall)
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "com.customlauncher.PACKAGE_CHANGED") {
-                val action = intent.getStringExtra("action")
-                val packageName = intent.getStringExtra("package")
-                Log.d(TAG, "Package change detected: $action for $packageName")
-                
-                // Handle package removal
-                if (action == Intent.ACTION_PACKAGE_REMOVED) {
-                    packageName?.let { pkg ->
-                        // First, animate removal from UI
-                        adapter.removePackageAnimated(pkg)
-                        
-                        // Then remove from database in background
-                        lifecycleScope.launch(Dispatchers.IO) {
-                            val items = repository.getAllItems()
-                            val itemToRemove = items.find { it.packageName == pkg }
-                            itemToRemove?.let {
-                                repository.deleteItem(it)
-                                Log.d(TAG, "Removed $pkg from database")
+            val action = intent?.action
+            val packageName = intent?.data?.schemeSpecificPart
+            
+            Log.d(TAG, "Package change detected: $action for $packageName")
+            
+            when (action) {
+                Intent.ACTION_PACKAGE_REMOVED -> {
+                    // Check if package is being replaced
+                    val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                    if (!replacing) {
+                        packageName?.let { pkg ->
+                            Log.d(TAG, "Package removed: $pkg, updating UI")
+                            // First, animate removal from UI
+                            if (::adapter.isInitialized) {
+                                adapter.removePackageAnimated(pkg)
+                            }
+                            
+                            // Then remove from database in background
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                val items = repository.getAllItems()
+                                val itemToRemove = items.find { it.packageName == pkg }
+                                itemToRemove?.let {
+                                    repository.deleteItem(it)
+                                    Log.d(TAG, "Removed $pkg from database")
+                                }
+                                
+                                // Don't reload all items - the animation already handled UI update
+                                // This prevents double update and stuttering
                             }
                         }
                     }
-                } else if (action == Intent.ACTION_PACKAGE_ADDED) {
-                    // For new packages, just reload items
-                    // Could potentially add animation here too
+                }
+                Intent.ACTION_PACKAGE_ADDED -> {
+                    val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                    if (!replacing) {
+                        Log.d(TAG, "Package added: $packageName, reloading items")
+                        loadHomeScreenItems()
+                    }
+                }
+                Intent.ACTION_PACKAGE_REPLACED -> {
+                    Log.d(TAG, "Package replaced: $packageName, reloading items")
                     loadHomeScreenItems()
-                } else {
-                    // For other changes, just reload items
+                }
+                Intent.ACTION_PACKAGE_CHANGED -> {
+                    Log.d(TAG, "Package changed: $packageName, reloading items")
                     loadHomeScreenItems()
                 }
             }
@@ -273,13 +291,20 @@ class HomeScreenActivity : AppCompatActivity() {
         handleSystemLauncherMode()
         
         // Check if home screen is disabled and show apps menu directly
-        if (!preferences.showHomeScreen) {
-            // Hide home screen content
+        if (!preferences.showHomeScreen && !isDefaultLauncher()) {
+            // Hide home screen content only if we're not the default launcher
             binding.gridContainer.visibility = View.GONE
             
             // Open app drawer immediately
             binding.root.post {
                 showAppDrawer()
+            }
+        } else if (isDefaultLauncher()) {
+            // Force grid to be visible for default launcher
+            binding.gridContainer.visibility = View.VISIBLE
+            // Only set gridLayout visibility if it's initialized
+            if (::gridLayout.isInitialized) {
+                gridLayout.visibility = View.VISIBLE
             }
         }
     }
@@ -523,28 +548,31 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
             })
             
+            // Setup menu button for button mode  
+            setupMenuButton()
+            
             // Initialize default items if first run, then load items
             lifecycleScope.launch {
                 // Check if home screen is completely empty
-                val itemCount = repository.getAllItems().size
+                val itemCount = withContext(Dispatchers.IO) {
+                    repository.getAllItems().size
+                }
+                
                 if (itemCount == 0) {
                     Log.d(TAG, "Home screen is empty, initializing defaults")
-                    repository.initializeDefaultItems(gridConfig)
+                    withContext(Dispatchers.IO) {
+                        repository.initializeDefaultItems(gridConfig)
+                    }
                 } else {
                     Log.d(TAG, "Home screen has $itemCount items")
                 }
                 
-                // Then load items from database (including any newly created defaults)
+                // Now update visibility after items are initialized
+                // This will load items properly
                 withContext(Dispatchers.Main) {
-                    loadHomeScreenItems()
+                    updateVisibility()
                 }
             }
-            
-            // Setup menu button for button mode
-            setupMenuButton()
-            
-            // Update visibility based on hidden mode
-            updateVisibility()
             
             Log.d(TAG, "Grid initialized with ${gridConfig.columns}x${gridConfig.rows}")
         } catch (e: Exception) {
@@ -607,12 +635,20 @@ class HomeScreenActivity : AppCompatActivity() {
             registerReceiver(homeScreenVisibilityReceiver, homeScreenVisibilityFilter)
         }
         
-        // Register package change receiver
-        val packageFilter = IntentFilter("com.customlauncher.PACKAGE_CHANGED")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // Register package change receiver - directly register system events for Android 16 compatibility
+        val packageFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addAction(Intent.ACTION_PACKAGE_CHANGED)
+            addDataScheme("package")
+        }
+        
+        // Use RECEIVER_EXPORTED for Android 16 to ensure we receive system broadcasts
+        if (Build.VERSION.SDK_INT >= 34) { // Android 14+
+            registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_EXPORTED)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED)
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            registerReceiver(packageChangeReceiver, packageFilter, 2) // RECEIVER_NOT_EXPORTED = 2
         } else {
             registerReceiver(packageChangeReceiver, packageFilter)
         }
@@ -635,6 +671,19 @@ class HomeScreenActivity : AppCompatActivity() {
         if (isDefaultLauncher) {
             // Always show home screen when we're the default launcher
             Log.d(TAG, "Running as default launcher - home screen enabled")
+            
+            // Force immediate visibility update when launcher is set as default
+            // This ensures elements are shown right away
+            if (::adapter.isInitialized && adapter.getItemCount() == 0) {
+                Log.d(TAG, "First run as default launcher, forcing element load")
+                lifecycleScope.launch {
+                    withContext(Dispatchers.Main) {
+                        loadHomeScreenItems()
+                    }
+                }
+            } else if (!::adapter.isInitialized) {
+                Log.d(TAG, "Adapter not yet initialized, will load items via setupUI")
+            }
             return
         }
         
@@ -731,8 +780,24 @@ class HomeScreenActivity : AppCompatActivity() {
     }
     
     private fun updateVisibility(isHidden: Boolean? = null) {
+        val currentHiddenState = isHidden ?: HiddenModeStateManager.currentState
+        val currentTime = System.currentTimeMillis()
+        
+        // Check if we're updating with the same state too quickly
+        if (lastHiddenState == currentHiddenState && 
+            currentTime - lastUpdateTime < 500) { // 500ms threshold
+            Log.d(TAG, "Skipping duplicate updateVisibility call - same state: $currentHiddenState")
+            return
+        }
+        
+        // Update last state and time
+        lastHiddenState = currentHiddenState
+        lastUpdateTime = currentTime
+        
+        // Log for debugging
+        Log.d(TAG, "updateVisibility: new state = $currentHiddenState")
+        
         lifecycleScope.launch {
-            val currentHiddenState = isHidden ?: HiddenModeStateManager.currentState
             val hideApps = preferences.hideAppsInHiddenMode
             val showHomeScreen = preferences.showHomeScreen
             
@@ -829,27 +894,29 @@ class HomeScreenActivity : AppCompatActivity() {
         
         isLoadingItems = true
         
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch {
             try {
-                val allItems = repository.getAllItems()
-                
-                // Filter hidden apps if needed
-                val filteredItems = filterHiddenApps(allItems)
-                
-                withContext(Dispatchers.Main) {
-                    Log.d(TAG, "Loaded ${filteredItems.size} items from database (filtered from ${allItems.size})")
+                withContext(Dispatchers.IO) {
+                    val allItems = repository.getAllItems()
                     
-                    // Separate bottom bar items from regular grid items
-                    val bottomBarItems = filteredItems.filter { it.cellY == -1 } // Special Y for bottom bar
-                    val gridItems = filteredItems.filter { it.cellY != -1 }
+                    // Filter hidden apps if needed
+                    val filteredItems = filterHiddenApps(allItems)
                     
-                    // Load bottom bar icons
-                    loadBottomBarIcons(bottomBarItems)
-                    
-                    // Load regular grid items
-                    adapter.submitList(gridItems)
-                    // Update focus manager with items
-                    focusManager.updateItems(gridItems)
+                    withContext(Dispatchers.Main) {
+                        Log.d(TAG, "Loaded ${filteredItems.size} items from database (filtered from ${allItems.size})")
+                        
+                        // Separate bottom bar items from regular grid items
+                        val bottomBarItems = filteredItems.filter { it.cellY == -1 } // Special Y for bottom bar
+                        val gridItems = filteredItems.filter { it.cellY != -1 }
+                        
+                        // Load bottom bar icons
+                        loadBottomBarIcons(bottomBarItems)
+                        
+                        // Load regular grid items
+                        adapter.submitList(gridItems)
+                        // Update focus manager with items
+                        focusManager.updateItems(gridItems)
+                    }
                 }
             } finally {
                 isLoadingItems = false
@@ -1197,6 +1264,9 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun handleItemMoved(item: HomeItemModel, newX: Int, newY: Int) {
         Log.d(TAG, "handleItemMoved: Moving item ${item.id} from ${item.cellX},${item.cellY} to $newX,$newY")
         
+        // Check if there's an item at the target position that will be replaced
+        val replacedItem = adapter.getItemAtPosition(newX, newY)
+        
         // First update UI visually
         val moved = adapter.moveItem(item.id, newX, newY)
         
@@ -1204,6 +1274,13 @@ class HomeScreenActivity : AppCompatActivity() {
             Log.d(TAG, "Visual move succeeded for item ${item.id}")
             // If visual update succeeded, update database
             lifecycleScope.launch(Dispatchers.IO) {
+                // If there was an item at the target position, remove it from database
+                if (replacedItem != null && replacedItem.id != item.id) {
+                    repository.deleteItem(replacedItem)
+                    Log.d(TAG, "Removed replaced item ${replacedItem.id} from database")
+                }
+                
+                // Move the item to new position in database
                 repository.moveItem(item.id, newX, newY)
                 Log.d(TAG, "Item ${item.id} moved to $newX, $newY in database")
             }
@@ -1754,8 +1831,7 @@ class HomeScreenActivity : AppCompatActivity() {
                         // Clear existing views
                         adapter.clearAllViews()
                         
-                        // Reload items
-                        loadHomeScreenItems()
+                        // Don't call loadHomeScreenItems here - updateVisibility will do it
                         
                         // Re-apply adapter settings
                         if (::adapter.isInitialized) {
@@ -1783,13 +1859,24 @@ class HomeScreenActivity : AppCompatActivity() {
         
         // Check if adapter has items when home screen is enabled
         if (currentShowHomeScreen && adapter.getItemCount() == 0) {
-            Log.d(TAG, "No items in adapter but home screen is enabled, reloading...")
-            lifecycleScope.launch {
-                withContext(Dispatchers.Main) {
-                    adapter.clearAllViews()
-                    loadHomeScreenItems()
-                    gridLayout.requestLayout()
-                    gridLayout.invalidate()
+            Log.d(TAG, "No items in adapter but home screen is enabled")
+            // Force load if we're the default launcher and have no items
+            if (isDefaultLauncher()) {
+                Log.d(TAG, "Default launcher with no items, forcing load")
+                lifecycleScope.launch {
+                    // First ensure defaults are initialized
+                    val itemCount = withContext(Dispatchers.IO) {
+                        repository.getAllItems().size
+                    }
+                    if (itemCount == 0) {
+                        withContext(Dispatchers.IO) {
+                            repository.initializeDefaultItems(GridConfiguration.fromPreferences(preferences))
+                        }
+                    }
+                    // Then load items
+                    withContext(Dispatchers.Main) {
+                        loadHomeScreenItems()
+                    }
                 }
             }
         }
@@ -1868,8 +1955,8 @@ class HomeScreenActivity : AppCompatActivity() {
         val newState = !currentState
         HiddenModeStateManager.setHiddenMode(this, newState)
         
-        // Update UI immediately
-        updateVisibility(newState)
+        // Don't call updateVisibility here - it will be called via broadcast receiver
+        // This prevents double update
         
         Log.d(TAG, "Hidden mode toggled to: $newState")
     }

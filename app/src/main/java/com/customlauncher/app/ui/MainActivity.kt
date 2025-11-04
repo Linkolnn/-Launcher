@@ -308,8 +308,17 @@ class MainActivity : AppCompatActivity() {
         val hideAppsFilter = IntentFilter("com.customlauncher.HIDE_APPS_SETTING_CHANGED")
         
         // Android 12+ requires explicit export flag
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Android 13+ has the constant
+        if (Build.VERSION.SDK_INT >= 34) { // Android 14+ needs RECEIVER_EXPORTED for system broadcasts
+            registerReceiver(keyCombinationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(hiddenModeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_EXPORTED) // System broadcast
+            registerReceiver(iconPackChangeReceiver, iconPackFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(screenshotBlockingReceiver, screenshotFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(buttonPhoneModeReceiver, buttonPhoneModeFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(appLabelsChangeReceiver, appLabelsFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(hideAppsSettingReceiver, hideAppsFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 uses NOT_EXPORTED
             registerReceiver(keyCombinationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(hiddenModeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
             registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED)

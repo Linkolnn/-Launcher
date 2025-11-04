@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -73,30 +74,57 @@ class HomeScreenAdapter(
         PerformanceMonitor.measureTime("submitList") {
             Log.d(TAG, "Updating items, count: ${newItems.size}")
             
-            // Always clear completely first to prevent duplicates when switching modes
-            clearAllViews()
-            items.clear()
-            
-            // If list is empty, we're done
-            if (newItems.isEmpty()) {
-                Log.d(TAG, "Empty item list, grid cleared")
+            // Check if items are actually different
+            if (items == newItems) {
+                Log.d(TAG, "Items haven't changed, skipping update")
                 return@measureTime
             }
             
-            // Add all new items
-            items.addAll(newItems)
-            
-            // Add views to grid
-            items.forEach { item ->
-                try {
-                    addItemToGrid(item)
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error adding item ${item.id} to grid", e)
-                }
+            // Check if this is just a removal (items decreased)
+            val removedItems = items.filter { oldItem ->
+                newItems.none { it.id == oldItem.id }
+            }
+            val addedItems = newItems.filter { newItem ->
+                items.none { it.id == newItem.id }
             }
             
-            Log.d(TAG, "Grid updated with ${items.size} items")
-            Log.d(TAG, "View pool stats: ${viewPool.getPoolStats()}")
+            // If only items were removed and no items added, use animation
+            if (removedItems.isNotEmpty() && addedItems.isEmpty()) {
+                Log.d(TAG, "Only removing items, using animation")
+                removedItems.forEach { item ->
+                    removeItemAnimated(item)
+                }
+                return@measureTime
+            }
+            
+            // Otherwise do full refresh
+            // Batch updates to prevent multiple visual refreshes
+            gridLayout.post {
+                // Always clear completely first to prevent duplicates when switching modes
+                clearAllViews()
+                items.clear()
+                
+                // If list is empty, we're done
+                if (newItems.isEmpty()) {
+                    Log.d(TAG, "Empty item list, grid cleared")
+                    return@post
+                }
+                
+                // Add all new items
+                items.addAll(newItems)
+                
+                // Add views to grid in a single batch
+                items.forEach { item ->
+                    try {
+                        addItemToGrid(item)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error adding item ${item.id} to grid", e)
+                    }
+                }
+                
+                Log.d(TAG, "Grid updated with ${items.size} items")
+                Log.d(TAG, "View pool stats: ${viewPool.getPoolStats()}")
+            }
         }
     }
     
@@ -228,26 +256,35 @@ class HomeScreenAdapter(
         // Find the view for this item
         val view = itemViews[item.id] ?: return
         
-        // Animate fade out
+        // Remove from tracking immediately to prevent interactions
+        itemViews.remove(item.id)
+        items.removeAll { it.id == item.id }
+        
+        // Use hardware acceleration for smoother animation
+        view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        
+        // Animate fade out with smooth interpolator
         view.animate()
             .alpha(0f)
-            .scaleX(0.8f)
-            .scaleY(0.8f)
-            .setDuration(200)
+            .scaleX(0.9f)  // Less aggressive scale for smoother look
+            .scaleY(0.9f)
+            .setDuration(250)  // Slightly longer for smoothness
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
             .withEndAction {
                 // Remove from grid
-                gridLayout.removeView(view)
-                
-                // Return view to pool if it's an app view
-                if (item.type == HomeItemModel.ItemType.APP) {
-                    viewPool.recycleAppView(view)
+                gridLayout.post {
+                    gridLayout.removeView(view)
+                    
+                    // Return view to pool if it's an app view
+                    if (item.type == HomeItemModel.ItemType.APP) {
+                        viewPool.recycleAppView(view)
+                    }
+                    
+                    // Reset layer type after animation
+                    view.setLayerType(View.LAYER_TYPE_NONE, null)
+                    
+                    Log.d(TAG, "Item removed: ${item.packageName}")
                 }
-                
-                // Remove from tracking
-                itemViews.remove(item.id)
-                items.removeAll { it.id == item.id }
-                
-                Log.d(TAG, "Item removed: ${item.packageName}")
             }
             .start()
     }
@@ -261,9 +298,22 @@ class HomeScreenAdapter(
         // Find all items with this package
         val itemsToRemove = items.filter { it.packageName == packageName }.toList()
         
-        // Remove each with animation
-        itemsToRemove.forEach { item ->
-            removeItemAnimated(item)
+        if (itemsToRemove.isEmpty()) {
+            Log.d(TAG, "No items found for package: $packageName")
+            return
+        }
+        
+        // If single item, remove immediately
+        if (itemsToRemove.size == 1) {
+            removeItemAnimated(itemsToRemove[0])
+            return
+        }
+        
+        // For multiple items, stagger the animations for smoother effect
+        itemsToRemove.forEachIndexed { index, item ->
+            gridLayout.postDelayed({
+                removeItemAnimated(item)
+            }, index * 50L)  // 50ms delay between each animation
         }
     }
     
@@ -847,11 +897,61 @@ class HomeScreenAdapter(
     }
     
     /**
+     * Get item at specific grid position (public)
+     */
+    fun getItemAtPosition(x: Int, y: Int): HomeItemModel? {
+        return items.find { item ->
+            item.cellX == x && item.cellY == y
+        }
+    }
+    
+    /**
+     * Find item at specific grid position (private)
+     */
+    private fun findItemAtPosition(x: Int, y: Int): HomeItemModel? {
+        return getItemAtPosition(x, y)
+    }
+    
+    /**
+     * Remove item at specific grid position
+     */
+    private fun removeItemAtPosition(x: Int, y: Int) {
+        val itemAtPosition = findItemAtPosition(x, y)
+        if (itemAtPosition != null) {
+            Log.d(TAG, "Removing existing item at $x,$y: ${itemAtPosition.packageName}")
+            
+            // Remove view from grid
+            val viewToRemove = itemViews[itemAtPosition.id]
+            if (viewToRemove != null) {
+                gridLayout.removeView(viewToRemove)
+                itemViews.remove(itemAtPosition.id)
+                
+                // Return view to pool if it's an app
+                if (itemAtPosition.type == HomeItemModel.ItemType.APP) {
+                    viewPool.recycleAppView(viewToRemove)
+                }
+            }
+            
+            // Remove from items list
+            items.removeAll { it.id == itemAtPosition.id }
+        }
+    }
+    
+    /**
      * Move item to new position
      */
     fun moveItem(itemId: Long, newX: Int, newY: Int): Boolean {
         val view = itemViews[itemId] ?: return false
         val item = view.tag as? HomeItemModel ?: return false
+        
+        // Don't move if it's the same position
+        if (item.cellX == newX && item.cellY == newY) {
+            Log.d(TAG, "Item already at position $newX,$newY, skipping move")
+            return true
+        }
+        
+        // First, check if there's an item at the new position and remove it
+        removeItemAtPosition(newX, newY)
         
         // Remove from old position
         gridLayout.removeItemAt(item.cellX, item.cellY)

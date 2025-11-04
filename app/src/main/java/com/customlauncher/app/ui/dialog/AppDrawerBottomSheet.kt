@@ -75,10 +75,29 @@ class AppDrawerBottomSheet : BottomSheetDialogFragment() {
     // BroadcastReceiver for package changes
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "com.customlauncher.PACKAGE_CHANGED") {
-                Log.d(TAG, "Package change detected, invalidating cache and reloading apps")
-                viewModel.invalidateCache()
-                viewModel.loadApps()
+            val action = intent?.action
+            val packageName = intent?.data?.schemeSpecificPart
+            
+            Log.d(TAG, "Package change detected: $action for $packageName")
+            
+            when (action) {
+                Intent.ACTION_PACKAGE_REMOVED -> {
+                    // Check if package is being replaced
+                    val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                    if (!replacing) {
+                        Log.d(TAG, "Package removed: $packageName")
+                        // Use special handler for package removal
+                        packageName?.let { viewModel.onPackageRemoved(it) }
+                    }
+                }
+                Intent.ACTION_PACKAGE_ADDED,
+                Intent.ACTION_PACKAGE_REPLACED,
+                Intent.ACTION_PACKAGE_CHANGED -> {
+                    Log.d(TAG, "Package changed: $action - $packageName")
+                    // Invalidate cache and reload apps
+                    viewModel.invalidateCache()
+                    viewModel.loadApps()
+                }
             }
         }
     }
@@ -300,9 +319,19 @@ class AppDrawerBottomSheet : BottomSheetDialogFragment() {
         // Setup search if enabled
         updateSearchVisibility()
         
-        // Register package change receiver
-        val filter = IntentFilter("com.customlauncher.PACKAGE_CHANGED")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // Register package change receiver - directly register system events for Android 16 compatibility
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addAction(Intent.ACTION_PACKAGE_CHANGED)
+            addDataScheme("package")
+        }
+        
+        // Use RECEIVER_EXPORTED for Android 16 to ensure we receive system broadcasts
+        if (Build.VERSION.SDK_INT >= 34) { // Android 14+
+            requireContext().registerReceiver(packageChangeReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requireContext().registerReceiver(packageChangeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             requireContext().registerReceiver(packageChangeReceiver, filter)

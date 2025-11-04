@@ -230,7 +230,10 @@ class AppListActivity : AppCompatActivity() {
         }
         
         // Android 12+ requires explicit export flag
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // Use RECEIVER_EXPORTED for Android 16 to ensure we receive system broadcasts
+        if (Build.VERSION.SDK_INT >= 34) { // Android 14+
+            registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_EXPORTED)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(packageChangeReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             registerReceiver(packageChangeReceiver, packageFilter, 2) // RECEIVER_NOT_EXPORTED = 2

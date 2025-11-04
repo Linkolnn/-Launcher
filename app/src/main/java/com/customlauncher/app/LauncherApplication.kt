@@ -56,8 +56,15 @@ class LauncherApplication : Application() {
             addAction(Intent.ACTION_PACKAGE_CHANGED)
             addDataScheme("package")
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(packageChangeReceiver, filter, Context.RECEIVER_EXPORTED)
+        // Use RECEIVER_EXPORTED for all Android 12+ versions to ensure we receive system broadcasts
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                registerReceiver(packageChangeReceiver, filter, Context.RECEIVER_EXPORTED)
+            } catch (e: Exception) {
+                Log.e("LauncherApplication", "Failed to register package receiver with EXPORTED flag", e)
+                // Fallback to no flag
+                registerReceiver(packageChangeReceiver, filter)
+            }
         } else {
             registerReceiver(packageChangeReceiver, filter)
         }

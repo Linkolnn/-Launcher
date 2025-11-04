@@ -51,6 +51,17 @@ class AppViewModel : ViewModel() {
         repository.invalidateCache()
     }
     
+    fun onPackageRemoved(packageName: String) {
+        Log.d("AppViewModel", "Package removed: $packageName, forcing immediate update")
+        // Force immediate cache invalidation
+        repository.invalidateCache()
+        // Force reload with a slight delay to ensure system updates
+        viewModelScope.launch {
+            delay(100)
+            loadApps()
+        }
+    }
+    
     fun loadApps() {
         val loadId = loadCounter.incrementAndGet()
         Log.d("AppViewModel", "loadApps() called, loadId=$loadId")
