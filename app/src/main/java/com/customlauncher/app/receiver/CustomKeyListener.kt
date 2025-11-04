@@ -5,6 +5,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import com.customlauncher.app.data.model.CustomKeyCombination
+import com.customlauncher.app.manager.HiddenModeStateManager
 
 class CustomKeyListener(
     private val onCombinationDetected: () -> Unit
@@ -73,6 +74,13 @@ class CustomKeyListener(
         
         // Set timeout for reset
         handler.postDelayed(resetRunnable, combination.timeoutMs)
+        
+        // In hidden mode, return true for keys that are part of the combination
+        // This prevents them from being processed as navigation keys (like back)
+        if (HiddenModeStateManager.currentState && combination.keys.contains(keyCode)) {
+            Log.d(TAG, "In hidden mode - blocking navigation for combination key: $keyCode")
+            return true
+        }
         
         return false
     }

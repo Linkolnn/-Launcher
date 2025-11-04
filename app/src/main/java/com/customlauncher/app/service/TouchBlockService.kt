@@ -21,11 +21,16 @@ import com.customlauncher.app.R
 import com.customlauncher.app.ui.MainActivity
 import android.app.KeyguardManager
 import com.customlauncher.app.LauncherApplication
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import com.customlauncher.app.manager.HiddenModeStateManager
 
 class TouchBlockService : Service() {
     
     private var blockView: View? = null
     private var windowManager: WindowManager? = null
+    private var screenUnlockReceiver: BroadcastReceiver? = null
+    private var shouldBlockAfterUnlock = false
     
     override fun onCreate() {
         super.onCreate()
@@ -44,9 +49,13 @@ class TouchBlockService : Service() {
                     // HiddenModeStateManager handles the logic of when to call this
                     if (DEBUG) android.util.Log.d(TAG, "Starting touch blocking")
                     blockTouch()
+                    // Register receiver to handle screen lock/unlock events
+                    registerScreenUnlockReceiver()
                 }
                 ACTION_UNBLOCK_TOUCH -> {
                     unblockTouch()
+                    unregisterScreenUnlockReceiver()
+                    shouldBlockAfterUnlock = false
                     // Stop service after unblocking
                     stopSelf()
                 }
@@ -71,6 +80,16 @@ class TouchBlockService : Service() {
             if (blockView != null) {
                 if (DEBUG) android.util.Log.d(TAG, "Block view already exists")
                 return
+            }
+            
+            // Check if screen is locked - DO NOT block touch on lock screen
+            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+            if (keyguardManager?.isKeyguardLocked == true) {
+                android.util.Log.d(TAG, "Screen is locked - not blocking touch to allow unlock")
+                // Register receiver to block after unlock
+                registerScreenUnlockReceiver()
+                shouldBlockAfterUnlock = true
+                return  // Don't block touch when screen is locked
             }
             
             // Check permission first
@@ -123,19 +142,9 @@ class TouchBlockService : Service() {
             android.util.Log.d(TAG, "Screenshot blocking enabled - adding FLAG_SECURE to overlay")
         }
         
-        // Add flags to show on lock screen and dismiss keyguard
-        val finalFlags = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> {
-                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-            }
-            else -> {
-                @Suppress("DEPRECATION")
-                flags or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
-                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-            }
-        }
+        // Don't add FLAG_SHOW_WHEN_LOCKED or FLAG_DISMISS_KEYGUARD
+        // We don't want to interfere with lock screen at all
+        val finalFlags = flags or WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         
         try {
             // Create blocking view with proper touch interception and multitouch blocking
@@ -316,11 +325,65 @@ class TouchBlockService : Service() {
         return result
     }
     
+    private fun registerScreenUnlockReceiver() {
+        if (screenUnlockReceiver != null) return  // Already registered
+        
+        screenUnlockReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    Intent.ACTION_USER_PRESENT -> {
+                        // Screen unlocked - now we can block touch if we're in hidden mode
+                        android.util.Log.d(TAG, "Screen unlocked - checking if should block touch")
+                        if (shouldBlockAfterUnlock && HiddenModeStateManager.currentState) {
+                            android.util.Log.d(TAG, "Blocking touch after unlock in hidden mode")
+                            blockTouch()
+                        }
+                        // Unregister receiver after handling
+                        unregisterScreenUnlockReceiver()
+                        shouldBlockAfterUnlock = false
+                    }
+                    Intent.ACTION_SCREEN_OFF -> {
+                        // Screen locked again - ensure we don't block
+                        android.util.Log.d(TAG, "Screen locked again")
+                        unblockTouch()
+                        shouldBlockAfterUnlock = true  // Will block again after next unlock
+                    }
+                }
+            }
+        }
+        
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_USER_PRESENT)  // Screen unlocked
+            addAction(Intent.ACTION_SCREEN_OFF)    // Screen locked
+        }
+        
+        try {
+            registerReceiver(screenUnlockReceiver, filter)
+            android.util.Log.d(TAG, "Screen unlock receiver registered")
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to register screen unlock receiver", e)
+        }
+    }
+    
+    private fun unregisterScreenUnlockReceiver() {
+        screenUnlockReceiver?.let { receiver ->
+            try {
+                unregisterReceiver(receiver)
+                android.util.Log.d(TAG, "Screen unlock receiver unregistered")
+            } catch (e: Exception) {
+                // Receiver might not be registered
+            }
+            screenUnlockReceiver = null
+        }
+    }
+    
     override fun onDestroy() {
         super.onDestroy()
         if (DEBUG) android.util.Log.d(TAG, "TouchBlockService onDestroy called")
         // Remove all overlays when service is destroyed
         unblockTouch()
+        // Unregister receiver if registered
+        unregisterScreenUnlockReceiver()
         // Clear window manager reference
         windowManager = null
     }

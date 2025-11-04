@@ -60,43 +60,83 @@ class GridConfigDialog(
         // Set transparent background
         window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         
+        // Get screen dimensions for adaptive sizing
+        val displayMetrics = context.resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val screenHeight = displayMetrics.heightPixels
+        val density = displayMetrics.density
+        
+        // Minimal padding for compact look
+        val dialogPadding = if (screenWidth <= 640) 12 else 24
+        
+        // Create ScrollView for small screens
+        val scrollView = android.widget.ScrollView(context).apply {
+            isFillViewport = true
+            isVerticalScrollBarEnabled = false // Hide scrollbar for cleaner look
+        }
+        
         // Create layout with custom background
         val rootLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             // Create background with smaller corner radius (no stroke)
             val bgDrawable = GradientDrawable().apply {
                 setColor(ContextCompat.getColor(context, R.color.background_dark))
-                cornerRadius = 16f * resources.displayMetrics.density // Smaller radius
+                cornerRadius = 16f * density // Smaller radius
             }
             background = bgDrawable
-            setPadding(32, 32, 32, 32)
+            setPadding(
+                (dialogPadding * density).toInt(), 
+                (dialogPadding * density).toInt(), 
+                (dialogPadding * density).toInt(), 
+                (dialogPadding * density).toInt()
+            )
             gravity = Gravity.CENTER
         }
         
-        // Title with custom font and white color
+        // Title with custom font and white color - compact version
         val titleText = TextView(context).apply {
             text = if (isButtonMode) "Сетка для кнопочных телефонов" else "Сетка главного экрана"
-            textSize = 20f
+            // Smaller text size for compact look
+            textSize = if (screenWidth <= 640) 14f else 18f
             setTextColor(Color.WHITE) // Changed to white
             gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 32)
+            // Reduced bottom padding
+            setPadding(0, 0, 0, (8 * density).toInt())
             // Set custom font 5mal6Lampen
             typeface = try {
                 ResourcesCompat.getFont(context, R.font.fivemal6lampen)
             } catch (e: Exception) {
                 Typeface.DEFAULT_BOLD
             }
-            // Добавляем межстрочный интервал
-            setLineSpacing(10f * resources.displayMetrics.density, 1.0f)
+            // Межстрочный интервал для предотвращения наслаивания текста
+            setLineSpacing(15f * density, 1.0f)  // Increased line spacing as requested
         }
         rootLayout.addView(titleText)
         
-        // Grid preview
+        // Grid preview with adaptive size
         gridPreview = GridPreviewView(context).apply {
             updateGrid(columns, rows)
         }
+        
+        // Calculate adaptive preview size - 65% of dialog height
+        val previewWidth: Int
+        val previewHeight: Int
+        
+        if (screenWidth <= 640) {
+            // For very small screens - narrower width, 65% of available height
+            previewWidth = (screenWidth * 0.5f).toInt()
+            // Calculate 65% of available screen height (accounting for other elements)
+            val availableHeight = screenHeight - (100 * density).toInt() // Leave space for title and controls
+            previewHeight = (availableHeight * 0.65f).toInt()
+        } else {
+            // For normal screens
+            val availableHeight = screenHeight - (200 * density).toInt()
+            previewWidth = (screenWidth * 0.7f).toInt().coerceAtMost((400 * density).toInt())
+            previewHeight = (availableHeight * 0.65f).toInt().coerceAtMost((600 * density).toInt())
+        }
+        
         val previewContainer = FrameLayout(context).apply {
-            addView(gridPreview, FrameLayout.LayoutParams(400, 600).apply {
+            addView(gridPreview, FrameLayout.LayoutParams(previewWidth, previewHeight).apply {
                 gravity = Gravity.CENTER
             })
         }
@@ -122,45 +162,29 @@ class GridConfigDialog(
         }
         rootLayout.addView(rowsLayout)
         
-        // Buttons
+        // Buttons in vertical layout with full width
         val buttonsLayout = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
+            orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(0, 24, 0, 0)
+            setPadding(0, (8 * density).toInt(), 0, 0)  // Reduced top padding
         }
         
-        // Cancel button with custom font and more rounded corners
-        cancelButton = MaterialButton(context).apply {
-            text = "ОТМЕНА"
-            setTextColor(Color.WHITE)
-            setBackgroundColor(ContextCompat.getColor(context, R.color.background_dark))
-            cornerRadius = 50 // More rounded
-            setPadding(40, 16, 40, 16)
-            // Set custom font
-            typeface = try {
-                ResourcesCompat.getFont(context, R.font.fivemal6lampen)
-            } catch (e: Exception) {
-                Typeface.DEFAULT_BOLD
-            }
-            setOnClickListener {
-                dismiss()
-            }
-        }
-        buttonsLayout.addView(cancelButton)
-        
-        // Spacer
-        val spacer = View(context).apply {
-            layoutParams = LinearLayout.LayoutParams(32, 1)
-        }
-        buttonsLayout.addView(spacer)
-        
-        // Save button with custom font and more rounded corners
+        // Save button with custom font and more rounded corners (top)
         saveButton = MaterialButton(context).apply {
             text = "СОХРАНИТЬ"
             setTextColor(ContextCompat.getColor(context, R.color.background_dark))
             setBackgroundColor(ContextCompat.getColor(context, R.color.accent_yellow))
             cornerRadius = 50 // More rounded
-            setPadding(40, 16, 40, 16)
+            // Adaptive padding
+            val buttonPadding = if (screenWidth <= 640) 12 else 16
+            setPadding(
+                (40 * density).toInt(), 
+                (buttonPadding * density).toInt(), 
+                (40 * density).toInt(), 
+                (buttonPadding * density).toInt()
+            )
+            // Adaptive text size
+            textSize = if (screenWidth <= 640) 14f else 16f
             // Set custom font
             typeface = try {
                 ResourcesCompat.getFont(context, R.font.fivemal6lampen)
@@ -183,24 +207,86 @@ class GridConfigDialog(
                 }
             }
         }
-        buttonsLayout.addView(saveButton)
+        buttonsLayout.addView(saveButton, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            setMargins(0, 0, 0, (4 * density).toInt())  // Reduced margin between buttons
+        })
+        
+        // Cancel button with custom font and more rounded corners (bottom)
+        cancelButton = MaterialButton(context).apply {
+            text = "ОТМЕНА"
+            setTextColor(Color.WHITE)
+            setBackgroundColor(ContextCompat.getColor(context, R.color.background_dark))
+            cornerRadius = 50 // More rounded
+            // Adaptive padding
+            val buttonPadding = if (screenWidth <= 640) 12 else 16
+            setPadding(
+                (40 * density).toInt(), 
+                (buttonPadding * density).toInt(), 
+                (40 * density).toInt(), 
+                (buttonPadding * density).toInt()
+            )
+            // Adaptive text size
+            textSize = if (screenWidth <= 640) 14f else 16f
+            // Set custom font
+            typeface = try {
+                ResourcesCompat.getFont(context, R.font.fivemal6lampen)
+            } catch (e: Exception) {
+                Typeface.DEFAULT_BOLD
+            }
+            setOnClickListener {
+                dismiss()
+            }
+        }
+        buttonsLayout.addView(cancelButton, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ))
         
         rootLayout.addView(buttonsLayout)
         
-        setContentView(rootLayout)
+        // Add rootLayout to scrollView
+        scrollView.addView(rootLayout)
+        
+        // Set scrollView as content view
+        setContentView(scrollView)
+        
+        // Set dialog window size with margins
+        val marginPx = 10 // 10px margin as requested
+        val dialogWidth = if (screenWidth <= 640) {
+            screenWidth - (marginPx * 2) // Account for margins on both sides
+        } else {
+            (screenWidth * 0.9f).toInt().coerceAtMost((400 * density).toInt())
+        }
+        
+        // Limit dialog height on small screens to ensure scrolling works  
+        val maxDialogHeight = if (screenHeight <= 640) {
+            screenHeight - (marginPx * 2) // Account for top and bottom margins
+        } else {
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        
+        window?.setLayout(dialogWidth, maxDialogHeight)
     }
     
     private fun createControlRow(label: String, initialValue: Int, onChange: (Int) -> Unit): LinearLayout {
+        val displayMetrics = context.resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val density = displayMetrics.density
+        
         return LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, 16, 0, 16)
+            val rowPadding = if (screenWidth <= 640) 4 else 12  // Reduced padding between controls
+            setPadding(0, (rowPadding * density).toInt(), 0, (rowPadding * density).toInt())
             
-            // Label
+            // Label with adaptive text size - compact
             val labelView = TextView(context).apply {
                 text = label
                 setTextColor(Color.WHITE)
-                textSize = 16f
+                textSize = if (screenWidth <= 640) 13f else 15f  // Smaller text
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
             addView(labelView)
@@ -211,14 +297,16 @@ class GridConfigDialog(
             }
             addView(minusButton)
             
-            // Value text
+            // Value text with adaptive size - compact
             val valueText = TextView(context).apply {
                 text = initialValue.toString()
                 setTextColor(Color.WHITE)
-                textSize = 18f
+                textSize = if (screenWidth <= 640) 14f else 17f  // Smaller text
                 gravity = Gravity.CENTER
-                setPadding(24, 0, 24, 0)
-                minWidth = 60
+                val valuePadding = if (screenWidth <= 640) 6 else 20  // Minimal padding
+                setPadding((valuePadding * density).toInt(), 0, (valuePadding * density).toInt(), 0)
+                val minWidthDp = if (screenWidth <= 640) 25 else 50  // Smaller min width
+                minWidth = (minWidthDp * density).toInt()
             }
             addView(valueText)
             
@@ -238,10 +326,24 @@ class GridConfigDialog(
     }
     
     private fun createCircularButton(text: String, onClick: () -> Unit): View {
+        val displayMetrics = context.resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val density = displayMetrics.density
+        
+        // Adaptive button size (in dp converted to pixels) - ultra compact
+        val buttonSizeDp = if (screenWidth <= 640) 16 else 24  // Reduced by ~4.5 times from original
+        val buttonSizePx = (buttonSizeDp * density).toInt()
+        
         // Create a custom circular button with icon
         return FrameLayout(context).apply {
-            layoutParams = LinearLayout.LayoutParams(64, 64).apply {
-                setMargins(8, 0, 8, 0)
+            layoutParams = LinearLayout.LayoutParams(buttonSizePx, buttonSizePx).apply {
+                val buttonMargin = if (screenWidth <= 640) 1 else 4
+                setMargins(
+                    (buttonMargin * density).toInt(), 
+                    0, 
+                    (buttonMargin * density).toInt(), 
+                    0
+                )
             }
             
             // Background circle
@@ -266,9 +368,14 @@ class GridConfigDialog(
                 // Scale the icon appropriately
                 scaleType = ImageView.ScaleType.CENTER_INSIDE
                 
-                // Add padding for better visual appearance
-                val padding = 16 // Adjust padding as needed
-                setPadding(padding, padding, padding, padding)
+                // Adaptive padding for icon - ultra minimal for tiny buttons
+                val iconPadding = if (screenWidth <= 640) 2 else 6  // Minimal padding for 16dp buttons
+                setPadding(
+                    (iconPadding * density).toInt(), 
+                    (iconPadding * density).toInt(), 
+                    (iconPadding * density).toInt(), 
+                    (iconPadding * density).toInt()
+                )
             }
             
             // Add icon with center layout params
