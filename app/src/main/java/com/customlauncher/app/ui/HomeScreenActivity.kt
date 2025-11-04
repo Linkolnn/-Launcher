@@ -65,7 +65,8 @@ class HomeScreenActivity : AppCompatActivity() {
     private lateinit var modeManager: HomeScreenModeManager
     private lateinit var focusManager: GridFocusManager
     private var customKeyListener: CustomKeyListener? = null
-    private var isLoadingItems = false // Flag to prevent concurrent loading
+    private var isLoadingItems = false
+    private var previousHiddenState: Boolean? = null // Flag to prevent concurrent loading
     private var currentPopupWindow: PopupWindow? = null
     private var lastPackageChangeTime = 0L
     private var lastShowHomeScreen = false
@@ -903,17 +904,73 @@ class HomeScreenActivity : AppCompatActivity() {
                     val filteredItems = filterHiddenApps(allItems)
                     
                     withContext(Dispatchers.Main) {
-                        Log.d(TAG, "Loaded ${filteredItems.size} items from database (filtered from ${allItems.size})")
+                        // Check for duplicate positions and remove them
+                        val positionMap = mutableMapOf<Pair<Int, Int>, MutableList<HomeItemModel>>()
+                        filteredItems.forEach { item ->
+                            val pos = Pair(item.cellX, item.cellY)
+                            positionMap.getOrPut(pos) { mutableListOf() }.add(item)
+                        }
+                        
+                        val duplicates = positionMap.filter { it.value.size > 1 }
+                        val itemsToRemoveFromDb = mutableListOf<HomeItemModel>()
+                        val cleanedItems = mutableListOf<HomeItemModel>()
+                        
+                        if (duplicates.isNotEmpty()) {
+                            Log.w(TAG, "Found duplicate positions in loaded items, removing duplicates:")
+                            duplicates.forEach { (pos, items) ->
+                                Log.w(TAG, "  Position ${pos.first},${pos.second}: ${items.map { "${it.id}(${it.packageName})" }.joinToString(", ")}")
+                                // Keep only the first item (with lowest ID), remove others
+                                val sortedItems = items.sortedBy { it.id }
+                                cleanedItems.add(sortedItems.first())
+                                // Mark others for deletion
+                                sortedItems.drop(1).forEach { duplicateItem ->
+                                    itemsToRemoveFromDb.add(duplicateItem)
+                                }
+                            }
+                            
+                            // Remove duplicates from database
+                            if (itemsToRemoveFromDb.isNotEmpty()) {
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    itemsToRemoveFromDb.forEach { item ->
+                                        repository.deleteItem(item)
+                                        Log.d(TAG, "Deleted duplicate item ${item.id} from database")
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Add non-duplicate items
+                        val nonDuplicatePositions = positionMap.filter { it.value.size == 1 }
+                        nonDuplicatePositions.forEach { (_, items) ->
+                            cleanedItems.addAll(items)
+                        }
+                        
+                        val finalItems = cleanedItems.sortedBy { it.id }
+                        Log.d(TAG, "Loaded ${finalItems.size} items from database (filtered from ${allItems.size}, removed ${itemsToRemoveFromDb.size} duplicates)")
                         
                         // Separate bottom bar items from regular grid items
-                        val bottomBarItems = filteredItems.filter { it.cellY == -1 } // Special Y for bottom bar
-                        val gridItems = filteredItems.filter { it.cellY != -1 }
+                        val bottomBarItems = finalItems.filter { it.cellY == -1 } // Special Y for bottom bar
+                        val gridItems = finalItems.filter { it.cellY != -1 }
                         
                         // Load bottom bar icons
                         loadBottomBarIcons(bottomBarItems)
                         
                         // Load regular grid items
-                        adapter.submitList(gridItems)
+                        // Use animation when showing previously hidden items
+                        val currentHiddenState = HiddenModeStateManager.currentState
+                        val shouldAnimate = previousHiddenState == true && 
+                                          !currentHiddenState && 
+                                          LauncherApplication.instance.preferences.hideAppsInHiddenMode
+                        
+                        if (shouldAnimate) {
+                            Log.d(TAG, "Exiting hidden mode, showing items with animation")
+                            adapter.submitListAnimated(gridItems)
+                        } else {
+                            adapter.submitList(gridItems)
+                        }
+                        
+                        // Update previous state
+                        previousHiddenState = currentHiddenState
                         // Update focus manager with items
                         focusManager.updateItems(gridItems)
                     }
@@ -1266,6 +1323,7 @@ class HomeScreenActivity : AppCompatActivity() {
         
         // Check if there's an item at the target position that will be replaced
         val replacedItem = adapter.getItemAtPosition(newX, newY)
+        Log.d(TAG, "handleItemMoved: replacedItem = ${replacedItem?.id} (${replacedItem?.packageName})")
         
         // First update UI visually
         val moved = adapter.moveItem(item.id, newX, newY)
@@ -1286,8 +1344,8 @@ class HomeScreenActivity : AppCompatActivity() {
             }
         } else {
             Log.e(TAG, "Failed to move item ${item.id} to $newX, $newY visually")
-            // Reload to ensure UI is in sync with database
-            loadHomeScreenItems()
+            // Don't reload - the adapter already restored the item to its original position
+            // loadHomeScreenItems() would cause issues with ongoing drag operations
         }
     }
     
@@ -2056,12 +2114,14 @@ class HomeScreenActivity : AppCompatActivity() {
         // Add to database
         lifecycleScope.launch(Dispatchers.IO) {
             val itemId = repository.addItem(newItem)
+            val savedItem = newItem.copy(id = itemId)
             Log.d(TAG, "Added app ${app.appName} to home screen at $x, $y with id $itemId")
             
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@HomeScreenActivity, "${app.appName} добавлено на главный экран", Toast.LENGTH_SHORT).show()
-                // Reload items to refresh the display
-                loadHomeScreenItems()
+                
+                // Add the item directly with animation instead of reloading everything
+                adapter.addItemAnimated(savedItem)
             }
         }
     }

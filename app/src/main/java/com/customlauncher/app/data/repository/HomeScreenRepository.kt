@@ -84,6 +84,16 @@ class HomeScreenRepository(
      * Move item to new position
      */
     suspend fun moveItem(itemId: Long, newX: Int, newY: Int) {
+        // First remove any existing items at the target position
+        val existingItems = homeItemDao.getItemsAtPosition(newX, newY, 0)
+        existingItems.forEach { existingItem ->
+            if (existingItem.id != itemId) {
+                Log.d(TAG, "Removing existing item ${existingItem.id} at position $newX,$newY before moving")
+                homeItemDao.delete(existingItem)
+            }
+        }
+        
+        // Now move the item
         homeItemDao.moveItem(itemId, newX, newY)
     }
     

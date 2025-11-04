@@ -68,11 +68,18 @@ class HomeScreenAdapter(
     fun getItemCount(): Int = items.size
     
     /**
+     * Update displayed items with animation when items appear (e.g. when disabling hidden mode)
+     */
+    fun submitListAnimated(newItems: List<HomeItemModel>) {
+        submitList(newItems, animate = true)
+    }
+    
+    /**
      * Update displayed items
      */
-    fun submitList(newItems: List<HomeItemModel>) {
+    fun submitList(newItems: List<HomeItemModel>, animate: Boolean = false) {
         PerformanceMonitor.measureTime("submitList") {
-            Log.d(TAG, "Updating items, count: ${newItems.size}")
+            Log.d(TAG, "Updating items, count: ${newItems.size}, animate: $animate")
             
             // Check if items are actually different
             if (items == newItems) {
@@ -116,7 +123,7 @@ class HomeScreenAdapter(
                 // Add views to grid in a single batch
                 items.forEach { item ->
                     try {
-                        addItemToGrid(item)
+                        addItemToGrid(item, animate)
                     } catch (e: Exception) {
                         Log.e(TAG, "Error adding item ${item.id} to grid", e)
                     }
@@ -318,28 +325,36 @@ class HomeScreenAdapter(
     }
     
     /**
-     * Add single item to grid
+     * Add single item to grid with optional animation
      */
-    private fun addItemToGrid(item: HomeItemModel) {
-        // Check if item already exists in views to prevent duplicates
-        if (itemViews.containsKey(item.id)) {
-            Log.w(TAG, "Item ${item.id} already exists in grid, skipping duplicate")
-            return
-        }
-        
+    private fun addItemToGrid(item: HomeItemModel, animate: Boolean = false) {
         when (item.type) {
-            HomeItemModel.ItemType.APP -> addAppShortcut(item)
-            HomeItemModel.ItemType.WIDGET -> addWidget(item)
-            else -> {
-                Log.w(TAG, "Unsupported item type: ${item.type}")
+            HomeItemModel.ItemType.APP, HomeItemModel.ItemType.SHORTCUT -> {
+                addAppShortcut(item, animate)
+            }
+            HomeItemModel.ItemType.WIDGET -> {
+                addWidget(item, animate)
+            }
+            HomeItemModel.ItemType.FOLDER -> {
+                // Folders are not yet implemented
+                Log.w(TAG, "Folder type not yet implemented: ${item.label}")
             }
         }
     }
     
     /**
-     * Add app shortcut to grid
+     * Add item with animation when dropped from drag
      */
-    private fun addAppShortcut(item: HomeItemModel) {
+    fun addItemAnimated(item: HomeItemModel) {
+        // Add to internal list first
+        items.add(item)
+        // Add to grid with animation
+        addItemToGrid(item, animate = true)
+    }
+    /**
+     * Add app shortcut to grid with optional animation
+     */
+    private fun addAppShortcut(item: HomeItemModel, animate: Boolean = false) {
         // Get view from pool for better performance
         val view = viewPool.obtainAppView()
         
@@ -451,31 +466,38 @@ class HomeScreenAdapter(
         view.isClickable = true
         view.isLongClickable = true
         
-        // Add to grid with fade in animation
+        // Add to grid
         if (gridLayout.addItemAtPosition(view, item.cellX, item.cellY, item.spanX, item.spanY)) {
             itemViews[item.id] = view
             view.tag = item
             
-            // Animate fade in
-            view.alpha = 0f
-            view.scaleX = 0.9f
-            view.scaleY = 0.9f
-            view.animate()
-                .alpha(1f)
-                .scaleX(1f)
-                .scaleY(1f)
-                .setDuration(150)
-                .setStartDelay(item.cellX * 10L + item.cellY * 5L) // Staggered animation
-                .start()
+            if (animate) {
+                // Smooth fade in animation with scale
+                view.alpha = 0f
+                view.scaleX = 0.8f
+                view.scaleY = 0.8f
+                view.animate()
+                    .alpha(1f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(300)
+                    .setInterpolator(android.view.animation.DecelerateInterpolator())
+                    .start()
+            } else {
+                // No animation, just show normally
+                view.alpha = 1f
+                view.scaleX = 1f
+                view.scaleY = 1f
+            }
         } else {
             Log.e(TAG, "Failed to add item at position ${item.cellX}, ${item.cellY}")
         }
     }
     
     /**
-     * Add a widget to the grid
+     * Add a widget to the grid with optional animation
      */
-    private fun addWidget(item: HomeItemModel) {
+    private fun addWidget(item: HomeItemModel, animate: Boolean = false) {
         Log.d(TAG, "Adding widget ${item.id} at position ${item.cellX}, ${item.cellY} with span ${item.spanX}x${item.spanY}")
         
         // Create widget view based on type
@@ -678,23 +700,30 @@ class HomeScreenAdapter(
                 isFocusableInTouchMode = false
             }
             
-            // Add wrapper to grid instead of widget directly with animation
+            // Add wrapper to grid instead of widget directly
             if (gridLayout.addItemAtPosition(wrapper, item.cellX, item.cellY, item.spanX, item.spanY)) {
                 itemViews[item.id] = wrapper
                 wrapper.tag = item
                 Log.d(TAG, "Added system widget with wrapper at ${item.cellX}, ${item.cellY} with span ${item.spanX}x${item.spanY}")
                 
-                // Animate fade in
-                wrapper.alpha = 0f
-                wrapper.scaleX = 0.9f
-                wrapper.scaleY = 0.9f
-                wrapper.animate()
-                    .alpha(1f)
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(200)
-                    .setStartDelay(item.cellX * 10L + item.cellY * 5L)
-                    .start()
+                if (animate) {
+                    // Smooth fade in animation with scale
+                    wrapper.alpha = 0f
+                    wrapper.scaleX = 0.8f
+                    wrapper.scaleY = 0.8f
+                    wrapper.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(350)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator())
+                        .start()
+                } else {
+                    // No animation, just show normally
+                    wrapper.alpha = 1f
+                    wrapper.scaleX = 1f
+                    wrapper.scaleY = 1f
+                }
             }
             
         } else {
@@ -775,17 +804,24 @@ class HomeScreenAdapter(
                 widget.tag = item
                 Log.d(TAG, "Added custom widget at ${item.cellX}, ${item.cellY} with span ${spanX}x${spanY}")
                 
-                // Animate fade in
-                widget.alpha = 0f
-                widget.scaleX = 0.9f
-                widget.scaleY = 0.9f
-                widget.animate()
-                    .alpha(1f)
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(200)
-                    .setStartDelay(item.cellX * 10L + item.cellY * 5L)
-                    .start()
+                if (animate) {
+                    // Smooth fade in animation with scale
+                    widget.alpha = 0f
+                    widget.scaleX = 0.8f
+                    widget.scaleY = 0.8f
+                    widget.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(350)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator())
+                        .start()
+                } else {
+                    // No animation, just show normally
+                    widget.alpha = 1f
+                    widget.scaleX = 1f
+                    widget.scaleY = 1f
+                }
             } else {
                 Log.e(TAG, "Failed to add widget at position ${item.cellX}, ${item.cellY}")
             }
@@ -900,9 +936,11 @@ class HomeScreenAdapter(
      * Get item at specific grid position (public)
      */
     fun getItemAtPosition(x: Int, y: Int): HomeItemModel? {
-        return items.find { item ->
+        val foundItem = items.find { item ->
             item.cellX == x && item.cellY == y
         }
+        Log.d(TAG, "getItemAtPosition($x, $y): found item = ${foundItem?.id} (${foundItem?.packageName})")
+        return foundItem
     }
     
     /**
@@ -920,10 +958,12 @@ class HomeScreenAdapter(
         if (itemAtPosition != null) {
             Log.d(TAG, "Removing existing item at $x,$y: ${itemAtPosition.packageName}")
             
-            // Remove view from grid
+            // Remove view from grid - use removeItemAt to properly clear occupied cells
+            gridLayout.removeItemAt(x, y)
+            
+            // Remove from tracking
             val viewToRemove = itemViews[itemAtPosition.id]
             if (viewToRemove != null) {
-                gridLayout.removeView(viewToRemove)
                 itemViews.remove(itemAtPosition.id)
                 
                 // Return view to pool if it's an app
@@ -941,8 +981,21 @@ class HomeScreenAdapter(
      * Move item to new position
      */
     fun moveItem(itemId: Long, newX: Int, newY: Int): Boolean {
-        val view = itemViews[itemId] ?: return false
-        val item = view.tag as? HomeItemModel ?: return false
+        Log.d(TAG, "moveItem called: itemId=$itemId to position $newX,$newY")
+        
+        val view = itemViews[itemId]
+        if (view == null) {
+            Log.e(TAG, "moveItem: view not found for itemId=$itemId")
+            return false
+        }
+        
+        val item = view.tag as? HomeItemModel
+        if (item == null) {
+            Log.e(TAG, "moveItem: item not found in view tag for itemId=$itemId")
+            return false
+        }
+        
+        Log.d(TAG, "moveItem: current item position is ${item.cellX},${item.cellY}")
         
         // Don't move if it's the same position
         if (item.cellX == newX && item.cellY == newY) {
