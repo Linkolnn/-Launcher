@@ -75,9 +75,11 @@ drawable ic_copy
 drawable ic_launcher_foreground
 drawable ic_lock
 drawable ic_menu_apps
+drawable ic_minus_button
 drawable ic_open_in_new
 drawable ic_page_apps
 drawable ic_page_apps_new
+drawable ic_plus_button
 drawable ic_search
 drawable ic_settings
 drawable ic_settings_new

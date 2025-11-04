@@ -18,6 +18,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.customlauncher.app.R
@@ -237,7 +238,7 @@ class GridConfigDialog(
     }
     
     private fun createCircularButton(text: String, onClick: () -> Unit): View {
-        // Create a custom circular button with better styling
+        // Create a custom circular button with icon
         return FrameLayout(context).apply {
             layoutParams = LinearLayout.LayoutParams(64, 64).apply {
                 setMargins(8, 0, 8, 0)
@@ -249,37 +250,36 @@ class GridConfigDialog(
                 setColor(ContextCompat.getColor(context, R.color.accent_yellow))
             }
             
-            // Text with proper centering
-            val textView = TextView(context).apply {
-                this.text = text
-                setTextColor(ContextCompat.getColor(context, R.color.background_dark))
-                textSize = 44f  // Увеличен в 2 раза (было 22f)
-                gravity = Gravity.CENTER
-                textAlignment = View.TEXT_ALIGNMENT_CENTER  // Дополнительное центрирование
-                // Используем шрифт 5mal6Lampen для кнопок +/-
-                typeface = try {
-                    ResourcesCompat.getFont(context, R.font.fivemal6lampen)
-                } catch (e: Exception) {
-                    Typeface.DEFAULT_BOLD
-                }
-                // Fix vertical centering
-                includeFontPadding = false
-                
-                // Опускаем символы вниз для визуального центрирования
-                if (text == "-") {
-                    // Минус опускаем еще ниже, так как он визуально выше
-                    setPadding(0, 44, 0, 0)
+            // Icon instead of text
+            val iconView = ImageView(context).apply {
+                // Choose icon based on text parameter
+                val iconResId = if (text == "-") {
+                    R.drawable.ic_minus_button
                 } else {
-                    // Плюс тоже опускаем вниз
-                    setPadding(0, 42, 0, 0)
+                    R.drawable.ic_plus_button
                 }
+                setImageResource(iconResId)
+                
+                // Set tint to match the dark background color
+                setColorFilter(ContextCompat.getColor(context, R.color.background_dark))
+                
+                // Scale the icon appropriately
+                scaleType = ImageView.ScaleType.CENTER_INSIDE
+                
+                // Add padding for better visual appearance
+                val padding = 16 // Adjust padding as needed
+                setPadding(padding, padding, padding, padding)
             }
-            addView(textView, FrameLayout.LayoutParams(
+            
+            // Add icon with center layout params
+            val layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             ).apply {
                 gravity = Gravity.CENTER
-            })
+            }
+            
+            addView(iconView, layoutParams)
             
             // Ripple effect on click
             isClickable = true

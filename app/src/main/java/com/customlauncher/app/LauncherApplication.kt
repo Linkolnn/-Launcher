@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.util.Log
 import com.customlauncher.app.data.database.LauncherDatabase
 import com.customlauncher.app.data.preferences.LauncherPreferences
@@ -55,7 +56,11 @@ class LauncherApplication : Application() {
             addAction(Intent.ACTION_PACKAGE_CHANGED)
             addDataScheme("package")
         }
-        registerReceiver(packageChangeReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(packageChangeReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(packageChangeReceiver, filter)
+        }
         
         // Don't reset state - preserve user's choice
         // The hidden mode should persist until user explicitly changes it

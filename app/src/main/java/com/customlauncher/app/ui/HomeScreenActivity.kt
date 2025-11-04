@@ -50,7 +50,6 @@ import com.customlauncher.app.utils.IconCache
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 class HomeScreenActivity : AppCompatActivity() {
@@ -91,9 +90,12 @@ class HomeScreenActivity : AppCompatActivity() {
     // BroadcastReceiver for hidden mode changes
     private val hiddenModeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
+            Log.d(TAG, "hiddenModeReceiver.onReceive: action = ${intent?.action}")
             if (intent?.action == "com.customlauncher.HIDDEN_MODE_CHANGED") {
-                val isHidden = intent.getBooleanExtra("is_hidden", false)
-                Log.d(TAG, "Hidden mode changed: $isHidden")
+                // Check both possible extra names for compatibility
+                val isHidden = intent.getBooleanExtra("is_hidden", false) || 
+                               intent.getBooleanExtra("hidden", false)
+                Log.d(TAG, "Hidden mode broadcast received: isHidden = $isHidden")
                 updateVisibility(isHidden)
             }
         }
@@ -740,6 +742,14 @@ class HomeScreenActivity : AppCompatActivity() {
             // Use Main context to avoid concurrent modification
             withContext(Dispatchers.Main) {
                 loadHomeScreenItems()
+                
+                // Force UI refresh on Android 16+ only once
+                if (Build.VERSION.SDK_INT >= 35) {
+                    binding.gridContainer.post {
+                        binding.gridContainer.requestLayout()
+                        binding.gridContainer.invalidate()
+                    }
+                }
             }
         }
     }
@@ -822,38 +832,7 @@ class HomeScreenActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val allItems = repository.getAllItems()
-            
-            // Check if launcher is on home screen
-            val hasLauncher = allItems.any { 
-                it.packageName == "com.customlauncher.app" 
-            }
-            
-            if (!hasLauncher) {
-                // Add launcher to home screen at position (2, 5)
-                val launcherApp = HomeItemModel(
-                    id = 0,
-                    type = HomeItemModel.ItemType.APP,
-                    packageName = "com.customlauncher.app",
-                    componentName = "com.customlauncher.app/.ui.AppListActivity",
-                    label = "ИLauncher",
-                    cellX = 2,
-                    cellY = 5,
-                    spanX = 1,
-                    spanY = 1
-                )
-                val launcherId = repository.addItem(launcherApp)
-                Log.d(TAG, "Added ИLauncher to home screen at position 2,5 with id $launcherId")
                 
-                // Reload items including the new launcher
-                val updatedItems = repository.getAllItems()
-                val filteredItems = filterHiddenApps(updatedItems)
-                withContext(Dispatchers.Main) {
-                    Log.d(TAG, "Loaded ${filteredItems.size} items from database")
-                    adapter.submitList(filteredItems)
-                    // Update focus manager with items
-                    focusManager.updateItems(filteredItems)
-                }
-            } else {
                 // Filter hidden apps if needed
                 val filteredItems = filterHiddenApps(allItems)
                 
@@ -872,7 +851,6 @@ class HomeScreenActivity : AppCompatActivity() {
                     // Update focus manager with items
                     focusManager.updateItems(gridItems)
                 }
-            }
             } finally {
                 isLoadingItems = false
             }
@@ -881,6 +859,10 @@ class HomeScreenActivity : AppCompatActivity() {
     
     private fun filterHiddenApps(items: List<HomeItemModel>): List<HomeItemModel> {
         val preferences = LauncherApplication.instance.preferences
+        
+        Log.d(TAG, "filterHiddenApps: Starting with ${items.size} items")
+        Log.d(TAG, "filterHiddenApps: Hidden mode state = ${HiddenModeStateManager.currentState}")
+        Log.d(TAG, "filterHiddenApps: Hide apps in hidden mode = ${preferences.hideAppsInHiddenMode}")
         
         // First, filter out system Android components (like ResolverActivity)
         val nonSystemItems = items.filter { item ->
@@ -896,24 +878,38 @@ class HomeScreenActivity : AppCompatActivity() {
             !isSystemComponent
         }
         
+        Log.d(TAG, "filterHiddenApps: After system filter = ${nonSystemItems.size} items")
+        
         // If not in hidden mode or hideAppsInHiddenMode is disabled, return non-system items
         if (!HiddenModeStateManager.currentState || !preferences.hideAppsInHiddenMode) {
+            Log.d(TAG, "filterHiddenApps: Returning all non-system items (not filtering hidden)")
             return nonSystemItems
         }
         
         // Filter out hidden apps
         val hiddenApps = preferences.getHiddenApps()
-        return nonSystemItems.filter { item ->
+        Log.d(TAG, "filterHiddenApps: Hidden apps list size = ${hiddenApps.size}")
+        
+        val result = nonSystemItems.filter { item ->
             // Keep widgets and non-app items
             if (item.type != HomeItemModel.ItemType.APP) {
                 true
             } else {
                 // Keep app if it's not in hidden list
-                item.packageName?.let { pkg ->
+                val keep = item.packageName?.let { pkg ->
                     !hiddenApps.contains(pkg)
                 } ?: true
+                
+                if (!keep) {
+                    Log.d(TAG, "filterHiddenApps: Hiding app ${item.packageName}")
+                }
+                
+                keep
             }
         }
+        
+        Log.d(TAG, "filterHiddenApps: Final result = ${result.size} items")
+        return result
     }
     
     private fun launchApp(item: HomeItemModel) {

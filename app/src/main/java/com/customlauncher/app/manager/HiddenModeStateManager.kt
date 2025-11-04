@@ -126,6 +126,7 @@ object HiddenModeStateManager {
         // Send broadcast about state change
         val intent = Intent("com.customlauncher.HIDDEN_MODE_CHANGED")
         intent.putExtra("is_hidden", enabled)
+        intent.setPackage(context.packageName) // Restrict to our app
         context.sendBroadcast(intent)
         
         Log.d(TAG, "Hidden mode set to: $enabled, broadcast sent")
@@ -191,22 +192,37 @@ object HiddenModeStateManager {
             
             val preferences = LauncherApplication.instance.preferences
             val showHomeScreen = preferences.showHomeScreen
+            val shouldCloseApps = preferences.closeAppsOnHiddenMode
             
-            // If home screen is disabled, don't close anything
+            // Check if we should close apps at all
+            if (!shouldCloseApps) {
+                Log.d(TAG, "Close apps is disabled, not closing anything")
+                return
+            }
+            
+            // If home screen is disabled, also don't close anything
             if (!showHomeScreen) {
                 Log.d(TAG, "Home screen is disabled, not closing apps or dialogs")
                 return
             }
             
-            // Method 1: Use accessibility service first for immediate action
-            val accessibilityIntent = Intent(context, SystemBlockAccessibilityService::class.java).apply {
-                action = "com.customlauncher.CLOSE_ALL_APPS"
-            }
+            // First, close the app drawer if it's open
+            val closeDrawerIntent = Intent("com.customlauncher.CLOSE_APP_DRAWER")
+            closeDrawerIntent.setPackage(context.packageName)
+            context.sendBroadcast(closeDrawerIntent)
+            Log.d(TAG, "Sent close app drawer broadcast")
+            
+            // Method 1: Send intent to accessibility service
+            val accessibilityIntent = Intent(context, SystemBlockAccessibilityService::class.java)
+            accessibilityIntent.action = SystemBlockAccessibilityService.ACTION_CLOSE_ALL_APPS
             context.startService(accessibilityIntent)
             
-            // Method 2: Broadcast to close system dialogs immediately
-            val closeIntent = Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
-            context.sendBroadcast(closeIntent)
+            // Method 2: Broadcast to close system dialogs (deprecated in Android 12+)
+            // Only use on older Android versions
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                val closeIntent = Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
+                context.sendBroadcast(closeIntent)
+            }
             
             // Method 3: Send home intent as backup (with small delay)
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({

@@ -26,6 +26,7 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         private const val TAG = "SystemBlockAccessibility"
         const val ACTION_BLOCK_TOUCHES = "com.customlauncher.app.BLOCK_TOUCHES"
         const val ACTION_UNBLOCK_TOUCHES = "com.customlauncher.app.UNBLOCK_TOUCHES"
+        const val ACTION_CLOSE_ALL_APPS = "com.customlauncher.app.CLOSE_ALL_APPS"
         const val ACTION_REFRESH_KEYS = "com.customlauncher.app.REFRESH_KEYS"
         private const val ACTION_TOGGLE_APPS = "com.customlauncher.app.TOGGLE_APPS"
         var instance: SystemBlockAccessibilityService? = null
@@ -47,6 +48,8 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         
         // Initialize KeyguardManager
         keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        
+        checkScreenLockState()
         
         val info = AccessibilityServiceInfo().apply {
             // Listen to key events primarily
@@ -146,9 +149,8 @@ class SystemBlockAccessibilityService : AccessibilityService() {
                     }
                 }
                 
-                // Disable interaction with any UI element
+                // Just recycle the node if available
                 event?.source?.let { node ->
-                    disableNode(node)
                     node.recycle()
                 }
             }
@@ -186,42 +188,11 @@ class SystemBlockAccessibilityService : AccessibilityService() {
                 }
             }
             
-            // Disable interaction with any UI element
+            // Note: We cannot modify AccessibilityNodeInfo properties as they are read-only
+            // Just recycle the node if available
             event?.source?.let { node ->
-                disableNode(node)
                 node.recycle()
             }
-        
-        // Check for screen lock state changes
-        when (event?.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
-                val packageName = event.packageName?.toString()
-                
-                // Detect keyguard (lock screen) state
-                if (packageName == "com.android.keyguard" || 
-                    packageName == "com.android.systemui.keyguard") {
-                    checkScreenLockState()
-                    Log.d(TAG, "Keyguard state changed, locked: $isScreenLocked")
-                }
-                
-                // Only block system UI when apps are actually hidden
-                if (HiddenModeStateManager.currentState) {
-                    if (packageName == "com.android.systemui" && !isScreenLocked) {
-                        // Only block system UI when not on lock screen and apps are hidden
-                        performGlobalAction(GLOBAL_ACTION_HOME)
-                        Log.d(TAG, "Blocked system UI: $packageName (hidden mode active)")
-                    }
-                }
-            }
-            
-            AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> {
-                if (HiddenModeStateManager.currentState && !isScreenLocked) {
-                    // Block notification shade only when not on lock screen
-                    performGlobalAction(GLOBAL_ACTION_BACK)
-                    Log.d(TAG, "Blocked notification shade")
-                }
-            }
-        }
         } catch (e: Exception) {
             Log.e(TAG, "Error in onAccessibilityEvent", e)
         }
@@ -303,48 +274,20 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         
         Log.d(TAG, "Toggling from $currentState to $newState")
         
-        // Toggle the state
+        // Toggle the state (HiddenModeStateManager will send broadcast)
         HiddenModeStateManager.setHiddenMode(this, newState)
-        
-        // Also send broadcast to MainActivity to update UI
-        val intent = Intent("com.customlauncher.HIDDEN_MODE_CHANGED")
-        intent.putExtra("hidden", newState)
-        sendBroadcast(intent)
-    }
-    
-    private fun disableNode(node: AccessibilityNodeInfo) {
-        try {
-            // Make the node non-clickable and non-focusable
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                node.isClickable = false
-                node.isLongClickable = false
-                node.isFocusable = false
-                node.isEnabled = false
-            }
-            
-            // Recursively disable child nodes
-            for (i in 0 until node.childCount) {
-                node.getChild(i)?.let { child ->
-                    disableNode(child)
-                    child.recycle()
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error disabling node", e)
-        }
     }
     
     private fun checkScreenLockState() {
-        try {
-            isScreenLocked = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+        isScreenLocked = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
                 keyguardManager.isDeviceLocked
             } else {
                 keyguardManager.isKeyguardLocked
             }
-            Log.d(TAG, "Screen lock state: $isScreenLocked")
         } catch (e: Exception) {
             Log.e(TAG, "Error checking screen lock state", e)
-            isScreenLocked = false
+            false
         }
     }
     

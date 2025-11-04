@@ -88,9 +88,29 @@ class AppDrawerBottomSheet : BottomSheetDialogFragment() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == Intent.ACTION_CLOSE_SYSTEM_DIALOGS) {
                 // Block closing if home screen is disabled
+                val preferences = LauncherApplication.instance.preferences
                 if (!preferences.showHomeScreen) {
-                    Log.d(TAG, "Blocking ACTION_CLOSE_SYSTEM_DIALOGS - home screen is disabled")
-                    abortBroadcast() // Try to abort the broadcast
+                    Log.d(TAG, "Blocking ACTION_CLOSE_SYSTEM_DIALOGS - home screen disabled")
+                    abortBroadcast()
+                }
+            }
+        }
+    }
+    
+    // Receiver for explicit close drawer command (from hidden mode)
+    private val closeDrawerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.customlauncher.CLOSE_APP_DRAWER") {
+                // Only close if we're actually entering hidden mode and close apps is enabled
+                val isEnteringHiddenMode = HiddenModeStateManager.currentState
+                val shouldCloseApps = preferences.closeAppsOnHiddenMode
+                
+                Log.d(TAG, "Received close drawer broadcast - Hidden mode: $isEnteringHiddenMode, Should close: $shouldCloseApps")
+                
+                if (isEnteringHiddenMode && shouldCloseApps) {
+                    dismiss()
+                } else {
+                    Log.d(TAG, "Ignoring close drawer broadcast - conditions not met")
                 }
             }
         }
@@ -184,14 +204,24 @@ class AppDrawerBottomSheet : BottomSheetDialogFragment() {
     }
     
     override fun onDismiss(dialog: DialogInterface) {
+        // Log the dismiss reason for debugging Android 16 issue
+        val hiddenModeState = HiddenModeStateManager.currentState
+        Log.d(TAG, "onDismiss called - Hidden mode: $hiddenModeState, Show home: ${preferences.showHomeScreen}")
+        
+        // Get stack trace to find what triggered dismiss
+        if (Build.VERSION.SDK_INT >= 35) { // Android 16
+            Log.d(TAG, "Dismiss stack trace: ${Thread.currentThread().stackTrace.take(5).joinToString("\n")}")
+        }
+        
         // Prevent dismissal when home screen is disabled
         if (!preferences.showHomeScreen) {
             Log.d(TAG, "Dialog dismiss blocked - home screen is disabled")
             return
         }
         
-        // Уведомляем HomeScreenActivity о закрытии
-        (activity as? com.customlauncher.app.ui.HomeScreenActivity)?.let { homeScreen ->
+        // Notify HomeScreenActivity that the drawer is closed
+        val homeScreen = activity as? HomeScreenActivity
+        if (homeScreen != null) {
             homeScreen.onAppDrawerClosed()
         }
         
@@ -272,13 +302,29 @@ class AppDrawerBottomSheet : BottomSheetDialogFragment() {
         
         // Register package change receiver
         val filter = IntentFilter("com.customlauncher.PACKAGE_CHANGED")
-        requireContext().registerReceiver(packageChangeReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(packageChangeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            requireContext().registerReceiver(packageChangeReceiver, filter)
+        }
         
         // Register system dialogs receiver to prevent closing when home screen is disabled
         if (!preferences.showHomeScreen) {
             val systemFilter = IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
             systemFilter.priority = IntentFilter.SYSTEM_HIGH_PRIORITY
-            requireContext().registerReceiver(systemDialogsReceiver, systemFilter)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requireContext().registerReceiver(systemDialogsReceiver, systemFilter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                requireContext().registerReceiver(systemDialogsReceiver, systemFilter)
+            }
+        }
+        
+        // Register close drawer receiver for hidden mode
+        val closeDrawerFilter = IntentFilter("com.customlauncher.CLOSE_APP_DRAWER")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(closeDrawerReceiver, closeDrawerFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            requireContext().registerReceiver(closeDrawerReceiver, closeDrawerFilter)
         }
     }
 
@@ -1041,6 +1087,13 @@ class AppDrawerBottomSheet : BottomSheetDialogFragment() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to unregister system dialogs receiver", e)
             }
+        }
+        
+        // Unregister close drawer receiver
+        try {
+            requireContext().unregisterReceiver(closeDrawerReceiver)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to unregister close drawer receiver", e)
         }
     }
     

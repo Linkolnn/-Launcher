@@ -3149,6 +3149,7 @@ drawable ic_m3_chip_check
 drawable ic_m3_chip_checked_circle
 drawable ic_m3_chip_close
 drawable ic_menu_apps
+drawable ic_minus_button
 drawable ic_mtrl_checked_circle
 drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
@@ -3156,6 +3157,7 @@ drawable ic_mtrl_chip_close_circle
 drawable ic_open_in_new
 drawable ic_page_apps
 drawable ic_page_apps_new
+drawable ic_plus_button
 drawable ic_search
 drawable ic_search_black_24
 drawable ic_settings
