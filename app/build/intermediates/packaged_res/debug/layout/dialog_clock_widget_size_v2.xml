@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog"
+    android:padding="16dp">
+    
+    <!-- Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Выберите размер виджета часов"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:fontFamily="@font/mal6lampen"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+    
+    <!-- Horizontal scrolling preview list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/sizePreviewRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:clipToPadding="false"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp" />
+    
+</LinearLayout>

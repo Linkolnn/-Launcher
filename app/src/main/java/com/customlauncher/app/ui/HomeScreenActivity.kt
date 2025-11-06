@@ -2,6 +2,7 @@ package com.customlauncher.app.ui
 
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -11,6 +12,7 @@ import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetProviderInfo
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.GestureDetector
 import android.view.KeyEvent
@@ -34,6 +36,7 @@ import androidx.lifecycle.lifecycleScope
 import com.customlauncher.app.LauncherApplication
 import com.customlauncher.app.receiver.CustomKeyListener
 import com.customlauncher.app.data.model.CustomKeyCombination
+import com.customlauncher.app.service.SystemBlockAccessibilityService
 import com.customlauncher.app.databinding.ActivityHomeScreenBinding
 import com.customlauncher.app.manager.HiddenModeStateManager
 import com.customlauncher.app.manager.HomeScreenModeManager
@@ -97,11 +100,11 @@ class HomeScreenActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.d(TAG, "hiddenModeReceiver.onReceive: action = ${intent?.action}")
             if (intent?.action == "com.customlauncher.HIDDEN_MODE_CHANGED") {
-                // Check both possible extra names for compatibility
-                val isHidden = intent.getBooleanExtra("is_hidden", false) || 
-                               intent.getBooleanExtra("hidden", false)
-                Log.d(TAG, "Hidden mode broadcast received: isHidden = $isHidden")
-                updateVisibility(isHidden)
+                // Always use the actual state from HiddenModeStateManager
+                // Don't trust the broadcast extras as they might be outdated
+                val actualState = HiddenModeStateManager.currentState
+                Log.d(TAG, "Hidden mode broadcast received, using actual state: $actualState")
+                updateVisibility(actualState)
             }
         }
     }
@@ -452,10 +455,19 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
             )
             
-            // Initialize widget management
+            // Initialize widget management with fallback
             appWidgetManager = AppWidgetManager.getInstance(this)
-            appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
-            appWidgetHost.startListening()
+            try {
+                appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
+                // Try to start listening - this will fail without BIND_APPWIDGET
+                appWidgetHost.startListening()
+            } catch (e: SecurityException) {
+                // Running without BIND_APPWIDGET permission
+                // Widgets will be limited but app will work
+                Log.w(TAG, "Cannot initialize AppWidgetHost without BIND_APPWIDGET permission")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error initializing AppWidgetHost", e)
+            }
             
             // Initialize adapter
             adapter = HomeScreenAdapter(
@@ -1530,20 +1542,39 @@ class HomeScreenActivity : AppCompatActivity() {
     }
     
     private fun requestAddWidget(widgetInfo: AppWidgetProviderInfo) {
-        val appWidgetId = appWidgetHost.allocateAppWidgetId()
-        pendingWidgetId = appWidgetId
-        
-        val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, widgetInfo.provider)
-        
-        if (canBind) {
-            // If allowed, configure the widget
-            configureWidget(appWidgetId, widgetInfo)
-        } else {
-            // Request permission to bind
-            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND)
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, widgetInfo.provider)
-            startActivityForResult(intent, REQUEST_CREATE_WIDGET)
+        try {
+            val appWidgetId = appWidgetHost.allocateAppWidgetId()
+            pendingWidgetId = appWidgetId
+            
+            // First try the standard way (works without BIND_APPWIDGET on newer Android)
+            val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, widgetInfo.provider)
+            
+            if (canBind) {
+                // If allowed, configure the widget
+                configureWidget(appWidgetId, widgetInfo)
+            } else {
+                // Use alternative method - request user permission
+                // This works on Android 8.0+ without BIND_APPWIDGET
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND)
+                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, widgetInfo.provider)
+                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_OPTIONS, Bundle())
+                    try {
+                        startActivityForResult(intent, REQUEST_CREATE_WIDGET)
+                    } catch (e: ActivityNotFoundException) {
+                        // Fallback - show message that widgets are not supported
+                        Toast.makeText(this, "Виджеты недоступны без специальных разрешений", Toast.LENGTH_LONG).show()
+                        appWidgetHost.deleteAppWidgetId(appWidgetId)
+                    }
+                } else {
+                    Toast.makeText(this, "Виджеты требуют Android 8.0 или выше", Toast.LENGTH_LONG).show()
+                    appWidgetHost.deleteAppWidgetId(appWidgetId)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Cannot add widget without proper permissions", e)
+            Toast.makeText(this, "Не удается добавить виджет", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -1846,12 +1877,19 @@ class HomeScreenActivity : AppCompatActivity() {
             }
         }
         
-        // Handle custom key combinations
-        if (preferences.useCustomKeys) {
+        // Handle custom key combinations only if AccessibilityService is not active
+        // If AccessibilityService is enabled, it handles key combinations globally
+        if (preferences.useCustomKeys && !isAccessibilityServiceEnabled()) {
+            Log.d(TAG, "onKeyDown: keyCode=$keyCode, useCustomKeys=true, listener=${customKeyListener != null}")
+            if (customKeyListener == null) {
+                Log.w(TAG, "customKeyListener is null, reinitializing...")
+                setupCustomKeyListener()
+            }
             customKeyListener?.let { listener ->
-                if (listener.onKeyEvent(keyCode)) {
-                    return true
-                }
+                Log.d(TAG, "Processing key $keyCode in local customKeyListener")
+                // Just process the key, don't check return value
+                listener.onKeyEvent(keyCode)
+                // Don't return true - let the key pass through
             }
         }
         
@@ -1990,6 +2028,13 @@ class HomeScreenActivity : AppCompatActivity() {
         customKeyListener?.destroy()
         customKeyListener = null
         
+        // Don't setup key listener in HomeScreenActivity if AccessibilityService is enabled
+        // The AccessibilityService will handle key combinations globally
+        if (isAccessibilityServiceEnabled()) {
+            Log.d(TAG, "AccessibilityService is enabled, skipping local key listener setup")
+            return
+        }
+        
         if (preferences.useCustomKeys) {
             val customKeysString = preferences.customKeyCombination
             if (!customKeysString.isNullOrEmpty()) {
@@ -1997,7 +2042,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 if (keys.isNotEmpty()) {
                     val combination = CustomKeyCombination(keys)
                     customKeyListener = CustomKeyListener {
-                        Log.d(TAG, "Custom key combination triggered")
+                        Log.d(TAG, "Custom key combination triggered from HomeScreenActivity")
                         toggleHiddenMode()
                     }
                     customKeyListener?.setCombination(combination)
@@ -2007,16 +2052,24 @@ class HomeScreenActivity : AppCompatActivity() {
         }
     }
     
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        val service = "$packageName/${SystemBlockAccessibilityService::class.java.canonicalName}"
+        val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        return enabledServices?.contains(service) == true
+    }
+    
     private fun toggleHiddenMode() {
+        Log.d(TAG, "⚡ toggleHiddenMode called!")
         // Toggle hidden mode
         val currentState = HiddenModeStateManager.currentState
         val newState = !currentState
+        Log.d(TAG, "Current state: $currentState, switching to: $newState")
         HiddenModeStateManager.setHiddenMode(this, newState)
         
         // Don't call updateVisibility here - it will be called via broadcast receiver
         // This prevents double update
         
-        Log.d(TAG, "Hidden mode toggled to: $newState")
+        Log.d(TAG, "✅ Hidden mode toggled from $currentState to $newState")
     }
     
     override fun onDestroy() {

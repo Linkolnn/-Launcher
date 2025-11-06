@@ -26,27 +26,38 @@ class CustomKeyListener(
     }
     
     fun onKeyEvent(keyCode: Int): Boolean {
-        val combination = targetCombination ?: return false
+        Log.d(TAG, "onKeyEvent called with keyCode: $keyCode")
+        val combination = targetCombination
+        if (combination == null) {
+            Log.w(TAG, "No target combination set!")
+            return false
+        }
         
         // Cancel reset timer
         handler.removeCallbacks(resetRunnable)
         
         // Add key to sequence
         keySequence.add(keyCode)
-        Log.d(TAG, "Key sequence: $keySequence")
+        Log.d(TAG, "Key sequence: $keySequence, target: ${combination.keys}")
         
         // Check if sequence matches
         if (keySequence == combination.keys) {
-            Log.d(TAG, "Custom combination detected!")
+            Log.d(TAG, "🎯 MATCH! Custom combination detected!")
             if (!isProcessing) {
                 isProcessing = true
-                handler.post {
+                Log.d(TAG, "Triggering callback in 50ms...")
+                // Trigger combination after a small delay to let the key event complete
+                handler.postDelayed({
+                    Log.d(TAG, "Executing onCombinationDetected callback")
                     onCombinationDetected()
-                    handler.postDelayed({ isProcessing = false }, 500)
-                }
+                    isProcessing = false
+                }, 50) // Small delay to ensure key event is processed
+            } else {
+                Log.d(TAG, "Already processing, skipping...")
             }
             reset()
-            return true
+            // NEVER block keys - always return false
+            return false
         }
         
         // Check if sequence is too long or doesn't match prefix
@@ -74,6 +85,7 @@ class CustomKeyListener(
         // Set timeout for reset
         handler.postDelayed(resetRunnable, combination.timeoutMs)
         
+        // ALWAYS return false - never block any keys
         return false
     }
     

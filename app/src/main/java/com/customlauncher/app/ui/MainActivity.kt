@@ -774,9 +774,9 @@ class MainActivity : AppCompatActivity() {
         // Handle custom key combinations
         if (preferences.useCustomKeys) {
             customKeyListener?.let { listener ->
-                if (listener.onKeyEvent(keyCode)) {
-                    return true
-                }
+                // Just process the key, don't check return value
+                listener.onKeyEvent(keyCode)
+                // Don't return true - let the key pass through
             }
         }
         

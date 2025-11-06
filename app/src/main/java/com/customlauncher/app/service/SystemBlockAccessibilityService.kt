@@ -138,9 +138,9 @@ class SystemBlockAccessibilityService : AccessibilityService() {
                         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
                             val packageName = event.packageName?.toString()
                             if (packageName == "com.android.systemui") {
-                                // Block system UI interactions (status bar, navigation)
-                                performGlobalAction(GLOBAL_ACTION_BACK)
-                                Log.d(TAG, "Blocked SystemUI interaction")
+                                // Just log without triggering back action
+                                // performGlobalAction(GLOBAL_ACTION_BACK) - removed to prevent unwanted back action
+                                Log.d(TAG, "SystemUI interaction in hidden mode")
                             }
                         }
                         
@@ -181,9 +181,9 @@ class SystemBlockAccessibilityService : AccessibilityService() {
                 
                 AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> {
                     if (HiddenModeStateManager.currentState && !isScreenLocked) {
-                        // Block notification shade only when not on lock screen
-                        performGlobalAction(GLOBAL_ACTION_BACK)
-                        Log.d(TAG, "Blocked notification shade")
+                        // Just log notification event without triggering back action
+                        // performGlobalAction(GLOBAL_ACTION_BACK) - removed to prevent unwanted back action
+                        Log.d(TAG, "Notification shade event in hidden mode")
                     }
                 }
             }
@@ -218,27 +218,17 @@ class SystemBlockAccessibilityService : AccessibilityService() {
         val preferences = LauncherApplication.instance.preferences
         if (preferences.useCustomKeys) {
             customKeyListener?.let { listener ->
-                if (listener.onKeyEvent(event.keyCode)) {
-                    return true
-                }
+                // Just process the key, don't block it
+                listener.onKeyEvent(event.keyCode)
+                // Never return true - let the key pass through
             }
         }
         
-        // Block navigation keys when apps are hidden (but not on lock screen)
-        if (HiddenModeStateManager.currentState && !isScreenLocked) {
-            when (event.keyCode) {
-                KeyEvent.KEYCODE_HOME,
-                KeyEvent.KEYCODE_BACK,
-                KeyEvent.KEYCODE_APP_SWITCH,
-                KeyEvent.KEYCODE_MENU -> {
-                    Log.d(TAG, "Blocked navigation key: ${event.keyCode}")
-                    return true // Consume the event
-                }
-            }
-        }
+        // Don't block any navigation keys - let them work normally
+        // All keys should work as usual
         
-        // Let other keys pass through
-        return false // Let the system handle other keys
+        // Let all keys pass through
+        return false // Let the system handle all keys
     }
     
     private fun setupCustomKeyListener() {

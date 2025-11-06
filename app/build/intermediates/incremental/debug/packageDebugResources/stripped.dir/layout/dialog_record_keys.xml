@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_settings_section_30">
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Запись комбинации клавиш"
+        android:textColor="@color/text_white"
+        android:textSize="18sp"
+        android:fontFamily="@font/lampen"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp" />
+    
+    <TextView
+        android:id="@+id/recordingStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Нажмите клавиши в нужном порядке"
+        android:textColor="@color/text_gray"
+        android:textSize="14sp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp" />
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:orientation="vertical"
+        android:background="@drawable/bg_keys_display"
+        android:padding="16dp"
+        android:gravity="center">
+        
+        <TextView
+            android:id="@+id/recordedKeysText"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text=""
+            android:textColor="@color/accent_yellow"
+            android:textSize="24sp"
+            android:fontFamily="@font/mal6lampen"
+            android:gravity="center" />
+        
+        <TextView
+            android:id="@+id/keyCountText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 клавиш"
+            android:textColor="@color/text_gray"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="24dp">
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/saveButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="СОХРАНИТЬ"
+            android:textColor="@color/background_dark"
+            android:fontFamily="@font/mal6lampen"
+            android:textSize="14sp"
+            app:backgroundTint="@color/accent_yellow"
+            app:cornerRadius="24dp"
+            android:enabled="false"
+            android:layout_marginBottom="12dp" />
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/clearButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="ОЧИСТИТЬ"
+                android:textColor="@color/text_white"
+                android:fontFamily="@font/mal6lampen"
+                android:textSize="14sp"
+                app:backgroundTint="@color/text_gray"
+                app:cornerRadius="24dp"
+                android:layout_marginEnd="6dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cancelButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="ОТМЕНА"
+                android:textColor="@color/text_white"
+                android:fontFamily="@font/mal6lampen"
+                android:textSize="14sp"
+                app:backgroundTint="@color/item_background"
+                app:cornerRadius="24dp"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+    </LinearLayout>
+    
+</LinearLayout>

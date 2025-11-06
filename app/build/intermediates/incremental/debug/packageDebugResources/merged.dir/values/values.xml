@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent_green">#4CAF50</color>
+    <color name="accent_yellow">#FFD700</color>
+    <color name="accent_yellow_30">#4CFFD700</color>
+    <color name="accent_yellow_bright">#FFF200</color>
+    <color name="background_dark">#212121</color>
+    <color name="black">#000000</color>
+    <color name="divider_color">#404040</color>
+    <color name="drag_handle_color">#757575</color>
+    <color name="drag_handle_white">#E0E0E0</color>
+    <color name="item_background">#2A2A2A</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="text_error">#FF5252</color>
+    <color name="text_gray">#808080</color>
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_white_secondary">#B0B0B0</color>
+    <dimen name="bottom_bar_icon_margin">4dp</dimen>
+    <dimen name="bottom_bar_icon_size">48dp</dimen>
+    <dimen name="popup_menu_height">100dp</dimen>
+    <dimen name="popup_menu_radius">21dp</dimen>
+    <dimen name="popup_menu_text_size">16sp</dimen>
+    <dimen name="popup_menu_width">200dp</dimen>
+    <string name="accessibility_service_description">ИLauncher использует службу специальных возможностей для:\n\n• Расширенной блокировки системных элементов\n• Блокировки сенсора экрана в скрытом режиме\n• Перехвата комбинаций клавиш\n• Блокировки кнопок громкости\n• Управления навигацией\n\nВНИМАНИЕ: Служба может получать доступ к содержимому экрана, но ИLauncher НЕ собирает и НЕ передает личные данные.</string>
+    <string name="accessibility_service_label">ИLauncher</string>
+    <string name="accessibility_service_summary">Расширенные функции блокировки</string>
+    <string name="app_name">ИLauncher</string>
+    <string name="app_name_label">НАЗВАНИЕ ПРИЛОЖЕНИЯ</string>
+    <string name="applications">ПРИЛОЖЕНИЯ</string>
+    <string name="combo_both_volume">Обе кнопки громкости одновременно</string>
+    <string name="combo_power_hold">Зажатие кнопки выключения</string>
+    <string name="combo_power_vol_down">Выключение + Тише</string>
+    <string name="combo_power_vol_up">Выключение + Громче</string>
+    <string name="combo_vol_down_long">Долгое зажатие Тише</string>
+    <string name="combo_vol_up_long">Долгое зажатие Громче</string>
+    <string name="default_home_screen">Рабочий стол по умолчанию</string>
+    <string name="default_icon_pack">Стандартные иконки</string>
+    <string name="hidden_apps">Скрытые приложения</string>
+    <string name="hide_selected_apps">Скрыть выбранные приложения</string>
+    <string name="icon_pack">Набор иконок</string>
+    <string name="key_configuration">Комбинации клавиш</string>
+    <string name="launch">ЗАПУСТИТЬ</string>
+    <string name="package_name">com.example.android</string>
+    <string name="press_key_to_enable">Нажмите настроенную комбинацию для включения</string>
+    <string name="search">ПОИСК</string>
+    <string name="select_all">ВЫБРАТЬ ВСЕ</string>
+    <string name="settings">НАСТРОЙКИ</string>
+    <string name="show_hidden_apps">Показать скрытые приложения</string>
+    <string name="toggle_visibility_key">Активация/деактивация режима</string>
+    <string name="touch_screen_disabled">Сенсорный экран отключен</string>
+    <style name="AccentTitleText">
+        <item name="android:textColor">@color/accent_yellow</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="BodyText">
+        <item name="android:textColor">@color/text_white</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+    <style name="BottomSheetDialogTheme" parent="Theme.MaterialComponents.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.5</item>
+        <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
+    </style>
+    <style name="BottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet">
+        <item name="backgroundTint">@android:color/transparent</item>
+    </style>
+    <style name="SecondaryText">
+        <item name="android:textColor">@color/text_gray</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="SettingsCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/item_background</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+    <style name="SwitchTheme" parent="Theme.AppCompat.Light">
+        <item name="colorControlActivated">@color/accent_yellow</item>
+        <item name="colorSwitchThumbNormal">@color/text_gray</item>
+        <item name="android:colorForeground">@color/text_gray</item>
+    </style>
+    <style name="Theme.CustomLauncher" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/background_dark</item>
+        <item name="colorPrimaryVariant">@color/background_dark</item>
+        <item name="colorOnPrimary">@color/text_white</item>
+        <item name="colorSecondary">@color/accent_yellow</item>
+        <item name="colorSecondaryVariant">@color/accent_yellow</item>
+        <item name="colorOnSecondary">@color/background_dark</item>
+        <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="android:navigationBarColor">@color/background_dark</item>
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:textColorPrimary">@color/text_white</item>
+        <item name="android:textColorSecondary">@color/text_gray</item>
+    </style>
+    <style name="Theme.CustomLauncher.HomeScreen" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:fitsSystemWindows">false</item>
+    </style>
+    <style name="Theme.CustomLauncher.Transparent" parent="Theme.CustomLauncher">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+    <style name="TitleText">
+        <item name="android:textColor">@color/text_white</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="YellowButton" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/accent_yellow</item>
+        <item name="android:textColor">@color/background_dark</item>
+        <item name="cornerRadius">28dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>
