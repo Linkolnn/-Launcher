@@ -870,7 +870,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Скрывает приложения в меню приложений при активации скрытого режима"
+                            android:text="Скрывает приложения при активации скрытого режима"
                             android:textColor="@color/text_gray"
                             android:textSize="12sp"
                             android:layout_marginTop="4dp" />
@@ -1055,6 +1055,49 @@
                     android:textColor="@color/text_gray"
                     android:textSize="12sp"
                     android:layout_marginTop="8dp" />
+            </LinearLayout>
+            
+            <!-- Donate Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_settings_section_30"
+                android:padding="16dp"
+                android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ссылка на донат"
+                    android:textColor="@color/text_white"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/mal6lampen"
+                    android:layout_marginBottom="12dp" />
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Кому несложно кинуть копеечку"
+                    android:textColor="@color/text_white"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="16dp" />
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/donateButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="ПОДДЕРЖАТЬ"
+                    android:textColor="@color/background_dark"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/mal6lampen"
+                    app:icon="@drawable/ic_heart_donate"
+                    app:iconSize="20dp"
+                    app:iconTint="@color/background_dark"
+                    app:iconGravity="textStart"
+                    app:backgroundTint="@color/accent_yellow"
+                    app:cornerRadius="24dp" />
             </LinearLayout>
             
             <!-- Permissions Section -->

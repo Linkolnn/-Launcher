@@ -3142,6 +3142,7 @@ drawable ic_clock
 drawable ic_clock_black_24dp
 drawable ic_close
 drawable ic_copy
+drawable ic_heart_donate
 drawable ic_keyboard_black_24dp
 drawable ic_launcher_foreground
 drawable ic_lock
@@ -3455,6 +3456,7 @@ id dndPermissionButton
 id dndStatusIcon
 id dndStatusText
 id dndSwitch
+id donateButton
 id dragAnticlockwise
 id dragClockwise
 id dragDown

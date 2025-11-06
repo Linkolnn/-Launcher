@@ -72,6 +72,7 @@ drawable ic_clear
 drawable ic_clock
 drawable ic_close
 drawable ic_copy
+drawable ic_heart_donate
 drawable ic_launcher_foreground
 drawable ic_lock
 drawable ic_menu_apps
@@ -141,6 +142,7 @@ id dndPermissionButton
 id dndStatusIcon
 id dndStatusText
 id dndSwitch
+id donateButton
 id dragHandle
 id grid3Columns
 id grid4Columns

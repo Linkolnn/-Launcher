@@ -62,6 +62,7 @@ class SettingsActivity : AppCompatActivity() {
         setupIconPacks()  // Setup icon pack selector
         setupHomeScreenSelector()
         setupPermissionsSection()
+        setupDonateSection()  // Setup donate button
         setupAppVersion()
         
         // Check all permissions and auto-scroll if needed
@@ -1057,6 +1058,21 @@ class SettingsActivity : AppCompatActivity() {
             REQUEST_CODE_ACCESSIBILITY -> {
                 // Recheck permissions after returning from settings
                 checkAllPermissions()
+            }
+        }
+    }
+    
+    private fun setupDonateSection() {
+        // Setup donate button click
+        binding.donateButton.setOnClickListener {
+            try {
+                // SBP payment link
+                val sbpUrl = "https://finance.ozon.ru/apps/sbp/ozonbankpay/019a5a84-36a3-7a07-aa7c-a26f247a82f7"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(sbpUrl))
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open donate link", e)
+                Toast.makeText(this, "Не удалось открыть ссылку для доната", Toast.LENGTH_SHORT).show()
             }
         }
     }
