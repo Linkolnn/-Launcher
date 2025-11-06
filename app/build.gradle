@@ -21,10 +21,22 @@ android {
         multiDexEnabled true
     }
 
+    signingConfigs {
+        debug {
+            // Using default debug keystore
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug // Use debug key for testing
+            applicationVariants.all { variant ->
+                variant.outputs.all {
+                    outputFileName = "ИLauncher.apk"
+                }
+            }
         }
         debug {
             applicationVariants.all { variant ->
