@@ -8,8 +8,7 @@
     buildFolder="build"
     bootClassPath="/opt/android-sdk/platforms/android-34/android.jar:/opt/android-sdk/build-tools/33.0.1/core-lambda-stubs.jar"
     javaSourceLevel="17"
-    compileTarget="android-34"
-    neverShrinking="true">
+    compileTarget="android-34">
   <lintOptions
       abortOnError="true"
       absolutePaths="true"

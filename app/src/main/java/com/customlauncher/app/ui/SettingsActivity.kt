@@ -491,8 +491,17 @@ class SettingsActivity : AppCompatActivity() {
                 
                 Toast.makeText(this, "Настройки сетки сохранены: ${columns}×${rows}", Toast.LENGTH_SHORT).show()
                 
-                // Notify home screen about the change
-                sendBroadcast(Intent("com.customlauncher.GRID_CONFIG_CHANGED"))
+                // Notify home screen about the change immediately
+                // The broadcast will be received by HomeScreenActivity if it's running
+                // Otherwise changes will be applied on next onResume
+                sendBroadcast(Intent("com.customlauncher.GRID_CONFIG_CHANGED").apply {
+                    putExtra("immediate_update", true)
+                    putExtra("columns", columns)
+                    putExtra("rows", rows)
+                })
+                
+                // Mark that grid needs update for next HomeScreen visit
+                preferences.gridNeedsUpdate = true
             }
         )
         

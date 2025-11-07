@@ -227,6 +227,10 @@ class LauncherPreferences(context: Context) {
         get() = prefs.getInt(KEY_HOME_SCREEN_MODE, 0) // Default to TOUCH mode
         set(value) = prefs.edit().putInt(KEY_HOME_SCREEN_MODE, value).apply()
     
+    var gridNeedsUpdate: Boolean
+        get() = prefs.getBoolean(KEY_GRID_NEEDS_UPDATE, false)
+        set(value) = prefs.edit().putBoolean(KEY_GRID_NEEDS_UPDATE, value).apply()
+    
     companion object {
         private const val PREFS_NAME = "launcher_preferences"
         private const val KEY_APPS_HIDDEN = "apps_hidden"
@@ -257,5 +261,6 @@ class LauncherPreferences(context: Context) {
         private const val KEY_HOME_SCREEN_GRID_COLUMNS_BUTTON = "home_screen_grid_columns_button"
         private const val KEY_HOME_SCREEN_GRID_ROWS_BUTTON = "home_screen_grid_rows_button"
         private const val KEY_HOME_SCREEN_MODE = "home_screen_mode"
+        private const val KEY_GRID_NEEDS_UPDATE = "grid_needs_update"
     }
 }

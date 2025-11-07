@@ -72,10 +72,17 @@ class HomeScreenActivity : AppCompatActivity() {
     private var previousHiddenState: Boolean? = null // Flag to prevent concurrent loading
     private var currentPopupWindow: PopupWindow? = null
     private var lastPackageChangeTime = 0L
-    private var lastShowHomeScreen = false
+    private var lastShowHomeScreen: Boolean? = null
     private var lastHiddenState: Boolean? = null
     private var lastUpdateTime = 0L
     private var isAppDrawerOpen = false // Prevent multiple drawer instances
+    
+    // Track settings for change detection
+    private var lastGridColumnCount: Int = 0
+    private var lastButtonPhoneMode: Boolean? = null
+    private var lastShowAppLabels: Boolean? = null
+    private var lastIconPack: String? = null
+    private var lastHiddenAppsCount: Int = -1
     private var lastDrawerOpenTime = 0L // For debouncing drawer opening
     private val preferences by lazy { LauncherApplication.instance.preferences }
     
@@ -170,7 +177,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 val showHomeScreen = preferences.showHomeScreen
                 Log.d(TAG, "Home screen visibility changed: $showHomeScreen")
                 
-                if (showHomeScreen && lastShowHomeScreen == false) {
+                if (showHomeScreen && lastShowHomeScreen != null && lastShowHomeScreen == false) {
                     // Home screen was re-enabled, reload everything
                     Log.d(TAG, "Home screen re-enabled via settings, reloading...")
                     binding.gridContainer.visibility = View.VISIBLE
@@ -194,7 +201,7 @@ class HomeScreenActivity : AppCompatActivity() {
                             updateVisibility()
                         }
                     }
-                } else if (!showHomeScreen && lastShowHomeScreen == true) {
+                } else if (!showHomeScreen && lastShowHomeScreen != null && lastShowHomeScreen == true) {
                     // Home screen was disabled
                     Log.d(TAG, "Home screen disabled via settings")
                     binding.gridContainer.visibility = View.GONE
@@ -272,9 +279,6 @@ class HomeScreenActivity : AppCompatActivity() {
         
         // Initialize mode manager
         modeManager = HomeScreenModeManager(this)
-        
-        // Initialize last known home screen state
-        lastShowHomeScreen = preferences.showHomeScreen
         
         // Setup transparent background
         setupTransparentBackground()
@@ -1909,6 +1913,26 @@ class HomeScreenActivity : AppCompatActivity() {
             isAppDrawerOpen = false
         }
         
+        // Check if grid needs immediate update from settings dialog
+        if (preferences.gridNeedsUpdate) {
+            Log.d(TAG, "Grid needs update from settings dialog")
+            preferences.gridNeedsUpdate = false // Reset flag
+            
+            // Recreate UI with new grid configuration
+            setupUI()
+            // Load items after UI settles
+            lifecycleScope.launch {
+                delay(100)
+                withContext(Dispatchers.Main) {
+                    loadHomeScreenItems()
+                }
+            }
+            return // Skip other checks
+        }
+        
+        // Check if any settings changed that affect display
+        val settingsChanges = checkIfSettingsChanged()
+        
         // Check if showHomeScreen setting changed
         val currentShowHomeScreen = preferences.showHomeScreen
         if (lastShowHomeScreen != null && lastShowHomeScreen != currentShowHomeScreen) {
@@ -1941,6 +1965,34 @@ class HomeScreenActivity : AppCompatActivity() {
             }
         }
         lastShowHomeScreen = currentShowHomeScreen
+        
+        // If any settings changed, reload the home screen
+        if (settingsChanges.hasChanges) {
+            Log.d(TAG, "Settings changed, reloading home screen")
+            
+            // Check what type of changes occurred
+            if (settingsChanges.gridChanged || settingsChanges.buttonModeChanged) {
+                Log.d(TAG, "Grid configuration or button mode changed, recreating UI")
+                // Recreate the entire UI with new grid configuration
+                setupUI()
+                // Then load items into the new grid after a short delay
+                lifecycleScope.launch {
+                    delay(100) // Small delay to let UI settle
+                    withContext(Dispatchers.Main) {
+                        loadHomeScreenItems()
+                    }
+                }
+            } else {
+                // For other changes (icon pack, labels, hidden apps), just reload items
+                Log.d(TAG, "Non-structural changes detected, reloading items only")
+                lifecycleScope.launch {
+                    withContext(Dispatchers.Main) {
+                        adapter.clearAllViews()
+                        loadHomeScreenItems()
+                    }
+                }
+            }
+        }
         
         // Refresh state
         updateVisibility()
@@ -2070,6 +2122,74 @@ class HomeScreenActivity : AppCompatActivity() {
         // This prevents double update
         
         Log.d(TAG, "✅ Hidden mode toggled from $currentState to $newState")
+    }
+    
+    data class SettingsChanges(
+        val hasChanges: Boolean = false,
+        val gridChanged: Boolean = false,
+        val buttonModeChanged: Boolean = false,
+        val labelsChanged: Boolean = false,
+        val iconPackChanged: Boolean = false,
+        val hiddenAppsChanged: Boolean = false
+    )
+    
+    private fun checkIfSettingsChanged(): SettingsChanges {
+        var gridChanged = false
+        var buttonModeChanged = false
+        var labelsChanged = false
+        var iconPackChanged = false
+        var hiddenAppsChanged = false
+        
+        // Check grid column count
+        val currentGridColumns = preferences.gridColumnCount
+        if (lastGridColumnCount != 0 && lastGridColumnCount != currentGridColumns) {
+            Log.d(TAG, "Grid columns changed: $lastGridColumnCount -> $currentGridColumns")
+            gridChanged = true
+        }
+        lastGridColumnCount = currentGridColumns
+        
+        // Check button phone mode
+        val currentButtonMode = preferences.buttonPhoneMode
+        if (lastButtonPhoneMode != null && lastButtonPhoneMode != currentButtonMode) {
+            Log.d(TAG, "Button phone mode changed: $lastButtonPhoneMode -> $currentButtonMode")
+            buttonModeChanged = true
+        }
+        lastButtonPhoneMode = currentButtonMode
+        
+        // Check show app labels
+        val currentShowLabels = preferences.showAppLabels
+        if (lastShowAppLabels != null && lastShowAppLabels != currentShowLabels) {
+            Log.d(TAG, "Show app labels changed: $lastShowAppLabels -> $currentShowLabels")
+            labelsChanged = true
+        }
+        lastShowAppLabels = currentShowLabels
+        
+        // Check icon pack
+        val currentIconPack = preferences.selectedIconPack
+        if (lastIconPack != null && lastIconPack != currentIconPack) {
+            Log.d(TAG, "Icon pack changed: $lastIconPack -> $currentIconPack")
+            iconPackChanged = true
+        }
+        lastIconPack = currentIconPack
+        
+        // Check hidden apps count
+        val currentHiddenAppsCount = preferences.getHiddenApps().size
+        if (lastHiddenAppsCount != -1 && lastHiddenAppsCount != currentHiddenAppsCount) {
+            Log.d(TAG, "Hidden apps count changed: $lastHiddenAppsCount -> $currentHiddenAppsCount")
+            hiddenAppsChanged = true
+        }
+        lastHiddenAppsCount = currentHiddenAppsCount
+        
+        val hasChanges = gridChanged || buttonModeChanged || labelsChanged || iconPackChanged || hiddenAppsChanged
+        
+        return SettingsChanges(
+            hasChanges = hasChanges,
+            gridChanged = gridChanged,
+            buttonModeChanged = buttonModeChanged,
+            labelsChanged = labelsChanged,
+            iconPackChanged = iconPackChanged,
+            hiddenAppsChanged = hiddenAppsChanged
+        )
     }
     
     override fun onDestroy() {

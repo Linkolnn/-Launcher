@@ -28,7 +28,42 @@
 # Keep data classes
 -keep class com.customlauncher.app.data.** { *; }
 
+# Keep service classes
+-keep class com.customlauncher.app.service.** { *; }
+
+# Keep broadcast receivers
+-keep class com.customlauncher.app.receiver.** { *; }
+
+# Keep activities
+-keep class com.customlauncher.app.ui.** extends android.app.Activity { *; }
+
+# Keep custom views
+-keep class com.customlauncher.app.ui.widget.** extends android.view.View { *; }
+-keep class com.customlauncher.app.ui.layout.** extends android.view.ViewGroup { *; }
+
 # Keep Parcelable implementations
 -keep class * implements android.os.Parcelable {
   public static final android.os.Parcelable$Creator *;
 }
+
+# Remove all logs in release builds for better performance and security
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int i(...);
+    public static int w(...);
+    public static int d(...);
+    public static int e(...);
+    public static int wtf(...);
+}
+
+# Keep line numbers for better crash reports (optional)
+-keepattributes SourceFile,LineNumberTable
+
+# Keep class names for better crash reports
+-keepattributes *Annotation*
+
+# Optimization for better performance
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
+-optimizationpasses 5
+-allowaccessmodification
