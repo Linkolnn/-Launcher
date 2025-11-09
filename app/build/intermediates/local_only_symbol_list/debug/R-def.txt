@@ -46,6 +46,7 @@ drawable bg_item_normal
 drawable bg_item_selector_button_mode
 drawable bg_keys_display
 drawable bg_menu_button
+drawable bg_phone_button
 drawable bg_radio_selector
 drawable bg_search_bar
 drawable bg_search_input
@@ -80,6 +81,8 @@ drawable ic_minus_button
 drawable ic_open_in_new
 drawable ic_page_apps
 drawable ic_page_apps_new
+drawable ic_phone_contacts
+drawable ic_phone_dialer
 drawable ic_plus_button
 drawable ic_search
 drawable ic_settings
@@ -119,6 +122,9 @@ id blockTouchSwitch
 id bottomBarContainer
 id buttonPhoneGridContent
 id buttonPhoneGridGroup
+id callButton
+id callIcon
+id callText
 id cancelButton
 id checkBox
 id checkIcon
@@ -129,6 +135,9 @@ id circleBackground
 id clearButton
 id clearSearchButton
 id closeAppsSwitch
+id contactsButton
+id contactsIcon
+id contactsText
 id copyAccessibilityButton
 id copyAdbLinkButton
 id copyAllCommandsButton
@@ -197,6 +206,10 @@ id overlayStatusIcon
 id overlayStatusText
 id packageName
 id permissionsSection
+id phoneButtonWidget
+id phoneButtonsContainer
+id phoneButtonsRow
+id phoneButtonsSwitch
 id placeholderText
 id previewContainer
 id recordKeysButton
@@ -269,6 +282,7 @@ layout item_icon_pack
 layout item_widget_picker
 layout item_widget_preview
 layout menu_button_widget
+layout phone_buttons_widget
 layout popup_app_menu
 layout popup_home_empty_menu
 layout popup_home_item_menu

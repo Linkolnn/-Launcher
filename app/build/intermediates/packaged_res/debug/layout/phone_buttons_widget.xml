@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/phoneButtonsContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    
+    <!-- Call Button (Left) -->
+    <LinearLayout
+        android:id="@+id/callButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="@drawable/bg_phone_button"
+        android:focusable="true"
+        android:clickable="true"
+        android:minWidth="90dp"
+        android:minHeight="48dp">
+        
+        <!-- Call icon -->
+        <ImageView
+            android:id="@+id/callIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_phone_dialer"
+            android:tint="@android:color/white" />
+        
+        <!-- Call text -->
+        <TextView
+            android:id="@+id/callText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Вызов"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:fontFamily="@font/lampen"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+    
+    <!-- Contacts Button (Right) -->
+    <LinearLayout
+        android:id="@+id/contactsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="@drawable/bg_phone_button"
+        android:focusable="true"
+        android:clickable="true"
+        android:minWidth="90dp"
+        android:minHeight="48dp">
+        
+        <!-- Contacts icon -->
+        <ImageView
+            android:id="@+id/contactsIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_phone_contacts"
+            android:tint="@android:color/white" />
+        
+        <!-- Contacts text -->
+        <TextView
+            android:id="@+id/contactsText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Контакты"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:fontFamily="@font/lampen"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+    
+</RelativeLayout>

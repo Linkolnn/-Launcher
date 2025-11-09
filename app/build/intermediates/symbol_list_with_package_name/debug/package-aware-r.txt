@@ -3093,6 +3093,7 @@ drawable bg_item_normal
 drawable bg_item_selector_button_mode
 drawable bg_keys_display
 drawable bg_menu_button
+drawable bg_phone_button
 drawable bg_radio_selector
 drawable bg_search_bar
 drawable bg_search_input
@@ -3158,6 +3159,8 @@ drawable ic_mtrl_chip_close_circle
 drawable ic_open_in_new
 drawable ic_page_apps
 drawable ic_page_apps_new
+drawable ic_phone_contacts
+drawable ic_phone_dialer
 drawable ic_plus_button
 drawable ic_search
 drawable ic_search_black_24
@@ -3375,7 +3378,10 @@ id buttonPanel
 id buttonPhoneGridContent
 id buttonPhoneGridGroup
 id cache_measures
+id callButton
+id callIcon
 id callMeasure
+id callText
 id cancelButton
 id cancel_button
 id carryVelocity
@@ -3409,6 +3415,9 @@ id collapseActionView
 id compress
 id confirm_button
 id constraint
+id contactsButton
+id contactsIcon
+id contactsText
 id container
 id content
 id contentPanel
@@ -3710,6 +3719,10 @@ id pathRelative
 id peekHeight
 id percent
 id permissionsSection
+id phoneButtonWidget
+id phoneButtonsContainer
+id phoneButtonsRow
+id phoneButtonsSwitch
 id pin
 id placeholderText
 id pooling_container_listener_holder_tag
@@ -4133,6 +4146,7 @@ layout notification_template_custom_big
 layout notification_template_icon_group
 layout notification_template_part_chronometer
 layout notification_template_part_time
+layout phone_buttons_widget
 layout popup_app_menu
 layout popup_home_empty_menu
 layout popup_home_item_menu

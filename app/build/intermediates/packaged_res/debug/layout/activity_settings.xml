@@ -357,6 +357,34 @@
                             android:textSize="14sp"
                             android:fontFamily="@font/lampen" />
                     </LinearLayout>
+                    
+                    <!-- Phone Buttons Toggle (visible only when menu button is selected) -->
+                    <LinearLayout
+                        android:id="@+id/phoneButtonsRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="8dp"
+                        android:visibility="gone">
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Кнопки Вызов, Контакты"
+                            android:textColor="@color/text_white"
+                            android:textSize="16sp"
+                            android:fontFamily="@font/lampen"
+                            android:lineSpacingExtra="10dp" />
+                        
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/phoneButtonsSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:theme="@style/SwitchTheme" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
             

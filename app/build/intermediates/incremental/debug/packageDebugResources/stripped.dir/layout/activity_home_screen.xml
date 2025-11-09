@@ -58,31 +58,42 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
         
-        <!-- Left side icons container -->
+        <!-- Buttons container with overlapping layout -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="60dp">
+            
+            <!-- Phone buttons widget (left and right) -->
+            <com.customlauncher.app.ui.widget.PhoneButtonWidget
+                android:id="@+id/phoneButtonWidget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+            
+            <!-- Menu button widget (center) -->
+            <com.customlauncher.app.ui.widget.MenuButtonWidget
+                android:id="@+id/menuButtonWidget"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+        </FrameLayout>
+        
+        <!-- Hidden spacers for compatibility -->
         <LinearLayout
             android:id="@+id/leftIconsContainer"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="0dp"
             android:orientation="horizontal"
-            android:gravity="end|center_vertical"
-            android:layout_marginEnd="8dp" />
-        
-        <!-- Menu button widget for button phone mode -->
-        <com.customlauncher.app.ui.widget.MenuButtonWidget
-            android:id="@+id/menuButtonWidget"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        
-        <!-- Right side icons container -->
+            android:visibility="gone" />
+            
         <LinearLayout
             android:id="@+id/rightIconsContainer"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_height="0dp"
             android:orientation="horizontal"
-            android:gravity="start|center_vertical"
-            android:layout_marginStart="8dp" />
+            android:visibility="gone" />
             
     </LinearLayout>
 

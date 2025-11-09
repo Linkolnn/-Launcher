@@ -347,6 +347,9 @@ class SettingsActivity : AppCompatActivity() {
         
         // Update menu access method display
         updateMenuAccessMethodDisplay()
+        
+        // Setup phone buttons toggle
+        setupPhoneButtons()
     }
     
     private fun selectHomeScreenTouchTab() {
@@ -417,14 +420,46 @@ class SettingsActivity : AppCompatActivity() {
     }
     
     private fun updateMenuAccessMethodDisplay() {
-        val method = preferences.menuAccessMethod
-        val displayText = when (method) {
+        val displayText = when (preferences.menuAccessMethod) {
             "dpad_down" -> "Навигация вниз"
             "button" -> "Кнопка меню"
             "gesture" -> "Жест смахивания"
             else -> "Навигация вниз"
         }
         binding.menuAccessMethodValue.text = displayText
+        
+        // Update phone buttons visibility
+        updatePhoneButtonsVisibility()
+    }
+    
+    private fun setupPhoneButtons() {
+        // Set initial state
+        binding.phoneButtonsSwitch.isChecked = preferences.showPhoneButtons
+        updatePhoneButtonsVisibility()
+        
+        // Setup switch listener
+        binding.phoneButtonsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            preferences.showPhoneButtons = isChecked
+            
+            // Send broadcast to update home screen
+            sendBroadcast(Intent("com.customlauncher.PHONE_BUTTONS_CHANGED"))
+            
+            Toast.makeText(this, 
+                if (isChecked) "Кнопки телефона включены" else "Кнопки телефона отключены",
+                Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun updatePhoneButtonsVisibility() {
+        // Show phone buttons toggle only when button mode is selected and menu button is chosen
+        val isButtonMode = homeScreenModeManager.getCurrentMode() == HomeScreenModeManager.MODE_BUTTON
+        val isMenuButtonSelected = preferences.menuAccessMethod == "button"
+        
+        binding.phoneButtonsRow.visibility = if (isButtonMode && isMenuButtonSelected) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
     }
     
     private fun showMenuAccessMethodDialog() {
@@ -450,6 +485,13 @@ class SettingsActivity : AppCompatActivity() {
                 val intent = Intent("com.customlauncher.MENU_METHOD_CHANGED")
                 intent.putExtra("method", values[selectedIndex])
                 sendBroadcast(intent)
+                
+                // If switching away from button method, disable phone buttons
+                if (values[selectedIndex] != "button" && preferences.showPhoneButtons) {
+                    preferences.showPhoneButtons = false
+                    binding.phoneButtonsSwitch.isChecked = false
+                    sendBroadcast(Intent("com.customlauncher.PHONE_BUTTONS_CHANGED"))
+                }
                 
                 Toast.makeText(this, "Способ доступа к меню изменен", Toast.LENGTH_SHORT).show()
             }

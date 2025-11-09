@@ -49,6 +49,7 @@ import com.customlauncher.app.data.model.HomeItemModel
 import com.customlauncher.app.ui.dragdrop.DragDropManager
 import com.customlauncher.app.ui.widget.WidgetResizeManager
 import com.customlauncher.app.ui.widget.MenuButtonWidget
+import com.customlauncher.app.ui.widget.PhoneButtonWidget
 import com.customlauncher.app.utils.IconCache
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -166,6 +167,16 @@ class HomeScreenActivity : AppCompatActivity() {
             if (intent?.action == "com.customlauncher.MENU_METHOD_CHANGED") {
                 Log.d(TAG, "Menu access method changed")
                 updateMenuButtonVisibility()
+            }
+        }
+    }
+    
+    // BroadcastReceiver for phone buttons changes
+    private val phoneButtonsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.customlauncher.PHONE_BUTTONS_CHANGED") {
+                Log.d(TAG, "Phone buttons setting changed")
+                updatePhoneButtonsVisibility()
             }
         }
     }
@@ -297,6 +308,16 @@ class HomeScreenActivity : AppCompatActivity() {
         
         // Check if this is the first launch as system launcher
         handleSystemLauncherMode()
+        
+        // Initial load of items after UI setup - important for first launch
+        // This ensures items are loaded even if user doesn't configure grid
+        lifecycleScope.launch {
+            delay(100) // Small delay to let UI settle
+            withContext(Dispatchers.Main) {
+                Log.d(TAG, "Initial load of home screen items after UI setup")
+                updateVisibility() // This will also call loadHomeScreenItems
+            }
+        }
         
         // Check if home screen is disabled and show apps menu directly
         if (!preferences.showHomeScreen && !isDefaultLauncher()) {
@@ -538,7 +559,7 @@ class HomeScreenActivity : AppCompatActivity() {
                                 openAppDrawer()
                             }
                             "button", "gesture" -> {
-                                // Focus on menu button if visible
+                                // Always navigate to menu button in center if it's visible
                                 if (binding.menuButtonWidget.shouldBeVisible()) {
                                     Log.d(TAG, "Navigating to menu button")
                                     // Clear grid focus
@@ -567,6 +588,9 @@ class HomeScreenActivity : AppCompatActivity() {
             
             // Setup menu button for button mode  
             setupMenuButton()
+            
+            // Setup phone buttons for button mode
+            setupPhoneButtons()
             
             // Initialize default items if first run, then load items
             lifecycleScope.launch {
@@ -640,6 +664,16 @@ class HomeScreenActivity : AppCompatActivity() {
             registerReceiver(menuMethodChangeReceiver, menuMethodFilter, 2) // RECEIVER_NOT_EXPORTED = 2
         } else {
             registerReceiver(menuMethodChangeReceiver, menuMethodFilter)
+        }
+        
+        // Register phone buttons change receiver
+        val phoneButtonsFilter = IntentFilter("com.customlauncher.PHONE_BUTTONS_CHANGED")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(phoneButtonsReceiver, phoneButtonsFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            registerReceiver(phoneButtonsReceiver, phoneButtonsFilter, 2) // RECEIVER_NOT_EXPORTED = 2
+        } else {
+            registerReceiver(phoneButtonsReceiver, phoneButtonsFilter)
         }
         
         // Register home screen visibility receiver
@@ -765,8 +799,13 @@ class HomeScreenActivity : AppCompatActivity() {
             openAppDrawer()
         }
         
-        // Initial setup based on current mode
+        // Initial visibility update
         updateMenuButtonVisibility()
+    }
+    
+    private fun setupPhoneButtons() {
+        // Initial visibility update
+        updatePhoneButtonsVisibility()
     }
     
     private fun updateMenuButtonVisibility() {
@@ -779,6 +818,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 // Show bottom bar with menu button
                 binding.bottomBarContainer.visibility = View.VISIBLE
                 binding.menuButtonWidget.updateVisibility()
+                updatePhoneButtonsVisibility() // Also update phone buttons
                 Log.d(TAG, "Bottom bar visible with menu button")
             } else {
                 // Hide bottom bar, grid takes full height
@@ -794,6 +834,10 @@ class HomeScreenActivity : AppCompatActivity() {
             // Request layout to update constraints
             binding.gridContainer.requestLayout()
         }
+    }
+    
+    private fun updatePhoneButtonsVisibility() {
+        binding.phoneButtonWidget.updateVisibility()
     }
     
     private fun updateVisibility(isHidden: Boolean? = null) {
@@ -813,6 +857,12 @@ class HomeScreenActivity : AppCompatActivity() {
         
         // Log for debugging
         Log.d(TAG, "updateVisibility: new state = $currentHiddenState")
+        
+        // Ensure adapter is initialized before trying to update
+        if (!::adapter.isInitialized) {
+            Log.w(TAG, "Adapter not initialized, initializing UI first")
+            setupUI()
+        }
         
         lifecycleScope.launch {
             val hideApps = preferences.hideAppsInHiddenMode
@@ -1833,6 +1883,36 @@ class HomeScreenActivity : AppCompatActivity() {
         
         // Handle D-pad navigation in button mode
         if (modeManager.isButtonMode() && event != null) {
+            // Check if phone buttons have focus
+            if (binding.phoneButtonWidget.hasFocus()) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        // Navigate back to grid from phone buttons
+                        Log.d(TAG, "Navigating from phone buttons back to grid")
+                        binding.phoneButtonWidget.clearAllFocus()
+                        // Focus on last item in bottom row
+                        val items = focusManager.items
+                        if (items.isNotEmpty()) {
+                            val bottomItems = items.filter { it.cellY == items.maxOf { item -> item.cellY } }
+                            val leftItem = bottomItems.minByOrNull { it.cellX }
+                            leftItem?.let {
+                                val position = items.indexOf(it)
+                                focusManager.setFocusPosition(position)
+                            }
+                        }
+                        return true
+                    }
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        // Navigate to menu button if visible
+                        if (binding.menuButtonWidget.visibility == View.VISIBLE) {
+                            binding.phoneButtonWidget.clearAllFocus()
+                            binding.menuButtonWidget.requestButtonFocus()
+                            return true
+                        }
+                    }
+                }
+            }
+            
             // Check if menu button has focus
             if (binding.menuButtonWidget.hasFocus()) {
                 when (keyCode) {
@@ -1853,6 +1933,22 @@ class HomeScreenActivity : AppCompatActivity() {
                             }
                         }
                         return true
+                    }
+                    KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        // Navigate to call button (left) if visible
+                        if (binding.phoneButtonWidget.visibility == View.VISIBLE) {
+                            binding.menuButtonWidget.clearButtonFocus()
+                            binding.phoneButtonWidget.requestCallButtonFocus()
+                            return true
+                        }
+                    }
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        // Navigate to contacts button (right) if visible
+                        if (binding.phoneButtonWidget.visibility == View.VISIBLE) {
+                            binding.menuButtonWidget.clearButtonFocus()
+                            binding.phoneButtonWidget.requestContactsButtonFocus()
+                            return true
+                        }
                     }
                     KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
                         // Open menu
@@ -2224,6 +2320,12 @@ class HomeScreenActivity : AppCompatActivity() {
             unregisterReceiver(menuMethodChangeReceiver)
         } catch (e: Exception) {
             Log.d(TAG, "Menu method change receiver already unregistered")
+        }
+        
+        try {
+            unregisterReceiver(phoneButtonsReceiver)
+        } catch (e: Exception) {
+            Log.d(TAG, "Phone buttons receiver already unregistered")
         }
         
         try {
